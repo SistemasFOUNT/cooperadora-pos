@@ -47,7 +47,17 @@ Sistema de punto de venta integral para la gestión de ventas, inventario, estud
 ## ⚡ Instalación
 
 ### 1. Clonar Repositorio
+## 🚀 Instalación por Entorno
 
+### 🖥️ Desarrollo en Windows
+
+#### Instalación Rápida
+```cmd
+# Usar el script automatizado
+setup-windows.bat
+```
+
+#### Instalación Manual
 ```bash
 git clone https://github.com/tu-usuario/sistema-pos-cooperadora.git
 cd sistema-pos-cooperadora
@@ -55,18 +65,75 @@ cd sistema-pos-cooperadora
 
 ### 2. Configurar Dependencias
 
-```bash
+```cmd
 composer install
+npm install
 ```
 
 ### 3. Configurar Entorno
 
-```bash
-cp .env.example .env
+```cmd
+copy .env.example .env
 php artisan key:generate
 ```
 
-### 4. Configurar Base de Datos
+### 4. Configurar Base de Datos PostgreSQL
+
+```sql
+-- En PostgreSQL (pgAdmin o línea de comandos)
+CREATE DATABASE cooperadora_pos;
+CREATE USER cooperadora_user WITH PASSWORD 'tu_password';
+GRANT ALL PRIVILEGES ON DATABASE cooperadora_pos TO cooperadora_user;
+```
+
+```cmd
+# Editar .env con la configuración de BD
+# Luego ejecutar migraciones
+php artisan migrate:fresh --seed
+
+# Iniciar servidor de desarrollo
+php artisan serve
+```
+
+### 🐧 Producción en Ubuntu
+
+Ver documentación detallada en [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md)
+
+```bash
+# Deployment automático con CI/CD (recomendado)
+git push origin main
+
+# O deployment manual
+./deployment/deploy.sh production
+```
+
+### 📋 Documentación Adicional
+
+- 📖 [DESARROLLO-WINDOWS.md](DESARROLLO-WINDOWS.md) - Guía específica para Windows
+- 🚀 [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md) - Guía de deployment Ubuntu
+- 🔄 [ENTORNOS-DIFERENCIAS.md](ENTORNOS-DIFERENCIAS.md) - Diferencias entre entornos
+
+## 🔧 Configuración por Entorno
+
+### Desarrollo (Windows)
+```env
+APP_ENV=local
+APP_DEBUG=true
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+SESSION_DRIVER=file
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+```
+
+### Producción (Ubuntu)
+```env
+APP_ENV=production
+APP_DEBUG=false
+SESSION_DRIVER=database
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+```
 
 Editar `.env`:
 
