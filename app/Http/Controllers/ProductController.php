@@ -21,22 +21,9 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::query();
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('code', 'LIKE', "%{$search}%")
-                  ->orWhere('barcode', 'LIKE', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-
-        $products = $query->orderBy('name')->paginate(20);
+        // Para DataTables, obtenemos todos los productos sin paginación
+        // DataTables manejará la paginación, búsqueda y ordenamiento del lado del cliente
+        $products = Product::orderBy('name')->get();
 
         return view('products.index', compact('products'));
     }
@@ -96,5 +83,24 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Producto desactivado exitosamente.');
+    }
+
+    /**
+     * Search products for POS
+     */
+    public function search(Request $request)
+    {
+        $search = $request->get('search', '');
+
+        $products = Product::where('is_active', true)
+            ->where(function($query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%")
+                      ->orWhere('code', 'LIKE', "%{$search}%")
+                      ->orWhere('description', 'LIKE', "%{$search}%");
+            })
+            ->limit(20)
+            ->get();
+
+        return response()->json($products);
     }
 }

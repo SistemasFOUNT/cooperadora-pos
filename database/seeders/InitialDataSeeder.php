@@ -143,6 +143,7 @@ class InitialDataSeeder extends Seeder
         // Crear usuario administrador
         $admin = User::create([
             'name' => 'Administrador Sistema',
+            'username' => 'admin',
             'email' => 'admin@cooperadora.edu.ar',
             'password' => Hash::make('admin123'),
             'branch_id' => $cooperadora->id,

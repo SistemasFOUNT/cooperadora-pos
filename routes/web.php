@@ -1,39 +1,42 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SaleController;
-use App\Http\Controllers\CashController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('pos.index');
+    return redirect()->route('login');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::get('/dashboard', function () {
+    return redirect()->route('pos.index');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
     // POS Routes
-    Route::prefix('pos')->name('pos.')->group(function () {
-        Route::get('/', [PosController::class, 'index'])->name('index');
-        Route::get('/search-products', [PosController::class, 'searchProducts'])->name('search.products');
-        Route::get('/search-student', [PosController::class, 'searchStudent'])->name('search.student');
-        Route::post('/process-sale', [PosController::class, 'processSale'])->name('process.sale');
-    });
-
-    // Products Routes
-    Route::resource('products', ProductController::class);
-
-    // Students Routes
-    Route::resource('students', StudentController::class);
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::get('/pos/search/products', [ProductController::class, 'search'])->name('pos.search.products');
+    Route::get('/pos/search/student', [StudentController::class, 'search'])->name('pos.search.student');
+    Route::post('/pos/process/sale', [SaleController::class, 'store'])->name('pos.process.sale');
 
     // Sales Routes
-    Route::resource('sales', SaleController::class);
+    Route::post('/pos/sales', [SaleController::class, 'store'])->name('pos.sales.store');
 
-    // Cash Management Routes
-    Route::prefix('cash')->name('cash.')->group(function () {
-        Route::get('/', [CashController::class, 'index'])->name('index');
-        Route::post('/open', [CashController::class, 'open'])->name('open');
-        Route::post('/close', [CashController::class, 'close'])->name('close');
-        Route::get('/movements', [CashController::class, 'movements'])->name('movements');
-    });
+    // Product Routes
+    Route::resource('products', ProductController::class);
+    Route::get('/api/products/search', [ProductController::class, 'search'])->name('products.search');
+
+    // Student Routes
+    Route::resource('students', StudentController::class);
+    Route::get('/api/students/search', [StudentController::class, 'search'])->name('students.search');
+
+    // Profile Routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+require __DIR__.'/auth.php';

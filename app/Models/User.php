@@ -24,6 +24,7 @@ class User extends Authenticatable implements Auditable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'branch_id',
@@ -31,6 +32,18 @@ class User extends Authenticatable implements Auditable
         'status',
         'preferences',
     ];
+
+    // Eliminar getAuthIdentifierName para que use el ID por defecto
+
+    /**
+     * Get the password for the user.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->password;
+    }
 
     /**
      * The attributes that should be hidden for serialization.

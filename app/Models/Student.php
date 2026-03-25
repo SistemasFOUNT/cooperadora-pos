@@ -28,6 +28,7 @@ class Student extends Model implements Auditable
         'fee_amount',
         'enrollment_date',
         'status',
+        'is_active',
         'additional_data',
     ];
 
@@ -35,6 +36,7 @@ class Student extends Model implements Auditable
         'enrollment_date' => 'date',
         'fee_amount' => 'decimal:2',
         'academic_year' => 'integer',
+        'is_active' => 'boolean',
         'additional_data' => 'array',
     ];
 
@@ -47,11 +49,19 @@ class Student extends Model implements Auditable
     }
 
     /**
-     * Scope para estudiantes activos
+     * Scope para estudiantes activos (usando is_active)
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope para estudiantes por status
+     */
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
     }
 
     /**

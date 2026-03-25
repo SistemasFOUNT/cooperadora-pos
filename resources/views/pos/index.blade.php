@@ -1,145 +1,145 @@
 @extends('layouts.app')
 
 @section('title', 'Punto de Venta')
+@section('page-title', 'Punto de Venta')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <!-- Products Section -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-box me-2"></i> Productos</h5>
-                    <div class="d-flex gap-2">
-                        <input type="text" class="form-control" id="searchProduct" placeholder="Buscar producto o código...">
-                        <button class="btn btn-outline-primary" type="button">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body" style="height: 400px; overflow-y: auto;">
-                    <div class="row" id="productsGrid">
-                        @foreach($products as $product)
-                            <div class="col-md-3 col-sm-4 col-6 mb-3">
-                                <div class="pos-item p-3 rounded text-center h-100 d-flex flex-column"
-                                     onclick="addToCart({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', {{ $product->price }}, {{ $product->stock }}, {{ $product->track_stock ? 'true' : 'false' }})">
-                                    <div class="mb-2">
-                                        <i class="fas fa-cube fa-2x text-primary"></i>
-                                    </div>
-                                    <h6 class="fw-bold">{{ $product->name }}</h6>
-                                    <p class="text-muted small mb-2">{{ $product->code }}</p>
-                                    <div class="mt-auto">
-                                        <div class="fw-bold text-success">${{ number_format($product->price, 2) }}</div>
-                                        @if($product->track_stock)
-                                            <small class="text-muted">Stock: {{ $product->stock }}</small>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <!-- Student Search -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i> Buscar Estudiante (Opcional)</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <input type="text" class="form-control" id="searchStudent" placeholder="Número de estudiante o documento...">
-                        </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-outline-info w-100" onclick="searchStudent()">
-                                <i class="fas fa-search me-2"></i> Buscar
-                            </button>
-                        </div>
-                    </div>
-                    <div id="studentInfo" class="mt-3" style="display: none;">
-                        <div class="alert alert-info">
-                            <strong id="studentName"></strong><br>
-                            <small id="studentDetails"></small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cart Section -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i> Carrito</h5>
-                    <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">
-                        <i class="fas fa-trash"></i> Limpiar
+<div class="row">
+    <!-- Panel de Productos -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-search me-2"></i>Buscar Productos
+                    </h5>
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Nuevo Producto
                     </button>
                 </div>
-                <div class="card-body" style="height: 300px; overflow-y: auto;">
-                    <div id="cartItems">
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-cart-plus fa-3x mb-3"></i>
-                            <p>Agrega productos al carrito</p>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchProduct" 
+                                   placeholder="Buscar por nombre, código o descripción...">
                         </div>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="row mb-2">
-                        <div class="col-6">Subtotal:</div>
-                        <div class="col-6 text-end fw-bold" id="subtotal">$0.00</div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-6">IVA (21%):</div>
-                        <div class="col-6 text-end" id="tax">$0.00</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6"><strong>Total:</strong></div>
-                        <div class="col-6 text-end fw-bold text-success fs-5" id="total">$0.00</div>
-                    </div>
-
-                    <!-- Payment Method -->
-                    <div class="mb-3">
-                        <label class="form-label">Método de Pago:</label>
-                        <select class="form-select" id="paymentMethod">
-                            @foreach($paymentMethods as $method)
-                                <option value="{{ $method->id }}">{{ $method->name }}</option>
-                            @endforeach
+                    <div class="col-md-4">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">Todas las categorías</option>
+                            <option value="laboratorio">Laboratorio</option>
+                            <option value="tratamiento">Tratamiento</option>
+                            <option value="aranceles">Aranceles</option>
                         </select>
                     </div>
-
-                    <button class="btn btn-success btn-pos w-100" onclick="processSale()" id="btnProcessSale" disabled>
-                        <i class="fas fa-credit-card me-2"></i> Procesar Venta
-                    </button>
+                </div>
+                
+                <div class="row" id="productsList">
+                    @foreach($products as $product)
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+                        <div class="card h-100 product-card" style="cursor: pointer;" 
+                             onclick="addToCart({{ $product->id }}, '{{ $product->name }}', {{ $product->price }})">
+                            <div class="card-body text-center p-3">
+                                <div class="mb-2">
+                                    <i class="fas fa-box-open fa-2x text-primary"></i>
+                                </div>
+                                <h6 class="card-title">{{ $product->name }}</h6>
+                                <p class="card-text text-muted small">{{ Str::limit($product->description, 50) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-secondary">{{ strtoupper($product->category) }}</span>
+                                    <strong class="text-success">${{ number_format($product->price, 2) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Sale Success Modal -->
-<div class="modal fade" id="saleSuccessModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-check-circle me-2"></i> Venta Exitosa
+    <!-- Panel del Carrito -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shopping-cart me-2"></i>Carrito de Compras
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
+            <div class="card-body">
+                <!-- Búsqueda de Estudiante -->
                 <div class="mb-3">
-                    <i class="fas fa-receipt fa-4x text-success"></i>
+                    <label class="form-label fw-bold">Cliente/Estudiante</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchStudent" 
+                               placeholder="Buscar estudiante...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </div>
+                    <div id="selectedStudent" class="mt-2" style="display: none;">
+                        <div class="alert alert-info py-2 mb-0">
+                            <i class="fas fa-user me-1"></i>
+                            <span id="studentInfo"></span>
+                            <button type="button" class="btn-close float-end" onclick="clearStudent()"></button>
+                        </div>
+                    </div>
                 </div>
-                <h6>Venta procesada exitosamente</h6>
-                <p>Número de venta: <strong id="saleNumber"></strong></p>
-                <p>Total: <strong id="saleTotal"></strong></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="printReceipt()">
-                    <i class="fas fa-print me-2"></i> Imprimir Recibo
-                </button>
+
+                <!-- Items del Carrito -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Productos</label>
+                    <div id="cartItems" class="border rounded p-2" style="min-height: 150px; max-height: 300px; overflow-y: auto;">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-cart-plus fa-3x mb-2"></i>
+                            <p>Agrega productos al carrito</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="mb-3">
+                    <div class="bg-light rounded p-3">
+                        <div class="row">
+                            <div class="col-6"><strong>Subtotal:</strong></div>
+                            <div class="col-6 text-end">$<span id="subtotal">0.00</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6"><strong>IVA (21%):</strong></div>
+                            <div class="col-6 text-end">$<span id="tax">0.00</span></div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row">
+                            <div class="col-6"><strong class="text-success">TOTAL:</strong></div>
+                            <div class="col-6 text-end"><strong class="text-success fs-5">$<span id="total">0.00</span></strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Método de Pago -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Método de Pago</label>
+                    <select class="form-select" id="paymentMethod">
+                        @foreach($paymentMethods as $method)
+                        <option value="{{ $method->id }}">{{ $method->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success btn-lg" id="processPayment" onclick="processSale()">
+                        <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="clearCart()">
+                        <i class="fas fa-trash me-2"></i>Limpiar Carrito
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -151,7 +151,7 @@
 let cart = [];
 let selectedStudent = null;
 
-// Search products
+// Búsqueda de productos
 $('#searchProduct').on('input', function() {
     let search = $(this).val();
     if (search.length >= 2) {
@@ -164,69 +164,45 @@ $('#searchProduct').on('input', function() {
 
 function displayProducts(products) {
     let html = '';
-    products.forEach(function(product) {
-        html += `
-            <div class="col-md-3 col-sm-4 col-6 mb-3">
-                <div class="pos-item p-3 rounded text-center h-100 d-flex flex-column"
-                     onclick="addToCart(${product.id}, '${product.code}', '${product.name}', ${product.price}, ${product.stock}, ${product.track_stock})">
-                    <div class="mb-2">
-                        <i class="fas fa-cube fa-2x text-primary"></i>
-                    </div>
-                    <h6 class="fw-bold">${product.name}</h6>
-                    <p class="text-muted small mb-2">${product.code}</p>
-                    <div class="mt-auto">
-                        <div class="fw-bold text-success">$${parseFloat(product.price).toFixed(2)}</div>
-                        ${product.track_stock ? `<small class="text-muted">Stock: ${product.stock}</small>` : ''}
+    
+    if (products.length === 0) {
+        html = '<div class="col-12"><div class="text-center py-5"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">No se encontraron productos</p></div></div>';
+    } else {
+        products.forEach(function(product) {
+            html += `
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+                    <div class="card h-100 product-card" style="cursor: pointer;" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">
+                        <div class="card-body text-center p-3">
+                            <div class="mb-2"><i class="fas fa-box-open fa-2x text-primary"></i></div>
+                            <h6 class="card-title">${product.name}</h6>
+                            <p class="card-text text-muted small">${product.description?.substring(0, 50) || ''}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary">${product.category?.toUpperCase() || ''}</span>
+                                <strong class="text-success">$${parseFloat(product.price).toFixed(2)}</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-    });
-    $('#productsGrid').html(html);
+            `;
+        });
+    }
+    $('#productsList').html(html);
 }
 
-function addToCart(productId, code, name, price, stock, trackStock) {
-    let existingItem = cart.find(item => item.product_id === productId);
-
+// Funciones del carrito
+function addToCart(productId, productName, price) {
+    let existingItem = cart.find(item => item.product_id == productId);
+    
     if (existingItem) {
-        if (trackStock && existingItem.quantity >= stock) {
-            alert('Stock insuficiente');
-            return;
-        }
         existingItem.quantity++;
     } else {
         cart.push({
             product_id: productId,
-            code: code,
-            name: name,
-            unit_price: price,
-            quantity: 1,
-            stock: stock,
-            track_stock: trackStock
+            product_name: productName,
+            unit_price: parseFloat(price),
+            quantity: 1
         });
     }
-
-    updateCartDisplay();
-}
-
-function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCartDisplay();
-}
-
-function updateQuantity(index, quantity) {
-    if (quantity <= 0) {
-        removeFromCart(index);
-        return;
-    }
-
-    let item = cart[index];
-    if (item.track_stock && quantity > item.stock) {
-        alert('Stock insuficiente');
-        return;
-    }
-
-    cart[index].quantity = parseInt(quantity);
     updateCartDisplay();
 }
 
@@ -235,39 +211,26 @@ function updateCartDisplay() {
     let subtotal = 0;
 
     if (cart.length === 0) {
-        html = `
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-cart-plus fa-3x mb-3"></i>
-                <p>Agrega productos al carrito</p>
-            </div>
-        `;
+        html = '<div class="text-center text-muted py-4"><i class="fas fa-cart-plus fa-3x mb-2"></i><p>Agrega productos al carrito</p></div>';
     } else {
         cart.forEach(function(item, index) {
             let itemSubtotal = item.quantity * item.unit_price;
             subtotal += itemSubtotal;
-
             html += `
-                <div class="cart-item">
-                    <div class="d-flex justify-content-between align-items-start">
+                <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div class="flex-grow-1">
-                            <h6 class="mb-1">${item.name}</h6>
-                            <small class="text-muted">${item.code}</small>
+                            <h6 class="mb-1">${item.product_name}</h6>
+                            <small class="text-muted">$${item.unit_price.toFixed(2)} c/u</small>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-4">
-                            <input type="number" class="form-control form-control-sm"
-                                   value="${item.quantity}" min="1"
-                                   onchange="updateQuantity(${index}, this.value)">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${index}, ${item.quantity - 1})">-</button>
+                            <span class="mx-2">${item.quantity}</span>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
                         </div>
-                        <div class="col-4 text-center">
-                            $${item.unit_price.toFixed(2)}
-                        </div>
-                        <div class="col-4 text-end fw-bold">
-                            $${itemSubtotal.toFixed(2)}
+                        <div class="text-end ms-2">
+                            <strong>$${itemSubtotal.toFixed(2)}</strong><br>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
@@ -276,107 +239,71 @@ function updateCartDisplay() {
     }
 
     $('#cartItems').html(html);
-
     let tax = subtotal * 0.21;
     let total = subtotal + tax;
+    $('#subtotal').text(subtotal.toFixed(2));
+    $('#tax').text(tax.toFixed(2));
+    $('#total').text(total.toFixed(2));
+}
 
-    $('#subtotal').text('$' + subtotal.toFixed(2));
-    $('#tax').text('$' + tax.toFixed(2));
-    $('#total').text('$' + total.toFixed(2));
+function updateQuantity(index, newQuantity) {
+    if (newQuantity <= 0) {
+        removeFromCart(index);
+    } else {
+        cart[index].quantity = newQuantity;
+        updateCartDisplay();
+    }
+}
 
-    $('#btnProcessSale').prop('disabled', cart.length === 0);
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartDisplay();
 }
 
 function clearCart() {
     cart = [];
     selectedStudent = null;
-    $('#studentInfo').hide();
     updateCartDisplay();
 }
 
-function searchStudent() {
-    let search = $('#searchStudent').val();
-    if (!search) return;
-
-    $.get('{{ route("pos.search.student") }}', { search: search })
-        .done(function(student) {
-            if (student) {
-                selectedStudent = student;
-                $('#studentName').text(student.first_name + ' ' + student.last_name);
-                $('#studentDetails').text(`Estudiante #${student.student_number} - ${student.career_type}`);
-                $('#studentInfo').show();
-            } else {
-                alert('Estudiante no encontrado');
-                selectedStudent = null;
-                $('#studentInfo').hide();
-            }
-        });
+function clearStudent() {
+    selectedStudent = null;
+    $('#selectedStudent').hide();
 }
 
 function processSale() {
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+        alert('El carrito está vacío');
+        return;
+    }
 
-    let subtotal = 0;
-    let items = cart.map(function(item) {
-        let itemSubtotal = item.quantity * item.unit_price;
-        subtotal += itemSubtotal;
+    let paymentMethodId = $('#paymentMethod').val();
+    if (!paymentMethodId) {
+        alert('Selecciona un método de pago');
+        return;
+    }
 
-        return {
-            product_id: item.product_id,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            subtotal: itemSubtotal,
-            tax_amount: itemSubtotal * 0.21,
-            total: itemSubtotal * 1.21
-        };
-    });
-
-    let tax = subtotal * 0.21;
-    let total = subtotal + tax;
-
-    let data = {
-        items: items,
-        payment_method_id: $('#paymentMethod').val(),
-        student_id: selectedStudent ? selectedStudent.id : null,
-        subtotal: subtotal,
-        tax_amount: tax,
-        total_amount: total,
+    let saleData = {
+        items: cart,
+        student_id: selectedStudent?.id || null,
+        payment_method_id: paymentMethodId,
         _token: $('meta[name="csrf-token"]').attr('content')
     };
 
     $.ajax({
         url: '{{ route("pos.process.sale") }}',
         method: 'POST',
-        data: data,
-        beforeSend: function() {
-            $('#btnProcessSale').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Procesando...');
-        },
+        data: saleData,
         success: function(response) {
-            if (response.success) {
-                $('#saleNumber').text(response.sale_number);
-                $('#saleTotal').text('$' + total.toFixed(2));
-                $('#saleSuccessModal').modal('show');
-                clearCart();
-            } else {
-                alert('Error: ' + response.message);
-            }
+            alert('Venta procesada exitosamente');
+            clearCart();
         },
         error: function(xhr) {
-            let error = xhr.responseJSON ? xhr.responseJSON.message : 'Error al procesar la venta';
-            alert('Error: ' + error);
-        },
-        complete: function() {
-            $('#btnProcessSale').prop('disabled', false).html('<i class="fas fa-credit-card me-2"></i> Procesar Venta');
+            alert('Error al procesar la venta');
         }
     });
 }
 
-function printReceipt() {
-    // Aquí puedes implementar la lógica de impresión
-    alert('Función de impresión no implementada aún');
-}
-
-// Initialize
 $(document).ready(function() {
     updateCartDisplay();
 });

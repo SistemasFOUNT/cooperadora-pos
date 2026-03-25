@@ -4,176 +4,209 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Sistema POS') - {{ config('app.name', 'Cooperadora') }}</title>
 
-    <title>@yield('title', 'Sistema POS Cooperadora')</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
-    <!-- Custom CSS -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <style>
         .sidebar {
-            height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
+            height: 100vh;
             width: 250px;
             background: #343a40;
-            padding-top: 60px;
-            transition: all 0.3s;
-        }
-
-        .sidebar a {
-            color: #adb5bd;
-            padding: 15px 20px;
-            text-decoration: none;
-            display: block;
-            transition: all 0.3s;
-        }
-
-        .sidebar a:hover, .sidebar a.active {
-            background: #495057;
-            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
 
         .main-content {
             margin-left: 250px;
-            padding: 20px;
-            min-height: 100vh;
+            transition: all 0.3s ease;
         }
 
         .navbar-brand {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            z-index: 1000;
-            background: #212529;
-            padding: 15px 20px;
+            color: white !important;
+            font-weight: bold;
         }
 
-        .pos-item {
-            cursor: pointer;
-            border: 1px solid #dee2e6;
-            transition: all 0.2s;
-        }
-
-        .pos-item:hover {
-            border-color: #007bff;
-            box-shadow: 0 2px 4px rgba(0,123,255,.15);
-        }
-
-        .cart-item {
-            border-bottom: 1px solid #dee2e6;
-            padding: 10px 0;
-        }
-
-        .btn-pos {
-            font-size: 1.1rem;
+        .sidebar .nav-link {
+            color: #adb5bd;
             padding: 12px 20px;
+            border-bottom: 1px solid #495057;
+        }
+
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: #495057;
+        }
+
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: #007bff;
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid #495057;
+            color: white;
         }
 
         @media (max-width: 768px) {
             .sidebar {
                 margin-left: -250px;
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .sidebar.show {
                 margin-left: 0;
             }
         }
     </style>
-
-    @stack('styles')
 </head>
 <body>
-    <!-- Navigation -->
-    <div class="navbar-brand text-white">
-        <i class="fas fa-store me-2"></i>
-        <strong>POS Cooperadora</strong>
-    </div>
-
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <nav class="nav flex-column">
-            <a href="{{ route('pos.index') }}" class="nav-link {{ request()->routeIs('pos.*') ? 'active' : '' }}">
-                <i class="fas fa-cash-register me-2"></i> Punto de Venta
-            </a>
-            <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
-                <i class="fas fa-box me-2"></i> Productos
-            </a>
-            <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
-                <i class="fas fa-graduation-cap me-2"></i> Estudiantes
-            </a>
-            <a href="{{ route('sales.index') }}" class="nav-link {{ request()->routeIs('sales.*') ? 'active' : '' }}">
-                <i class="fas fa-receipt me-2"></i> Ventas
-            </a>
-            <a href="{{ route('cash.index') }}" class="nav-link {{ request()->routeIs('cash.*') ? 'active' : '' }}">
-                <i class="fas fa-money-bill me-2"></i> Caja
-            </a>
-            <div class="nav-divider my-3 border-top"></div>
-            <a href="#" class="nav-link">
-                <i class="fas fa-chart-bar me-2"></i> Reportes
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-cog me-2"></i> Configuración
-            </a>
-            <div class="nav-divider my-3 border-top"></div>
-            <a href="#" class="nav-link text-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-            </a>
-        </nav>
-
-        <!-- User Info -->
-        @auth
-        <div class="position-absolute bottom-0 w-100 p-3 text-white bg-dark">
+    <nav class="sidebar">
+        <div class="user-info">
             <div class="d-flex align-items-center">
                 <i class="fas fa-user-circle fa-2x me-2"></i>
                 <div>
                     <div class="fw-bold">{{ Auth::user()->name }}</div>
-                    <small class="text-muted">{{ Auth::user()->branch?->name }}</small>
+                    <small class="text-muted">{{ ucfirst(Auth::user()->roles->first()?->name ?? 'Usuario') }}</small>
                 </div>
             </div>
         </div>
-        @endauth
-    </div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('pos.*') ? 'active' : '' }}" href="{{ route('pos.index') }}">
+                    <i class="fas fa-cash-register"></i>
+                    Punto de Venta
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}">
+                    <i class="fas fa-box"></i>
+                    Productos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}" href="{{ route('students.index') }}">
+                    <i class="fas fa-users"></i>
+                    Estudiantes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="event.preventDefault();">
+                    <i class="fas fa-chart-line"></i>
+                    Reportes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="event.preventDefault();">
+                    <i class="fas fa-cash-register"></i>
+                    Caja
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="event.preventDefault();">
+                    <i class="fas fa-history"></i>
+                    Auditoría
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="event.preventDefault();">
+                    <i class="fas fa-cog"></i>
+                    Configuración
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <a class="nav-link" href="#" onclick="event.preventDefault(); this.closest('form').submit();">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </a>
+                </form>
+            </li>
+        </ul>
+    </nav>
 
     <!-- Main Content -->
     <div class="main-content">
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <button class="btn btn-outline-light d-md-none me-2" type="button" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
 
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+                <span class="navbar-brand mb-0 h1">
+                    @yield('page-title', 'Sistema POS Cooperadora')
+                </span>
 
-        @yield('content')
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text text-white">
+                        <i class="fas fa-building"></i>
+                        Sucursal: {{ Auth::user()->branch?->name ?? 'Principal' }}
+                    </span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <main class="p-4">
+            @if(View::hasSection('header'))
+                <div class="mb-4">
+                    @yield('header')
+                </div>
+            @endif
+
+            @yield('content')
+        </main>
     </div>
 
-    <!-- Logout Form -->
-    <form id="logout-form" action="#" method="POST" style="display: none;">
-        @csrf
-    </form>
-
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <!-- DataTables Configuration -->
+    <script src="{{ asset('js/datatables-config.js') }}"></script>
+
+    <script>
+        // Sidebar toggle for mobile
+        $('#sidebarToggle').click(function() {
+            $('.sidebar').toggleClass('show');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        $(document).click(function(event) {
+            if (!$(event.target).closest('.sidebar, #sidebarToggle').length) {
+                $('.sidebar').removeClass('show');
+            }
+        });
+    </script>
 
     @stack('scripts')
 </body>
