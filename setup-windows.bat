@@ -120,7 +120,7 @@ if /i "%continue%"=="s" (
     echo  Ejecutando migraciones y seeders...
     echo ========================================
     php artisan migrate:fresh --seed
-    
+
     if %errorlevel% neq 0 (
         echo ERROR: Error al ejecutar migraciones
         echo Verifica la configuracion de base de datos en .env
@@ -128,7 +128,7 @@ if /i "%continue%"=="s" (
         pause >nul
         exit /b 1
     )
-    
+
     echo ✓ Base de datos configurada correctamente
 ) else (
     echo.
