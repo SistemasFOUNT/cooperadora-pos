@@ -162,10 +162,24 @@ jobs:
           fi
           mv cooperadora_temp cooperadora
 
-          # Set permissions
+          # Set correct permissions (improved)
           cd cooperadora
           chown -R www-data:www-data .
-          chmod -R 755 .
+          find . -type d -exec chmod 755 {} \;
+          find . -type f -exec chmod 644 {} \;
+          chmod -R 775 storage bootstrap/cache
+          chmod 755 artisan
+
+          # Create necessary directories
+          mkdir -p storage/logs
+          mkdir -p storage/app
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p bootstrap/cache
+
+          # Ensure correct ownership for created directories
+          chown -R www-data:www-data storage bootstrap/cache
           chmod -R 775 storage bootstrap/cache
 
           # Copy production .env if not exists
@@ -173,15 +187,56 @@ jobs:
             cp .env.production .env
           fi
 
-          # Install dependencies and optimize
-          composer install --no-dev --optimize-autoloader
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
+          # Install production dependencies (no dev packages)
+          composer install --no-dev --optimize-autoloader --no-interaction
 
-          # Run migrations
-          php artisan migrate --force
+          # Clear all caches before optimization
+          sudo -u www-data php artisan config:clear
+          sudo -u www-data php artisan route:clear
+          sudo -u www-data php artisan view:clear
+          sudo -u www-data php artisan cache:clear
+
+          # Generate app key if needed
+          if ! grep -q "APP_KEY=base64:" .env; then
+            sudo -u www-data php artisan key:generate
+          fi
+
+          # Optimize for production
+          sudo -u www-data php artisan config:cache
+          sudo -u www-data php artisan route:cache
+          sudo -u www-data php artisan view:cache
+
+          # Run migrations safely
+          sudo -u www-data php artisan migrate --force
 
           # Restart services
           systemctl restart apache2
-          systemctl restart php8.4-fpm
+
+    - name: Copy deployment scripts
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        source: "deployment/post-deploy-check.sh"
+        target: "/var/www/cooperadora/"
+
+    - name: Post-deployment verification
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          cd /var/www/cooperadora
+          chmod +x deployment/post-deploy-check.sh
+          ./deployment/post-deploy-check.sh
+
+    - name: Deployment notification
+      if: success()
+      run: |
+        echo "🎉 Deployment successful!"
+        echo "✅ Site: http://cooperadora.odontologia.unt.edu.ar"
+        echo "📊 Deploy time: $(date)"
