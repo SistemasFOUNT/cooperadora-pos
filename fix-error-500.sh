@@ -90,7 +90,7 @@ else
     print_error "Error de conexión a base de datos"
     echo "Configuración actual de BD:"
     grep -E "^DB_" .env
-    
+
     # Intentar ejecutar migraciones
     print_warning "Intentando ejecutar migraciones..."
     sudo -u www-data php artisan migrate --force
@@ -131,7 +131,7 @@ if [ ${#MISSING_EXTENSIONS[@]} -ne 0 ]; then
     for ext in "${MISSING_EXTENSIONS[@]}"; do
         sudo apt install -y "php$PHP_VERSION-$ext"
     done
-    
+
     # Reiniciar Apache después de instalar extensiones
     sudo systemctl restart apache2
 fi

@@ -47,7 +47,7 @@ if [ -f "/var/www/cooperadora/public/.htaccess" ]; then
     cat /var/www/cooperadora/public/.htaccess
 else
     print_warning "Archivo .htaccess NO existe. Creando..."
-    
+
     # Crear .htaccess con la configuración estándar de Laravel
     sudo tee /var/www/cooperadora/public/.htaccess > /dev/null << 'EOF'
 <IfModule mod_negotiation.c>
@@ -72,7 +72,7 @@ else
     RewriteRule ^ index.php [L]
 </IfModule>
 EOF
-    
+
     print_status "Archivo .htaccess creado"
 fi
 
@@ -91,19 +91,19 @@ sudo tee /etc/apache2/sites-available/cooperadora.conf > /dev/null << EOF
 <VirtualHost *:80>
     ServerName $SERVER_IP
     DocumentRoot /var/www/cooperadora/public
-    
+
     <Directory /var/www/cooperadora/public>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
-    
+
     <Directory /var/www/cooperadora>
         Options -Indexes
         AllowOverride None
         Require all denied
     </Directory>
-    
+
     ErrorLog \${APACHE_LOG_DIR}/cooperadora_error.log
     CustomLog \${APACHE_LOG_DIR}/cooperadora_access.log combined
 </VirtualHost>
@@ -182,7 +182,7 @@ echo "-------------------"
 echo "Probando respuesta del servidor..."
 if curl -I "http://$SERVER_IP" 2>/dev/null | head -1; then
     print_status "Servidor responde"
-    
+
     # Probar si Laravel responde
     if curl -s "http://$SERVER_IP" | grep -q "Laravel\|cooperadora\|login" 2>/dev/null; then
         print_status "Laravel está respondiendo correctamente"

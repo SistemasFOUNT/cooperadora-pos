@@ -1,0 +1,65 @@
+{
+    "Usuario": "Usuario",
+    "Contraseña": "Contraseña",
+    "Recordarme": "Recordarme",
+    "¿Olvidaste tu contraseña?": "¿Olvidaste tu contraseña?",
+    "Iniciar Sesión": "Iniciar Sesión",
+    "Cerrar Sesión": "Cerrar Sesión",
+    "Log in": "Iniciar Sesión",
+    "Log Out": "Cerrar Sesión",
+    "Login": "Iniciar Sesión",
+    "Logout": "Cerrar Sesión",
+
+    "Dashboard": "Tablero",
+    "Tablero": "Tablero",
+    "You're logged in!": "¡Has iniciado sesión!",
+    "¡Has iniciado sesión!": "¡Has iniciado sesión!",
+
+    "Profile": "Perfil",
+    "Profile Information": "Información del Perfil",
+    "Información del Perfil": "Información del Perfil",
+    "Update your account's profile information and email address.": "Actualiza la información del perfil y la dirección de email de tu cuenta.",
+    "Actualiza la información del perfil y la dirección de email de tu cuenta.": "Actualiza la información del perfil y la dirección de email de tu cuenta.",
+    "Name": "Nombre",
+    "Nombre": "Nombre",
+    "Email": "Email",
+    "Your email address is unverified.": "Tu dirección de email no está verificada.",
+    "Tu dirección de email no está verificada.": "Tu dirección de email no está verificada.",
+    "Click here to re-send the verification email.": "Haz clic aquí para reenviar el email de verificación.",
+    "Haz clic aquí para reenviar el email de verificación.": "Haz clic aquí para reenviar el email de verificación.",
+    "A new verification link has been sent to your email address.": "Se ha enviado un nuevo enlace de verificación a tu dirección de email.",
+    "Save": "Guardar",
+    "Saved.": "Guardado.",
+    
+    "Password": "Contraseña",
+    "Update Password": "Actualizar Contraseña",
+    "Actualizar Contraseña": "Actualizar Contraseña",
+    "Ensure your account is using a long, random password to stay secure.": "Asegúrate de que tu cuenta use una contraseña larga y aleatoria para mantenerla segura.",
+    "Asegúrate de que tu cuenta use una contraseña larga y aleatoria para mantenerla segura.": "Asegúrate de que tu cuenta use una contraseña larga y aleatoria para mantenerla segura.",
+    "Current Password": "Contraseña Actual",
+    "Contraseña Actual": "Contraseña Actual",
+    "New Password": "Nueva Contraseña",
+    "Nueva Contraseña": "Nueva Contraseña",
+    "Confirm Password": "Confirmar Contraseña",
+    "Confirmar Contraseña": "Confirmar Contraseña",
+    
+    "Register": "Registrarse",
+    "Already registered?": "¿Ya estás registrado?",
+    
+    "Reset Password": "Restablecer Contraseña",
+    "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.": "¿Olvidaste tu contraseña? No hay problema. Solo déjanos saber tu dirección de email y te enviaremos un enlace para restablecer la contraseña que te permitirá elegir una nueva.",
+    "Email Password Reset Link": "Enviar Enlace de Restablecimiento",
+    
+    "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.": "¡Gracias por registrarte! Antes de comenzar, ¿podrías verificar tu dirección de email haciendo clic en el enlace que te acabamos de enviar? Si no recibiste el email, con gusto te enviaremos otro.",
+    "A new verification link has been sent to the email address you provided during registration.": "Se ha enviado un nuevo enlace de verificación a la dirección de email que proporcionaste durante el registro.",
+    "Resend Verification Email": "Reenviar Email de Verificación",
+    
+    "This is a secure area of the application. Please confirm your password before continuing.": "Esta es un área segura de la aplicación. Por favor confirma tu contraseña antes de continuar.",
+    "Confirm": "Confirmar",
+    
+    "Delete Account": "Eliminar Cuenta",
+    "Are you sure you want to delete your account?": "¿Estás seguro de que quieres eliminar tu cuenta?",
+    "Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.": "Una vez que tu cuenta sea eliminada, todos sus recursos y datos serán eliminados permanentemente. Por favor ingresa tu contraseña para confirmar que quieres eliminar permanentemente tu cuenta.",
+    "Cancel": "Cancelar"
+}
+}

@@ -130,18 +130,18 @@ sudo tee $APACHE_CONF > /dev/null << EOF
 <VirtualHost *:80>
     ServerName $(hostname -I | awk '{print $1}')
     DocumentRoot $PROJECT_PATH/public
-    
+
     <Directory $PROJECT_PATH/public>
         AllowOverride All
         Require all granted
-        
+
         # Laravel URL Rewriting
         RewriteEngine On
         RewriteCond %{REQUEST_FILENAME} !-d
         RewriteCond %{REQUEST_FILENAME} !-f
         RewriteRule ^(.*)$ index.php [QSA,L]
     </Directory>
-    
+
     ErrorLog \${APACHE_LOG_DIR}/${PROJECT_NAME}_error.log
     CustomLog \${APACHE_LOG_DIR}/${PROJECT_NAME}_access.log combined
 </VirtualHost>

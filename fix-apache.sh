@@ -41,19 +41,19 @@ sudo tee /etc/apache2/sites-available/cooperadora.conf > /dev/null << EOF
 <VirtualHost *:80>
     ServerName $SERVER_IP
     DocumentRoot /var/www/cooperadora/public
-    
+
     <Directory /var/www/cooperadora/public>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
-    
+
     <Directory /var/www/cooperadora>
         Options -Indexes
         AllowOverride None
         Require all denied
     </Directory>
-    
+
     ErrorLog \${APACHE_LOG_DIR}/cooperadora_error.log
     CustomLog \${APACHE_LOG_DIR}/cooperadora_access.log combined
 </VirtualHost>
