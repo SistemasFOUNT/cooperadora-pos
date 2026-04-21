@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class CareerFeeConfig extends Model
+{
+    use HasFactory;
+
+    protected $table = 'configuracion_cuotas_carreras';
+
+    protected $fillable = [
+        'tipo_carrera',
+        'nombre_carrera',
+        'cuota_mensual',
+        'cuota_inscripcion',
+        'cuota_certificado',
+        'duracion_meses',
+        'activo',
+        'cuotas_adicionales',
+    ];
+
+    protected $casts = [
+        'cuota_mensual' => 'decimal:2',
+        'cuota_inscripcion' => 'decimal:2',
+        'cuota_certificado' => 'decimal:2',
+        'duracion_meses' => 'integer',
+        'activo' => 'boolean',
+        'cuotas_adicionales' => 'array',
+    ];
+
+    /**
+     * Relación con estudiantes
+     */
+    public function estudiantes()
+    {
+        return $this->hasMany(Student::class, 'carrera', 'tipo_carrera');
+    }
+
+    /**
+     * Scope para carreras activas
+     */
+    public function scopeActivo($query)
+    {
+        return $query->where('activo', true);
+    }
+
+    /**
+     * Obtener configuración de una carrera específica
+     */
+    public static function obtenerConfigCarrera($tipoCarrera)
+    {
+        return static::where('tipo_carrera', $tipoCarrera)->first();
+    }
+
+    /**
+     * Obtener todas las carreras disponibles para un select
+     */
+    public static function obtenerOpcionesCarreras()
+    {
+        return static::activo()
+            ->pluck('nombre_carrera', 'tipo_carrera')
+            ->toArray();
+    }
+}

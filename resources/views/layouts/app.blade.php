@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Sistema POS') - {{ config('app.name', 'Cooperadora') }}</title>
+    <title>@yield('title', 'FOUNT Contable') - {{ config('app.name', 'Cooperadora') }}</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -160,7 +160,7 @@
                 </button>
 
                 <span class="navbar-brand mb-0 h1">
-                    @yield('page-title', 'Sistema POS Cooperadora')
+                    @yield('page-title', 'FOUNT Contable')
                 </span>
 
                 <div class="navbar-nav ms-auto">

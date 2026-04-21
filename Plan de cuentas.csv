@@ -1,0 +1,322 @@
+﻿Cuenta;Descripción
+1.0.0.00.000;ACTIVO
+1.1.0.00.000;ACTIVO CORRIENTE
+1.1.1.00.000;CAJA Y BANCOS
+1.1.1.01.000;CAJA
+1.1.1.01.001;Caja Box
+1.1.1.01.002;Caja Postgrado
+1.1.1.01.003;Caja Odontologico
+1.1.1.02.000;BANCOS
+1.1.1.02.001;Banco Industrial Cta.Cte.
+1.1.1.02.002;Banco Industrial Cta.Cte.
+1.1.1.04.000;MONEDA EXTRANJERA
+1.1.1.04.001;Mon.Ext.Box.
+1.1.1.04.002;Mon.Ext.Postgrado
+1.1.1.04.003;Mon. Ext. C.Odontologico
+1.1.1.05.000;FONDO FIJO
+1.1.1.05.001;Fondo Fijo Box
+1.1.1.05.002;Fondo Fijo Postgrado
+1.1.1.05.003;Fondo Fijo C. Odontologico
+1.1.1.06.000;FONDOS PENDIENTES DE REND.
+1.1.2.00.000;CREDITOS POR VENTAS
+1.1.2.01.000;Deudores por Ventas
+1.1.2.01.001;Alumnos Grado
+1.1.2.01.002;Pacientes Cátedras
+1.1.2.01.003;Cliente Ocasional
+1.1.2.01.004;Alumnos Postgrado
+1.1.2.01.005;Pacientes Postgrado
+1.1.2.01.006;Pacientes C. Odontológico
+1.1.2.01.007;ASPE
+1.1.2.02.000;DEUDORES VARIOS
+1.1.2.02.001;FAAIE
+1.1.2.02.002;Colgate
+1.1.2.02.003;Otros Deudores
+1.1.3.00.000;OTROS CREDITOS
+1.1.3.01.000;IVA Crédito Fiscal
+1.1.3.02.000;Retenciones Ingresos Brutos
+1.1.3.03.000;Retenciones IVA
+1.1.3.04.000;Retenciones Ganancias
+1.1.3.05.000;Anticipos a Proveedores
+1.1.4.00.000;BIENES DE CAMBIO
+1.1.4.01.000;Insumos
+1.1.4.02.000;Productos en Proceso
+1.1.4.03.000;Productos Terminados
+1.1.4.04.000;Mercaderías de Reventa
+1.2.0.00.000;ACTIVO NO CORRIENTE
+1.2.1.00.000;BIENES DE USO
+1.2.1.01.000;Maquinas y Equipos
+1.2.1.02.000;Amort.Acum.Maq.y Equipos
+1.2.1.03.000;Herram. e Implementos Vs.
+1.2.1.04.000;Amort.Acum.Herr.e Implem.Vs.
+1.2.1.05.000;Instalaciones
+1.2.1.06.000;Amort.Acum.Instalaciones
+1.2.1.07.000;Muebles y Utiles
+1.2.1.08.000;Amort.Acum.Muebles y Utiles
+1.2.1.09.000;Equipos de Comput. y Telef.
+1.2.1.10.000;Amort.Acum.Eq.Comput.y Telef.
+1.3.0.00.000;CUENTAS TRANSITORIAS
+1.3.1.00.000;Partidas en Suspenso
+2.0.0.00.000;PASIVO
+2.1.0.00.000;PASIVOS CORRIENTES
+2.1.1.00.000;DEUDAS COMERCIALES
+2.1.1.01.000;PROVEEDORES
+2.1.1.01.001;Olimpyc Dental
+2.1.1.01.002;Ebano srl
+2.1.1.01.003;Drogueria Saporiti
+2.1.1.01.004;Diego Pecora
+2.1.1.01.005;Norte envases
+2.1.1.01.006;Odontomatric
+2.1.1.01.007;Santiago Dondena- dental sd
+2.1.1.01.008;Mario Javier Fernandez Lopez
+2.1.1.01.009;Belir sa - Grimberg
+2.1.1.01.010;Teseyra, Alicia - Salud Dental
+2.1.1.01.011;Otros Proveedores
+2.1.1.02.000;ACREEDORES VARIOS
+2.1.1.02.001;Holistor
+2.1.1.02.002;Estudio Sota
+2.1.1.02.003;Siprosa -Dpto Fiscalización
+2.1.1.02.004;Ibañez , Mario
+2.1.1.02.005;Romano , Silvia
+2.1.1.02.006;Cuezzo, Viviana
+2.1.1.02.007;Prieto, Carolina
+2.1.1.02.008;Tecnicos de Protesis
+2.1.1.02.009;Otros Acreedores
+2.1.2.00.000;DEUDAS SOCIALES
+2.1.2.01.000;Pasantias a Pagar
+2.1.2.02.000;Personal a Pagar
+2.1.2.03.000;Asistentes Cursos a Pagar
+2.1.2.04.000;Suss a Pagar
+2.1.2.05.000;A.E.C a Pagar
+2.1.2.06.000;FAECYS a Pagar
+2.1.2.07.000;Otras Leyes Sociales a Pagar
+2.1.3.00.000;DEUDAS FISCALES
+2.1.3.01.000;Ingresos Brutos a Pagar
+2.1.3.01.001;Ing.Brutos a Pagar Pcia.1
+2.1.3.01.002;Ing.Brutos a Pagar Pcia.2
+2.1.3.02.000;IVA a Pagar
+2.1.4.00.000;DEUDAS BANCARIAS
+2.1.4.01.000;Préstamos y Acuerdos Bancarios
+2.1.5.00.000;CUENTAS PARTICULARES SOCIOS
+2.1.5.01.000;Socio 1 Cta. Part.
+2.1.5.02.000;Socio 2 Cta. Part.
+2.1.5.03.000;Socio 3 Cta. Part.
+2.1.6.00.000;OTRAS DEUDAS
+2.1.6.01.000;I.V.A Débito Fiscal
+2.1.6.02.000;IVA Resp.No Inscripto
+2.1.6.03.000;Alquileres a Pagar
+2.1.6.04.000;Seguros a Pagar
+3.0.0.00.000;PATRIMONIO NETO
+3.1.0.00.000;CAPITAL, RESERVAS Y RESULTADOS
+3.1.1.00.000;CAPITAL
+3.1.1.01.000;Capital Social
+3.1.1.02.000;Ajuste al Capital
+3.1.1.03.000;Aporte Irrevocable a Cta. Fut. Susc.
+3.1.2.00.000;RESERVAS
+3.1.2.01.000;Reserva Legal
+3.1.3.00.000;RESULTADOS
+3.1.3.01.000;Resultado del Ejercicio
+3.1.3.02.000;Resultados No Asignados
+3.1.3.03.000;Ajuste Ejercicios Anteriores
+3.1.3.04.000;Rtdo. Tenencia Moneda Extranjera
+3.1.3.05.000;RECPAM
+4.0.0.00.000;INGRESOS
+4.1.0.00.000;ORDINARIOS OPERATIVOS
+4.1.1.00.000;BOX COOPERADORA
+4.1.1.01.000;Inscripcion Cino
+4.1.1.02.000;Vtas Cartillas ,Modelos y Otros
+4.1.1.03.000;Laboratorio de Insumos
+4.1.1.04.000;Laboratorio Protesis
+4.1.1.05.000;Atencion Pacientes
+4.1.1.06.000;Ventas Kits
+4.1.1.07.000;Biblioteca
+4.1.1.08.000;Bono Inscripcion
+4.1.1.09.000;Publicidad
+4.1.1.10.000;Convenios
+4.1.1.11.000;Convalidacion Titulo Extranj.
+4.1.1.12.000;Aportes Recibidos
+4.1.1.13.000;Reintegro Efectivo a Favor
+4.1.1.14.000;Bonific. y Descto. Obtenidos
+4.1.2.00.000;CENTRO ODONTOLOGICO
+4.1.2.01.000;Prestaciones Centro odontologico
+4.1.2.02.000;Ingresos Vs. Centro Odontol.
+4.1.2.03.000;Intereses Ganados
+4.1.2.04.000;Gastos Recuperados
+4.1.2.05.000;Otros Ingresos
+4.1.2.06.000;Bonifcac. y Descto. Obtenidos
+4.1.3.00.000;SECRETARIA POSTGRADO
+4.1.3.01.000;Ingresos por Cursos
+4.1.3.02.000;Ingresos por Carreras
+4.1.3.03.000;Revista
+4.1.3.04.000;Bonificac. y Descto. Obtenidos
+4.2.0.00.000;ORDINARIOS NO OPERATIVOS
+4.2.1.00.000;BOX COOPERADORA
+4.2.1.01.000;Donaciones
+4.2.1.02.000;Rdo. Vta. Bienes de Uso
+4.2.1.03.000;Amortizaciones
+4.2.1.04.000;Sueldos Fábrica
+4.2.1.05.000;Cargas Sociales Fábrica
+4.2.1.06.000;Gastos Varios Fábrica
+4.2.2.00.000;CENTRO ODONTOLOGICO
+4.2.2.01.000;Sueldos Comercialización
+4.2.2.02.000;Cargas Sociales Comercialización
+4.2.2.03.000;Gastos de Embalaje y Fletes
+4.2.2.04.000;Movilidad
+4.2.2.05.000;Impuestos y Tasas
+4.2.2.06.000;Alquileres
+4.2.2.07.000;Publicidad e Imprenta
+4.2.2.08.000;Bonificaciones Concedidas
+4.2.2.09.000;Ingresos Brutos
+4.2.2.10.000;Gastos Varios de Comercialización
+4.2.3.00.000;SECRETARIA POSTGRADO
+4.2.3.01.000;Honorarios
+4.2.3.02.000;Sueldos Administración
+4.2.3.03.000;Cargas Sociales Administración
+4.2.3.04.000;Papelería y Utiles de Oficina
+4.2.3.05.000;Tenencia de moneda extranjera
+4.2.4.00.000;GASTOS FINANCIEROS
+4.2.4.01.000;Intereses y Gastos Bancarios
+4.2.4.02.000;Int. Y Recargos Fiscales
+4.2.4.03.000;Intereses Varios
+4.2.4.04.000;Descuentos Concedidos
+4.2.5.00.000;OTROS INGRESOS
+4.2.5.01.000;Seguros
+4.3.0.00.000;EXTRAORDINARIOS
+4.3.1.00.000;BOX COOPERADORA
+4.3.2.00.000;CENTRO ODONTOLOGICO
+4.3.3.00.000;SECRETARIA POSTGRADO
+5.0.0.00.000;EGRESOS
+5.1.0.00.000;ORDINARIOS OPERATIVOS
+5.1.1.00.000;Costo de Produccion y Venta 
+5.1.1.01.000;BOX COOPERADORA
+5.1.1.01.001;Cino 
+5.1.1.01.002;Catedras
+5.1.1.01.003;Laboratorios Insumos 
+5.1.1.01.004;Laboratorios Protesis 
+5.1.1.01.005;Insumos Odontológicos 
+5.1.1.01.006;Revista Fount 
+5.1.1.01.007;Congreso - Jornadas
+5.1.1.02.000;CENTRO ODONTOLOGICO
+5.1.1.02.001;Materiales Descartables 
+5.1.1.02.002;Medicamentos 
+5.1.1.02.003;Laboratorio de Prótesis
+5.1.1.03.000;SECRETARIA POSTGRADO
+5.1.1.03.001;Honorarios Expositores 
+5.1.1.03.002;Publicidad Cursos 
+5.1.1.03.003;Insumos
+5.1.1.03.004;Libreria Biblioteca 
+5.1.2.00.000;GASTOS CATEDRAS Y LABORATORIOS
+5.1.2.01.000;Anatomia 
+5.1.2.02.000;Histologia 
+5.1.2.03.000;Quimica
+5.1.2.04.000;Biofisica
+5.1.2.05.000;Biomateriales 
+5.1.2.06.000;Fisiologia 
+5.1.2.07.000;Ingles 
+5.1.2.08.000;Oclusion
+5.1.2.09.000;Tecnica Operatoria 
+5.1.2.10.000;Tecnica de Protesis 
+5.1.2.11.000;Anatomia Patologica 
+5.1.2.12.000;Semiologia 
+5.1.2.13.000;Farmacologia 
+5.1.2.14.000;Periodoncia
+5.1.2.15.000;Cirugia I 
+5.1.2.16.000;Preventiva 
+5.1.2.17.000;Cirugia II 
+5.1.2.18.000;Odontopediatria 
+5.1.2.19.000;Ortodoncia 
+5.1.2.20.000;Legal 
+5.1.2.21.000;Endodoncia
+5.1.2.22.000;Laboratorio Insumos 
+5.1.2.23.000;Laboratorio Protesis 
+5.1.2.24.000;Biblioteca
+5.1.2.25.000;Cino
+5.1.2.26.000;Revista Fount 
+5.1.2.27.000;Salud Mental
+5.1.2.28.000;Microbiología - Parasitología 
+5.1.2.29.000;Diagnostico
+5.1.2.30.000;MIO
+5.1.2.31.000;CENA 2018
+5.1.2.32.000;Laburatorio Microbiologia 
+5.1.2.33.000;Centro Odontológico 
+5.1.2.34.000;Postgrado
+5.1.2.35.000;Facultad
+5.1.2.36.000;Clinica de Prótesis
+5.1.2.37.000;Box
+5.1.2.38.000;Revista FOUNT
+5.1.2.39.000;Tecnicatura de Protesis
+5.1.2.40.000;Lab. Anatomia Patologica
+5.1.2.41.000;Clínica de Operatoria
+5.1.3.00.000;Gastos Fount
+5.1.3.01.000;Gastos Facultad
+5.1.3.01.001;Movilidad y viaticos
+5.1.3.01.002;Limpieza
+5.1.3.01.003;Combustible y Lubricantes
+5.1.3.01.004;Mantenimienot y Reparación
+5.1.3.01.005;Papelería e Impresos
+5.1.3.01.006;Agus y Comestibles
+5.1.3.01.007;Insumos Odontologicos
+5.1.3.02.000;Servicios Prestados
+5.1.3.03.000;Mejoras Edilicias
+5.1.3.04.000;Gastos Generales
+5.1.3.05.000;Servicio de Software
+5.1.3.06.000;Telefonia
+5.1.3.07.000;Honorarios Profesionales
+5.1.3.08.000;Equipos y maq
+5.1.4.00.000;GASTOS ADMINISTRACION
+5.1.4.01.000;BOX COOPERADORA
+5.1.4.01.001;Honorarios Administrativos
+5.1.4.01.002;Movilidad y Viaticos
+5.1.4.01.003;Combustible
+5.1.4.01.004;Libreria y Utiles
+5.1.4.01.005;Mantenimiento y Reparacion eq.
+5.1.4.01.006;Servicios Prestados
+5.1.4.01.007;Servicios Software
+5.1.4.01.008;Gastos Generales
+5.1.4.01.009;Amortizaciones Bs. Uso. Administ.
+5.1.4.01.010;Fallo de Caja
+5.1.4.01.011;Papeles e Impresos
+5.1.4.01.012;Limpieza
+5.1.4.01.013;Seguridad
+5.1.4.02.000;CENTRO ODONTOLOGICO
+5.1.4.02.001;Honorarios
+5.1.4.02.002;Movilidad y Viaticos
+5.1.4.02.003;Limpieza
+5.1.4.02.004;Libreria y Combustible
+5.1.4.02.005;Mantenimiento y Reparacion Eq.
+5.1.4.02.006;Servicios Prestados
+5.1.4.02.007;Seguridad
+5.1.4.02.008;Agus y Comestibles
+5.1.4.02.009;Gastos Generales
+5.1.4.02.010;Amortizacion Bs Uso Administr.
+5.1.4.02.011;Papeleria e Impresos
+5.1.4.02.012;Mant. de Sistema
+5.1.4.03.000;SECRETARIA POSTGRADO
+5.1.4.03.001;Honorarios Administrativos
+5.1.4.03.002;Movilidad y Viaticos
+5.1.4.03.003;Combustible
+5.1.4.03.004;Libreria y Utiles
+5.1.4.03.005;Mantenimiento y Reparacion Eq.
+5.1.4.03.006;Servicios Prestados
+5.1.4.03.007;Telefonia
+5.1.4.03.008;Publicidad
+5.1.4.03.009;Correo
+5.1.4.03.010;Alimentos y Bebidas
+5.1.4.03.011;Gastos Generales
+5.1.4.03.012;Amortizacion Bs Uso Administ.
+5.1.4.03.013;Papeleria e Impresos
+5.1.5.00.000;GASTOS COMERCIALIZACION
+5.1.5.01.000;BOX COOPERADORA
+5.1.5.01.001;Descuentos Concedidos
+5.1.5.01.002;Fletes y Encomiendas
+5.1.5.02.000;CENTRO ODONTOLOGICO
+5.1.5.02.001;Descuentos Concedido
+5.1.5.03.000;SECRETARIA POSTGRADO
+5.1.5.03.001;Descuentos Concedidos
+5.1.6.00.000;GASTOS BANCARIOS
+5.1.6.01.000;Int. Comisiones y Gtos . Bcrios
+5.1.6.02.000;Imt. y Transf. Fcieras.
+5.1.6.03.000;Impuestos
+5.2.0.00.000;ORDINARIOS NO OPERATIVOS
+5.2.1.00.000;BOX COOPERADORADA
+5.2.1.01.000;Rdo. Vta. Bienes de Uso
+5.3.0.00.000;EXTRAORDINARIOS

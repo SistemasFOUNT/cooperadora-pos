@@ -27,22 +27,22 @@ class TestEmail extends Command
     public function handle()
     {
         $email = $this->argument('email');
-        
+
         $this->info('🧪 Enviando email de prueba...');
         $this->info("📧 Destinatario: {$email}");
         $this->info("📤 Servidor: " . config('mail.mailers.smtp.host'));
         $this->info("🔐 Usuario: " . config('mail.mailers.smtp.username'));
-        
+
         try {
-            Mail::raw('¡Hola! Este es un email de prueba del Sistema POS Cooperadora. Si recibes este mensaje, la configuración de email funciona correctamente. 🎉', function ($message) use ($email) {
+            Mail::raw('¡Hola! Este es un email de prueba del FOUNT Contable. Si recibes este mensaje, la configuración de email funciona correctamente. 🎉', function ($message) use ($email) {
                 $message->to($email)
-                        ->subject('✅ Prueba de Configuración Email - Sistema POS Cooperadora')
+                        ->subject('✅ Prueba de Configuración Email - FOUNT Contable')
                         ->from(config('mail.from.address'), config('mail.from.name'));
             });
-            
+
             $this->info('✅ Email enviado correctamente!');
             $this->info('📬 Revisa la bandeja de entrada y spam del destinatario.');
-            
+
         } catch (\Exception $e) {
             $this->error('❌ Error al enviar email: ' . $e->getMessage());
             $this->warn('🔧 Verifica la configuración de email en .env');

@@ -1,0 +1,86 @@
+/* ==========================================================
+   PERSONALIZACIÓN DE IMÁGENES - FOUNT CONTABLE
+   ========================================================== */
+
+/*
+   Este archivo CSS permite personalizar la apariencia de las imágenes
+   del sistema sin modificar los archivos core de AdminLTE.
+
+   Todas las imágenes están organizadas en /public/images/
+*/
+
+/* Logo Principal */
+.brand-link .brand-image {
+    background-image: url('/images/system/fount-logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: auto;
+    max-width: 150px;
+}
+
+/* Avatar por defecto para usuarios */
+.user-panel .image img,
+.user-menu .user-image {
+    background-image: url('/images/users/default-avatar.png');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Avatar específico para admin */
+.user-panel.admin .image img,
+.user-menu.admin .user-image {
+    background-image: url('/images/users/admin-avatar.png');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Logos específicos por punto de venta */
+.box-logo {
+    background-image: url('/images/logos/box-logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 100px;
+    height: 40px;
+}
+
+.postgrado-logo {
+    background-image: url('/images/logos/postgrado-logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 100px;
+    height: 40px;
+}
+
+.odonto-logo {
+    background-image: url('/images/logos/odonto-logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 100px;
+    height: 40px;
+}
+
+/* Placeholder para imágenes que faltan */
+.image-placeholder {
+    background-image: url('/images/users/placeholder.png');
+    background-size: cover;
+    background-position: center;
+    background-color: #f4f4f4;
+}
+
+/* Deshabilitar imágenes de AdminLTE por defecto */
+.brand-image {
+    display: none !important;
+}
+
+/* Asegurar que no aparezcan círculos o bordes molestos */
+.img-circle {
+    border-radius: 0 !important;
+}
+
+.elevation-1,
+.elevation-2,
+.elevation-3,
+.elevation-4 {
+    box-shadow: none !important;
+}

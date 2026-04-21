@@ -1,0 +1,11 @@
+apellido;nombre;dni;email;telefono;legajo;plan;ingreso;reinscripcion
+Pérez;Juan Carlos;12345678;juan.perez@email.com;1123456789;TP2023001;1;2023;2026
+González;María Elena;23456789;maria.gonzalez@email.com;1134567890;TP2024002;2;2024;2026
+Rodríguez;Carlos Alberto;34567890;carlos.rodriguez@email.com;1145678901;TP2023003;1;2023;2025
+López;Ana Beatriz;45678901;ana.lopez@email.com;1156789012;TP2024004;2;2024;2026
+Martínez;Diego Fernando;56789012;diego.martinez@email.com;1167890123;TP2023005;1;2023;2024
+Silva;Laura Patricia;67890123;laura.silva@email.com;1178901234;TP2024006;2;2024;2026
+Torres;Roberto Miguel;78901234;roberto.torres@email.com;1189012345;TP2023007;1;2023;2026
+Fernández;Claudia Verónica;89012345;claudia.fernandez@email.com;1190123456;TP2024008;2;2024;2025
+Morales;Andrés Sebastián;90123456;andres.morales@email.com;1101234567;TP2023009;1;2023;2026
+Vargas;Patricia Isabel;01234567;patricia.vargas@email.com;1112345678;TP2024010;2;2024;2026

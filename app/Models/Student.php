@@ -12,63 +12,98 @@ class Student extends Model implements Auditable
 {
     use HasFactory, AuditableTrait;
 
+    protected $table = 'estudiantes';
+
     protected $fillable = [
-        'student_number',
-        'first_name',
-        'last_name',
-        'document_type',
-        'document_number',
-        'phone',
+        // Campos del CSV
+        'apellido',
+        'nombre',
+        'dni',
         'email',
-        'address',
-        'career_type',
-        'career_name',
-        'academic_year',
-        'fee_frequency',
-        'fee_amount',
-        'enrollment_date',
-        'status',
-        'is_active',
-        'additional_data',
+        'telefono',
+        'legajo',
+        'plan',
+        'ingreso',
+        'reinscripcion',
+
+        // Campos adicionales del sistema
+        'carrera', // Referencia a career_type en CareerFeeConfig
+        'fecha_inscripcion',
+        'estado',
+        'direccion',
+        'activo',
+        'datos_adicionales',
     ];
 
     protected $casts = [
-        'enrollment_date' => 'date',
-        'fee_amount' => 'decimal:2',
-        'academic_year' => 'integer',
-        'is_active' => 'boolean',
-        'additional_data' => 'array',
+        'fecha_inscripcion' => 'date',
+        'ingreso' => 'integer',
+        'reinscripcion' => 'integer',
+        'activo' => 'boolean',
+        'datos_adicionales' => 'array',
     ];
+
+    /**
+     * Relación con la configuración de carrera
+     */
+    public function configuracionCarrera()
+    {
+        return $this->belongsTo(CareerFeeConfig::class, 'carrera', 'tipo_carrera');
+    }
 
     /**
      * Relación con ventas (pagos de cuotas)
      */
-    public function sales(): HasMany
+    public function ventas(): HasMany
     {
         return $this->hasMany(Sale::class);
     }
 
     /**
-     * Scope para estudiantes activos (usando is_active)
+     * Scope para estudiantes activos (usando activo)
      */
-    public function scopeActive($query)
+    public function scopeActivos($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('activo', true);
     }
 
     /**
-     * Scope para estudiantes por status
+     * Scope para estudiantes por estado
      */
-    public function scopeByStatus($query, $status)
+    public function scopePorEstado($query, $estado)
     {
-        return $query->where('status', $status);
+        return $query->where('estado', $estado);
     }
 
     /**
      * Obtener nombre completo
      */
-    public function getFullNameAttribute()
+    public function obtenerNombreCompleto()
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return trim("{$this->nombre} {$this->apellido}");
+    }
+
+    /**
+     * Verificar si está activo
+     */
+    public function estaActivo()
+    {
+        return $this->activo && $this->estado === 'activo';
+    }
+
+    /**
+     * Obtener años de estudios
+     */
+    public function obtenerAniosEstudio()
+    {
+        return now()->year - $this->ingreso;
+    }
+
+    /**
+     * Obtener cuota mensual desde la carrera
+     */
+    public function obtenerCuotaMensual()
+    {
+        return $this->configuracionCarrera?->cuota_mensual ?? 0;
     }
 }

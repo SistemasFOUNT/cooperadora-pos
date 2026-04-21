@@ -28,6 +28,9 @@ class User extends Authenticatable implements Auditable
         'email',
         'password',
         'branch_id',
+        'punto_venta_id',
+        'role',
+        'permisos',
         'employee_number',
         'status',
         'preferences',
@@ -66,7 +69,16 @@ class User extends Authenticatable implements Auditable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'preferences' => 'array',
+            'permisos' => 'array',
         ];
+    }
+
+    /**
+     * Relación con punto de venta
+     */
+    public function puntoVenta(): BelongsTo
+    {
+        return $this->belongsTo(PuntoVenta::class, 'punto_venta_id');
     }
 
     /**
@@ -91,5 +103,108 @@ class User extends Authenticatable implements Auditable
     public function cashMovements(): HasMany
     {
         return $this->hasMany(CashMovement::class);
+    }
+
+    /**
+     * Verifica si el usuario es administrador
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Verifica si el usuario puede acceder a un punto de venta específico
+     */
+    public function canAccessPuntoVenta($puntoVentaId): bool
+    {
+        if ($this->isAdmin()) {
+            return true; // Admin puede ver todo
+        }
+
+        return $this->punto_venta_id == $puntoVentaId;
+    }
+
+    /**
+     * Obtiene el nombre del rol en español
+     */
+    public function getRoleNameAttribute(): string
+    {
+        $roles = [
+            'admin' => 'Administrador',
+            'usuario_box' => 'Usuario BOX Cooperadora',
+            'usuario_postgrado' => 'Usuario Postgrado',
+            'usuario_odonto' => 'Usuario Centro Odontológico'
+        ];
+
+        return $roles[$this->role] ?? 'Usuario';
+    }
+
+    /**
+     * Scope para filtrar usuarios por punto de venta
+     */
+    public function scopeByPuntoVenta($query, $puntoVentaId)
+    {
+        return $query->where('punto_venta_id', $puntoVentaId);
+    }
+
+    /**
+     * Scope para usuarios de un punto de venta específico
+     */
+    public function scopeBoxUsers($query)
+    {
+        return $query->where('role', 'usuario_box');
+    }
+
+    public function scopePostgradoUsers($query)
+    {
+        return $query->where('role', 'usuario_postgrado');
+    }
+
+    public function scopeOdontoUsers($query)
+    {
+        return $query->where('role', 'usuario_odonto');
+    }
+
+    public function scopeAdminUsers($query)
+    {
+        return $query->where('role', 'admin');
+    }
+
+    /**
+     * Métodos requeridos por AdminLTE
+     */
+
+    /**
+     * Obtiene la URL del perfil del usuario para AdminLTE
+     */
+    public function adminlte_profile_url()
+    {
+        if ($this->isAdmin()) {
+            return route('admin.profile'); // Ruta específica para admin
+        }
+
+        return route('profile.edit'); // Ruta general para otros usuarios
+    }
+
+    /**
+     * Obtiene la imagen del usuario para AdminLTE
+     */
+    public function adminlte_image()
+    {
+        // Retornar false para deshabilitar completamente la imagen
+        return false;
+    }
+
+    /**
+     * Obtiene la descripción del usuario para AdminLTE
+     */
+    public function adminlte_desc()
+    {
+        if ($this->isAdmin()) {
+            return 'Superusuario - Acceso completo';
+        }
+
+        return $this->getRoleNameAttribute();
     }
 }
