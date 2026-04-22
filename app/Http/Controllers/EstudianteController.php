@@ -19,7 +19,7 @@ class EstudianteController extends Controller
         $estudiantes = Student::with('configuracionCarrera')
             ->orderBy('apellido')
             ->orderBy('nombre')
-            ->paginate(15);
+            ->get();
         
         return view('estudiantes.index', compact('estudiantes'));
     }
