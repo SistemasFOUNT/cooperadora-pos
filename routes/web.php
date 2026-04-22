@@ -162,13 +162,39 @@ Route::middleware('auth')->group(function () {
     // ===== RUTAS ESPECÍFICAS POR PUNTO DE VENTA =====
 
     // BOX COOPERADORA - Rutas específicas
-    Route::prefix('box')->middleware('punto_venta')->group(function () {
+    Route::prefix('box')->middleware(['punto_venta', 'box_menu'])->group(function () {
         Route::get('/dashboard', [BoxController::class, 'dashboard'])->name('box.dashboard');
         Route::get('/pos', [BoxController::class, 'pos'])->name('box.pos');
         Route::get('/productos', [BoxController::class, 'productos'])->name('box.productos');
         Route::get('/ventas-del-dia', [BoxController::class, 'ventasDelDia'])->name('box.ventas-del-dia');
         Route::get('/reportes', [BoxController::class, 'reportes'])->name('box.reportes');
         Route::get('/configuracion', [BoxController::class, 'configuracion'])->name('box.configuracion');
+
+        // Nuevas rutas para el menú específico de BOX
+        Route::prefix('cobros')->group(function () {
+            Route::get('/productos', [BoxController::class, 'cobrosProductos'])->name('box.cobros.productos');
+            Route::post('/productos/ticket-pdf', [BoxController::class, 'generarTicketPDF'])->name('box.cobros.ticket-pdf');
+            Route::get('/odontologia', [BoxController::class, 'cobrosOdontologia'])->name('box.cobros.odontologia');
+            Route::get('/cuotas', [BoxController::class, 'cobrosCuotas'])->name('box.cobros.cuotas');
+            Route::get('/bonos', [BoxController::class, 'cobrosBonos'])->name('box.cobros.bonos');
+            Route::get('/otros', [BoxController::class, 'cobrosOtros'])->name('box.cobros.otros');
+        });
+
+        Route::prefix('inventario')->group(function () {
+            Route::get('/ingresos', [BoxController::class, 'inventarioIngresos'])->name('box.inventario.ingresos');
+        });
+
+        Route::prefix('pagos')->group(function () {
+            Route::get('/proveedores', [BoxController::class, 'pagosProveedores'])->name('box.pagos.proveedores');
+            Route::get('/asignaciones', [BoxController::class, 'pagosAsignaciones'])->name('box.pagos.asignaciones');
+        });
+
+        Route::prefix('reportes')->group(function () {
+            Route::get('/diario', [BoxController::class, 'reportesDiario'])->name('box.reportes.diario');
+            Route::get('/movimientos', [BoxController::class, 'reportesMovimientos'])->name('box.reportes.movimientos');
+            Route::get('/ventas', [BoxController::class, 'reportesVentas'])->name('box.reportes.ventas');
+            Route::get('/inventario', [BoxController::class, 'reportesInventario'])->name('box.reportes.inventario');
+        });
     });
 
     // POSTGRADO - Rutas específicas

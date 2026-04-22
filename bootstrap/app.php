@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'punto_venta' => \App\Http\Middleware\PuntoVentaMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'box_menu' => \App\Http\Middleware\BoxMenuMiddleware::class,
         ]);
     })
     ->withProviders([

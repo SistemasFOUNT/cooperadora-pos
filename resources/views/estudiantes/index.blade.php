@@ -153,7 +153,7 @@ $.fn.dataTable.ext.search.push(
     function(settings, data, dataIndex) {
         var searchTerm = $('.dataTables_filter input').val();
         if (!searchTerm) return true;
-        
+
         // Buscar solo al inicio de cualquier columna (excluyendo HTML)
         return data.some(function(cellData) {
             // Remover HTML y espacios extra
