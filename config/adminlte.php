@@ -324,16 +324,87 @@ return [
             'classes' => 'bg-primary',
         ],
 
-        ['header' => 'GESTIÓN'],
-        [
-            'text' => 'Productos',
-            'url' => 'products',
-            'icon' => 'fas fa-fw fa-box',
-        ],
+        ['header' => 'GESTIÓN ACADÉMICA'],
         [
             'text' => 'Estudiantes',
-            'url' => 'students',
-            'icon' => 'fas fa-fw fa-users',
+            'icon' => 'fas fa-fw fa-user-graduate',
+            'submenu' => [
+                [
+                    'text' => 'Lista de Estudiantes',
+                    'url' => 'estudiantes',
+                    'icon' => 'fas fa-fw fa-list',
+                ],
+                [
+                    'text' => 'Agregar Estudiante',
+                    'url' => 'estudiantes/crear',
+                    'icon' => 'fas fa-fw fa-plus',
+                ],
+                [
+                    'text' => 'Importar desde CSV',
+                    'url' => 'estudiantes/importar',
+                    'icon' => 'fas fa-fw fa-upload',
+                ],
+            ],
+        ],
+        [
+            'text' => 'Carreras y Cuotas',
+            'icon' => 'fas fa-fw fa-graduation-cap',
+            'submenu' => [
+                [
+                    'text' => 'Configurar Carreras',
+                    'url' => 'carreras',
+                    'icon' => 'fas fa-fw fa-cogs',
+                ],
+                [
+                    'text' => 'Gestionar Cuotas',
+                    'url' => 'carreras/cuotas',
+                    'icon' => 'fas fa-fw fa-dollar-sign',
+                ],
+            ],
+        ],
+
+        ['header' => 'GESTIÓN COMERCIAL'],
+        [
+            'text' => 'Productos',
+            'icon' => 'fas fa-fw fa-boxes',
+            'submenu' => [
+                [
+                    'text' => 'Lista de Productos',
+                    'url' => 'productos',
+                    'icon' => 'fas fa-fw fa-list',
+                ],
+                [
+                    'text' => 'Agregar Producto',
+                    'url' => 'productos/crear',
+                    'icon' => 'fas fa-fw fa-plus',
+                ],
+                [
+                    'text' => 'Categorías',
+                    'url' => 'productos/categorias',
+                    'icon' => 'fas fa-fw fa-tags',
+                ],
+                [
+                    'text' => 'Inventario',
+                    'url' => 'productos/inventario',
+                    'icon' => 'fas fa-fw fa-warehouse',
+                ],
+            ],
+        ],
+        [
+            'text' => 'Ventas',
+            'icon' => 'fas fa-fw fa-shopping-cart',
+            'submenu' => [
+                [
+                    'text' => 'Historial de Ventas',
+                    'url' => 'ventas',
+                    'icon' => 'fas fa-fw fa-history',
+                ],
+                [
+                    'text' => 'Reportes de Ventas',
+                    'url' => 'ventas/reportes',
+                    'icon' => 'fas fa-fw fa-chart-bar',
+                ],
+            ],
         ],
 
         ['header' => 'CONTABILIDAD'],
@@ -379,6 +450,22 @@ return [
         ],
 
         ['header' => 'CONFIGURACIÓN'],
+        [
+            'text' => 'Usuarios y Permisos',
+            'icon' => 'fas fa-fw fa-users-cog',
+            'submenu' => [
+                [
+                    'text' => 'Gestionar Usuarios',
+                    'url' => 'usuarios',
+                    'icon' => 'fas fa-fw fa-users',
+                ],
+                [
+                    'text' => 'Roles y Permisos',
+                    'url' => 'usuarios/roles',
+                    'icon' => 'fas fa-fw fa-user-shield',
+                ],
+            ],
+        ],
         [
             'text' => 'Mi Perfil',
             'url' => 'profile',
