@@ -128,13 +128,15 @@
                                 <div class="form-group">
                                     <label for="reinscripcion">Año de Reinscripción</label>
                                     <input type="number" class="form-control @error('reinscripcion') is-invalid @enderror" 
-                                           id="reinscripcion" name="reinscripcion" value="{{ old('reinscripcion', now()->year) }}" 
-                                           min="2000" max="{{ now()->year + 5 }}" placeholder="{{ now()->year }}">
+                                           id="reinscripcion" name="reinscripcion" 
+                                           value="{{ old('reinscripcion', now()->month >= 4 ? now()->year : now()->year - 1) }}" 
+                                           min="2000" max="{{ now()->year + 5 }}" 
+                                           placeholder="{{ now()->month >= 4 ? now()->year : now()->year - 1 }}">
                                     @error('reinscripcion')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                     <small class="form-text text-muted">
-                                        Año académico en que se reinscribió
+                                        Año académico en que se reinscribió (1/4 - 31/3)
                                     </small>
                                 </div>
                             </div>

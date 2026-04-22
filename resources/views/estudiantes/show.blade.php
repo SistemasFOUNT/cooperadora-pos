@@ -87,7 +87,7 @@
                         <dd>
                             {{ $estudiante->reinscripcion ?? 'No especificado' }}
                             @if($estudiante->reinscripcion)
-                                @if($estudiante->reinscripcion == now()->year)
+                                @if($estudiante->reinscripcion == $estudiante->obtenerAnioAcademicoActual())
                                     <span class="badge badge-success ml-2">Cursando</span>
                                 @else
                                     <span class="badge badge-warning ml-2">Revisión requerida</span>
@@ -108,7 +108,7 @@
                 </div>
             </div>
 
-            @if($estudiante->reinscripcion && $estudiante->reinscripcion < now()->year)
+            @if($estudiante->reinscripcion && $estudiante->reinscripcion < $estudiante->obtenerAnioAcademicoActual())
                 @php $deuda = $estudiante->calcularCuotasAdeudadas(); @endphp
                 @if($deuda['cantidad'] > 0)
                 <div class="card card-warning">
@@ -119,14 +119,14 @@
                         <div class="alert alert-warning">
                             <h5><i class="fas fa-exclamation-triangle"></i> Posible Situación de Deuda</h5>
                             <p><strong>Año de reinscripción:</strong> {{ $estudiante->reinscripcion }}</p>
-                            <p><strong>Año actual:</strong> {{ now()->year }}</p>
+                            <p><strong>Año académico actual:</strong> {{ $deuda['anio_academico_actual'] ?? $estudiante->obtenerAnioAcademicoActual() }}</p>
                             <p><strong>Cuotas estimadas adeudadas:</strong> {{ $deuda['cantidad'] }}</p>
                             <p><strong>Monto estimado:</strong> ${{ number_format($deuda['monto_total'], 2) }}</p>
                             <p><strong>Período:</strong> {{ $deuda['detalle'] }}</p>
                             <hr>
                             <small class="text-muted">
                                 <i class="fas fa-info-circle"></i>
-                                Esta es una estimación basada en el año de reinscripción. 
+                                Cálculo basado en año académico (1/4 - 31/3). 
                                 Verificar manualmente si el estudiante egresó o abandonó la carrera.
                             </small>
                         </div>

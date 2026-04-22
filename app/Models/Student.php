@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
 
 class Student extends Model implements Auditable
 {
@@ -112,7 +113,23 @@ class Student extends Model implements Auditable
      */
     public function estaAlDiaAcademicamente()
     {
-        return $this->reinscripcion == now()->year;
+        return $this->reinscripcion == $this->obtenerAnioAcademicoActual();
+    }
+
+    /**
+     * Obtener el año académico actual (considera que inicia 1/4 y termina 31/3)
+     */
+    public function obtenerAnioAcademicoActual()
+    {
+        $fechaActual = now();
+        $anioActual = $fechaActual->year;
+        
+        // Si estamos antes del 1 de abril, el año académico es el anterior
+        if ($fechaActual->month < 4) {
+            return $anioActual - 1;
+        }
+        
+        return $anioActual;
     }
 
     /**
@@ -120,11 +137,11 @@ class Student extends Model implements Auditable
      */
     public function obtenerEstadoAcademico()
     {
-        $anioActual = now()->year;
+        $anioAcademicoActual = $this->obtenerAnioAcademicoActual();
         
-        if ($this->reinscripcion == $anioActual) {
+        if ($this->reinscripcion == $anioAcademicoActual) {
             return 'cursando';
-        } elseif ($this->reinscripcion < $anioActual) {
+        } elseif ($this->reinscripcion < $anioAcademicoActual) {
             return 'posible_egresado_o_abandono';
         } else {
             return 'futuro';
@@ -132,7 +149,7 @@ class Student extends Model implements Auditable
     }
 
     /**
-     * Calcular cuotas adeudadas (aproximación basada en meses desde reinscripción)
+     * Calcular cuotas adeudadas considerando año académico (abril-marzo)
      */
     public function calcularCuotasAdeudadas()
     {
@@ -144,41 +161,58 @@ class Student extends Model implements Auditable
             ];
         }
 
+        $anioAcademicoActual = $this->obtenerAnioAcademicoActual();
+
         // Si está al día académicamente, no calculamos deuda histórica
-        if ($this->estaAlDiaAcademicamente()) {
+        if ($this->reinscripcion >= $anioAcademicoActual) {
             return [
                 'cantidad' => 0,
                 'monto_total' => 0,
-                'detalle' => 'Cursando año actual'
+                'detalle' => 'Cursando año académico actual'
             ];
         }
 
-        // Calcular meses desde el año de reinscripción hasta ahora
+        // Calcular meses desde el año de reinscripción hasta el año académico actual
         $anioReinscripcion = $this->reinscripcion;
-        $anioActual = now()->year;
-        $mesActual = now()->month;
+        $fechaActual = now();
+        $mesesAdeudados = 0;
         
-        // Estimación: desde marzo del año de reinscripción hasta diciembre del año anterior al actual
-        // (asumiendo que las clases van de marzo a diciembre)
-        $mesesEstimados = 0;
+        // Calcular años académicos completos transcurridos
+        $aniosCompletos = $anioAcademicoActual - $anioReinscripcion;
         
-        for ($ano = $anioReinscripcion; $ano < $anioActual; $ano++) {
-            // 10 meses por año académico (marzo-diciembre)
-            $mesesEstimados += 10;
+        if ($aniosCompletos > 1) {
+            // Años académicos completos (12 meses cada uno)
+            $mesesAdeudados += ($aniosCompletos - 1) * 12;
         }
         
-        // Si estamos en el año actual, agregar meses del año actual hasta ahora
-        if ($mesActual >= 3) { // Si ya pasó marzo
-            $mesesEstimados += min($mesActual - 2, 10); // Desde marzo hasta el mes actual, máximo 10
+        // Calcular meses del último año académico incompleto
+        if ($aniosCompletos >= 1) {
+            // Desde abril del año de reinscripción hasta marzo del siguiente
+            $mesesAdeudados += 12;
+            
+            // Meses del año académico actual (desde abril hasta el mes actual)
+            if ($fechaActual->month >= 4) {
+                $mesesDelAnioActual = $fechaActual->month - 3; // Desde abril (mes 4) hasta el mes actual
+            } else {
+                // Si estamos en enero-marzo, contamos desde abril del año anterior
+                $mesesDelAnioActual = $fechaActual->month + 9; // 9 meses del año anterior + meses del actual
+            }
+            $mesesAdeudados += $mesesDelAnioActual;
+        } else {
+            // Solo calcular meses dentro del mismo año académico
+            $inicioAnioAcademico = Carbon::parse($anioReinscripcion . '-04-01');
+            $mesesTranscurridos = $inicioAnioAcademico->diffInMonths($fechaActual);
+            $mesesAdeudados = min($mesesTranscurridos, 12); // Máximo 12 meses por año académico
         }
 
         $cuotaMensual = $this->configuracionCarrera->cuota_mensual ?? 0;
-        $montoTotal = $mesesEstimados * $cuotaMensual;
+        $montoTotal = $mesesAdeudados * $cuotaMensual;
 
         return [
-            'cantidad' => $mesesEstimados,
+            'cantidad' => $mesesAdeudados,
             'monto_total' => $montoTotal,
-            'detalle' => "Desde {$anioReinscripcion} hasta " . now()->format('Y')
+            'detalle' => "Desde año académico {$anioReinscripcion} hasta " . $this->obtenerAnioAcademicoActual(),
+            'anio_academico_actual' => $anioAcademicoActual
         ];
     }
 }

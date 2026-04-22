@@ -56,7 +56,7 @@
                         </td>
                         <td>
                             {{ $estudiante->reinscripcion ?? 'No especificado' }}
-                            @if($estudiante->reinscripcion && $estudiante->reinscripcion < now()->year)
+                            @if($estudiante->reinscripcion && $estudiante->reinscripcion < $estudiante->obtenerAnioAcademicoActual())
                                 @php $deuda = $estudiante->calcularCuotasAdeudadas(); @endphp
                                 @if($deuda['cantidad'] > 0)
                                     <br><small class="text-danger">
@@ -71,7 +71,7 @@
                             <span class="badge badge-{{ $estudiante->estado === 'activo' ? 'success' : ($estudiante->estado === 'inactivo' ? 'warning' : 'secondary') }}">
                                 {{ ucfirst($estudiante->estado) }}
                             </span>
-                            @if($estudiante->reinscripcion && $estudiante->reinscripcion < now()->year)
+                            @if($estudiante->reinscripcion && $estudiante->reinscripcion < $estudiante->obtenerAnioAcademicoActual())
                                 <br><span class="badge badge-warning mt-1">Revisión requerida</span>
                             @endif
                         </td>
