@@ -69,20 +69,20 @@ class BoxController extends Controller
             'ingresos_hoy' => [
                 'ventas_productos' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('tipo', 'venta_producto')
-                    ->sum('total'),
+                    ->where('type', 'venta_producto')
+                    ->sum('total_amount'),
                 'cuotas_tecnicaturas' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('tipo', 'cuota_tecnicatura')
-                    ->sum('total'),
+                    ->where('type', 'cuota_tecnicatura')
+                    ->sum('total_amount'),
                 'bonos_grado' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('tipo', 'bono_grado')
-                    ->sum('total'),
+                    ->where('type', 'bono_grado')
+                    ->sum('total_amount'),
                 'prestaciones_clinicas' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('tipo', 'prestacion_clinica')
-                    ->sum('total'),
+                    ->where('type', 'prestacion_clinica')
+                    ->sum('total_amount'),
             ],
             'egresos_hoy' => [
                 'pagos_proveedores' => 0, // TODO: Implementar modelo de pagos
@@ -112,11 +112,11 @@ class BoxController extends Controller
             'resumen_periodo' => [
                 'total_ingresos' => Sale::whereBetween('created_at', [$fechaDesde, $fechaHasta])
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->sum('total'),
+                    ->sum('total_amount'),
                 'total_egresos' => 0, // TODO: Implementar modelo de egresos
                 'saldo_periodo' => Sale::whereBetween('created_at', [$fechaDesde, $fechaHasta])
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->sum('total'),
+                    ->sum('total_amount'),
             ],
             'movimientos_detalle' => Sale::with(['user'])
                 ->whereBetween('created_at', [$fechaDesde, $fechaHasta])
@@ -203,12 +203,11 @@ class BoxController extends Controller
         return [
             'ventas_hoy' => Sale::whereDate('created_at', Carbon::today())
                               ->where('punto_venta_id', $this->puntoVenta->id)
-                              ->sum('total'),
+                              ->sum('total_amount'),
             'ventas_mes' => Sale::whereMonth('created_at', Carbon::now()->month)
                               ->where('punto_venta_id', $this->puntoVenta->id)
-                              ->sum('total'),
-            'productos_activos' => Product::where('active', true)
-                                         ->where('punto_venta_id', $this->puntoVenta->id)
+                              ->sum('total_amount'),
+            'productos_activos' => Product::where('is_active', true)
                                          ->count(),
             'cajeros_activos' => \App\Models\User::where('role', 'usuario_box')
                                               ->where('punto_venta_id', $this->puntoVenta->id)
@@ -221,7 +220,7 @@ class BoxController extends Controller
     {
         return Sale::whereMonth('created_at', Carbon::now()->month)
                   ->where('punto_venta_id', $this->puntoVenta->id)
-                  ->selectRaw('DATE(created_at) as fecha, SUM(total) as total')
+                  ->selectRaw('DATE(created_at) as fecha, SUM(total_amount) as total')
                   ->groupBy('fecha')
                   ->orderBy('fecha')
                   ->get();
@@ -229,13 +228,13 @@ class BoxController extends Controller
 
     private function getProductosMasVendidos()
     {
-        return DB::table('sale_product')
-                ->join('sales', 'sale_product.sale_id', '=', 'sales.id')
-                ->join('products', 'sale_product.product_id', '=', 'products.id')
-                ->where('sales.punto_venta_id', $this->puntoVenta->id)
-                ->whereMonth('sales.created_at', Carbon::now()->month)
-                ->selectRaw('products.name, SUM(sale_product.quantity) as cantidad_vendida')
-                ->groupBy('products.id', 'products.name')
+        return DB::table('items_venta')
+                ->join('ventas', 'items_venta.sale_id', '=', 'ventas.id')
+                ->join('productos', 'items_venta.product_id', '=', 'productos.id')
+                ->where('ventas.punto_venta_id', $this->puntoVenta->id)
+                ->whereMonth('ventas.created_at', Carbon::now()->month)
+                ->selectRaw('productos.name, SUM(items_venta.quantity) as cantidad_vendida')
+                ->groupBy('productos.id', 'productos.name')
                 ->orderByDesc('cantidad_vendida')
                 ->limit(10)
                 ->get();
@@ -245,8 +244,8 @@ class BoxController extends Controller
     {
         return Sale::where('punto_venta_id', $this->puntoVenta->id)
                   ->whereMonth('created_at', Carbon::now()->month)
-                  ->join('users', 'sales.user_id', '=', 'users.id')
-                  ->selectRaw('users.name, COUNT(*) as total_ventas, SUM(sales.total) as monto_total')
+                  ->join('users', 'ventas.user_id', '=', 'users.id')
+                  ->selectRaw('users.name, COUNT(*) as total_ventas, SUM(ventas.total_amount) as monto_total')
                   ->groupBy('users.id', 'users.name')
                   ->orderByDesc('monto_total')
                   ->get();

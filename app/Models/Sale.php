@@ -13,6 +13,8 @@ class Sale extends Model implements Auditable
 {
     use HasFactory, AuditableTrait;
 
+    protected $table = 'ventas';
+
     protected $fillable = [
         'sale_number',
         'branch_id',
