@@ -83,8 +83,17 @@
                             @endif
                         </dd>
 
-                        <dt>Año Académico:</dt>
-                        <dd>{{ $estudiante->anio_academico ?? 'No especificado' }}</dd>
+                        <dt>Año de Reinscripción:</dt>
+                        <dd>
+                            {{ $estudiante->reinscripcion ?? 'No especificado' }}
+                            @if($estudiante->reinscripcion)
+                                @if($estudiante->reinscripcion == now()->year)
+                                    <span class="badge badge-success ml-2">Cursando</span>
+                                @else
+                                    <span class="badge badge-warning ml-2">Revisión requerida</span>
+                                @endif
+                            @endif
+                        </dd>
 
                         <dt>Estado:</dt>
                         <dd>
@@ -98,6 +107,33 @@
                     </dl>
                 </div>
             </div>
+
+            @if($estudiante->reinscripcion && $estudiante->reinscripcion < now()->year)
+                @php $deuda = $estudiante->calcularCuotasAdeudadas(); @endphp
+                @if($deuda['cantidad'] > 0)
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <h3 class="card-title">⚠️ Alertas Académicas</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Posible Situación de Deuda</h5>
+                            <p><strong>Año de reinscripción:</strong> {{ $estudiante->reinscripcion }}</p>
+                            <p><strong>Año actual:</strong> {{ now()->year }}</p>
+                            <p><strong>Cuotas estimadas adeudadas:</strong> {{ $deuda['cantidad'] }}</p>
+                            <p><strong>Monto estimado:</strong> ${{ number_format($deuda['monto_total'], 2) }}</p>
+                            <p><strong>Período:</strong> {{ $deuda['detalle'] }}</p>
+                            <hr>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Esta es una estimación basada en el año de reinscripción. 
+                                Verificar manualmente si el estudiante egresó o abandonó la carrera.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            @endif
 
             @if($estudiante->observaciones)
             <div class="card">

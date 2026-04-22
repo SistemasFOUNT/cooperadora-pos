@@ -29,7 +29,7 @@
                         <th>DNI</th>
                         <th>Apellido, Nombre</th>
                         <th>Carrera</th>
-                        <th>Año Académico</th>
+                        <th>Año Reinscripción</th>
                         <th>Estado</th>
                         <th>Fecha Inscripción</th>
                         <th>Acciones</th>
@@ -54,11 +54,26 @@
                                 <span class="badge badge-warning">Sin carrera asignada</span>
                             @endif
                         </td>
-                        <td>{{ $estudiante->anio_academico }}</td>
+                        <td>
+                            {{ $estudiante->reinscripcion ?? 'No especificado' }}
+                            @if($estudiante->reinscripcion && $estudiante->reinscripcion < now()->year)
+                                @php $deuda = $estudiante->calcularCuotasAdeudadas(); @endphp
+                                @if($deuda['cantidad'] > 0)
+                                    <br><small class="text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        {{ $deuda['cantidad'] }} cuotas adeudadas
+                                        <br>${{ number_format($deuda['monto_total'], 2) }}
+                                    </small>
+                                @endif
+                            @endif
+                        </td>
                         <td>
                             <span class="badge badge-{{ $estudiante->estado === 'activo' ? 'success' : ($estudiante->estado === 'inactivo' ? 'warning' : 'secondary') }}">
                                 {{ ucfirst($estudiante->estado) }}
                             </span>
+                            @if($estudiante->reinscripcion && $estudiante->reinscripcion < now()->year)
+                                <br><span class="badge badge-warning mt-1">Revisión requerida</span>
+                            @endif
                         </td>
                         <td>{{ $estudiante->fecha_inscripcion ? $estudiante->fecha_inscripcion->format('d/m/Y') : '-' }}</td>
                         <td>

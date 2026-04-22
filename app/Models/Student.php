@@ -106,4 +106,79 @@ class Student extends Model implements Auditable
     {
         return $this->configuracionCarrera?->cuota_mensual ?? 0;
     }
+
+    /**
+     * Verificar si el estudiante está al día con el año académico
+     */
+    public function estaAlDiaAcademicamente()
+    {
+        return $this->reinscripcion == now()->year;
+    }
+
+    /**
+     * Obtener el estado académico del estudiante
+     */
+    public function obtenerEstadoAcademico()
+    {
+        $anioActual = now()->year;
+        
+        if ($this->reinscripcion == $anioActual) {
+            return 'cursando';
+        } elseif ($this->reinscripcion < $anioActual) {
+            return 'posible_egresado_o_abandono';
+        } else {
+            return 'futuro';
+        }
+    }
+
+    /**
+     * Calcular cuotas adeudadas (aproximación basada en meses desde reinscripción)
+     */
+    public function calcularCuotasAdeudadas()
+    {
+        if (!$this->configuracionCarrera) {
+            return [
+                'cantidad' => 0,
+                'monto_total' => 0,
+                'detalle' => 'Sin carrera asignada'
+            ];
+        }
+
+        // Si está al día académicamente, no calculamos deuda histórica
+        if ($this->estaAlDiaAcademicamente()) {
+            return [
+                'cantidad' => 0,
+                'monto_total' => 0,
+                'detalle' => 'Cursando año actual'
+            ];
+        }
+
+        // Calcular meses desde el año de reinscripción hasta ahora
+        $anioReinscripcion = $this->reinscripcion;
+        $anioActual = now()->year;
+        $mesActual = now()->month;
+        
+        // Estimación: desde marzo del año de reinscripción hasta diciembre del año anterior al actual
+        // (asumiendo que las clases van de marzo a diciembre)
+        $mesesEstimados = 0;
+        
+        for ($ano = $anioReinscripcion; $ano < $anioActual; $ano++) {
+            // 10 meses por año académico (marzo-diciembre)
+            $mesesEstimados += 10;
+        }
+        
+        // Si estamos en el año actual, agregar meses del año actual hasta ahora
+        if ($mesActual >= 3) { // Si ya pasó marzo
+            $mesesEstimados += min($mesActual - 2, 10); // Desde marzo hasta el mes actual, máximo 10
+        }
+
+        $cuotaMensual = $this->configuracionCarrera->cuota_mensual ?? 0;
+        $montoTotal = $mesesEstimados * $cuotaMensual;
+
+        return [
+            'cantidad' => $mesesEstimados,
+            'monto_total' => $montoTotal,
+            'detalle' => "Desde {$anioReinscripcion} hasta " . now()->format('Y')
+        ];
+    }
 }

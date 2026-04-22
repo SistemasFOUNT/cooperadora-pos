@@ -126,13 +126,16 @@
                             
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="anio_academico">Año Académico <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('anio_academico') is-invalid @enderror" 
-                                           id="anio_academico" name="anio_academico" value="{{ old('anio_academico') }}" 
-                                           placeholder="Ej: 2024" required>
-                                    @error('anio_academico')
+                                    <label for="reinscripcion">Año de Reinscripción</label>
+                                    <input type="number" class="form-control @error('reinscripcion') is-invalid @enderror" 
+                                           id="reinscripcion" name="reinscripcion" value="{{ old('reinscripcion', now()->year) }}" 
+                                           min="2000" max="{{ now()->year + 5 }}" placeholder="{{ now()->year }}">
+                                    @error('reinscripcion')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                    <small class="form-text text-muted">
+                                        Año académico en que se reinscribió
+                                    </small>
                                 </div>
                             </div>
                             
