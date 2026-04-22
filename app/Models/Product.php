@@ -12,6 +12,8 @@ class Product extends Model implements Auditable
 {
     use HasFactory, AuditableTrait;
 
+    protected $table = 'productos';
+
     protected $fillable = [
         'code',
         'name',
