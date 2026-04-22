@@ -107,37 +107,6 @@
     </div>
 @stop
 
-@section('js')
-<script>
-$(document).ready(function() {
-    $('#estudiantesTable').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-        },
-        "order": [[ 1, "asc" ]], // Ordenar por apellido, nombre (columna 1)
-        "columnDefs": [
-            {
-                "targets": [6], // Columna de acciones
-                "orderable": false,
-                "searchable": false
-            }
-        ],
-        "pageLength": 25,
-        "responsive": true,
-        "dom": 'Bfrtip',
-        "buttons": [
-            'copy', 'csv', 'excel', 'pdf', 'print'
-        ]
-    });
-});
-
-function confirmarEliminacion(id) {
-    $('#formEliminar').attr('action', '/estudiantes/' + id);
-    $('#confirmarEliminacionModal').modal('show');
-}
-</script>
-@stop
-
 @section('css')
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap4.min.css">
@@ -177,12 +146,16 @@ $(document).ready(function() {
                 "searchable": false
             }
         ],
-        "pageLength": 25,
+        "pageLength": 20,
+        "lengthMenu": [[20, 50, 100, -1], [20, 50, 100, "Todos"]],
         "responsive": true,
         "dom": 'Bfrtip',
         "buttons": [
             'copy', 'csv', 'excel', 'pdf', 'print'
-        ]
+        ],
+        "searching": true,
+        "paging": true,
+        "info": true
     });
 });
 
