@@ -126,7 +126,7 @@
                             <hr>
                             <small class="text-muted">
                                 <i class="fas fa-info-circle"></i>
-                                Cálculo basado en año académico (1/4 - 31/3). 
+                                Cálculo basado en año académico (1/4 - 31/3).
                                 Verificar manualmente si el estudiante egresó o abandonó la carrera.
                             </small>
                         </div>

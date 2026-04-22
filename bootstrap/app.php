@@ -15,11 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::bind('estudiante', function ($value) {
                 return \App\Models\Student::findOrFail($value);
             });
-            
+
             Route::bind('carrera', function ($value) {
                 return \App\Models\CareerFeeConfig::findOrFail($value);
             });
-            
+
             Route::bind('producto', function ($value) {
                 return \App\Models\Product::findOrFail($value);
             });

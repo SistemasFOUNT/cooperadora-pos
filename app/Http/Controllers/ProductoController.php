@@ -15,7 +15,7 @@ class ProductoController extends Controller
     public function index(): View
     {
         $productos = Product::orderBy('name')->paginate(15);
-        
+
         return view('productos.index', compact('productos'));
     }
 
@@ -97,7 +97,7 @@ class ProductoController extends Controller
      * Eliminar producto
      */
     public function destroy(Product $producto): RedirectResponse
-    {        
+    {
         $producto->delete();
 
         return redirect()->route('productos.index')
@@ -114,7 +114,7 @@ class ProductoController extends Controller
             ->distinct()
             ->orderBy('category')
             ->pluck('category');
-        
+
         return view('productos.categorias', compact('categorias'));
     }
 
@@ -126,7 +126,7 @@ class ProductoController extends Controller
         $productos = Product::where('is_active', true)
             ->orderBy('stock', 'asc')
             ->get();
-        
+
         return view('productos.inventario', compact('productos'));
     }
 
@@ -145,7 +145,7 @@ class ProductoController extends Controller
 
         $diferencia = $validated['stock'] - $stockAnterior;
         $accion = $diferencia > 0 ? 'aumentó' : 'disminuyó';
-        
+
         return redirect()->route('productos.inventario')
             ->with('success', "Stock {$accion} de {$stockAnterior} a {$validated['stock']} unidades.");
     }
@@ -158,7 +158,7 @@ class ProductoController extends Controller
         $producto->update(['is_active' => !$producto->is_active]);
 
         $status = $producto->is_active ? 'activado' : 'desactivado';
-        
+
         return redirect()->route('productos.index')
             ->with('success', "Producto {$status} exitosamente.");
     }
@@ -169,7 +169,7 @@ class ProductoController extends Controller
     public function buscar(Request $request)
     {
         $term = $request->get('term');
-        
+
         $productos = Product::where('is_active', true)
             ->where(function($query) use ($term) {
                 $query->where('name', 'LIKE', "%{$term}%")

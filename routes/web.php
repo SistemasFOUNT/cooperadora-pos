@@ -246,7 +246,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // ===== RUTAS CRUD EN ESPAÑOL =====
-    
+
     // Rutas para Estudiantes
     Route::prefix('estudiantes')->name('estudiantes.')->group(function () {
         Route::get('/', [App\Http\Controllers\EstudianteController::class, 'index'])->name('index');
@@ -256,16 +256,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/{estudiante}/editar', [App\Http\Controllers\EstudianteController::class, 'edit'])->name('edit');
         Route::put('/{estudiante}', [App\Http\Controllers\EstudianteController::class, 'update'])->name('update');
         Route::delete('/{estudiante}', [App\Http\Controllers\EstudianteController::class, 'destroy'])->name('destroy');
-        
+
         // Rutas adicionales
         Route::get('/importar', [App\Http\Controllers\EstudianteController::class, 'importar'])->name('importar');
         Route::post('/procesar-importacion', [App\Http\Controllers\EstudianteController::class, 'procesarImportacion'])->name('procesar-importacion');
         Route::post('/{estudiante}/toggle-estado', [App\Http\Controllers\EstudianteController::class, 'toggleEstado'])->name('toggle-estado');
-        
+
         // API
         Route::get('/api/buscar', [App\Http\Controllers\EstudianteController::class, 'buscar'])->name('buscar');
     });
-    
+
     // Rutas para Carreras
     Route::prefix('carreras')->name('carreras.')->group(function () {
         Route::get('/', [App\Http\Controllers\CarreraController::class, 'index'])->name('index');
@@ -275,13 +275,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/{carrera}/editar', [App\Http\Controllers\CarreraController::class, 'edit'])->name('edit');
         Route::put('/{carrera}', [App\Http\Controllers\CarreraController::class, 'update'])->name('update');
         Route::delete('/{carrera}', [App\Http\Controllers\CarreraController::class, 'destroy'])->name('destroy');
-        
+
         // Rutas adicionales
         Route::get('/cuotas', [App\Http\Controllers\CarreraController::class, 'cuotas'])->name('cuotas');
         Route::post('/actualizar-cuotas', [App\Http\Controllers\CarreraController::class, 'actualizarCuotas'])->name('actualizar-cuotas');
         Route::post('/{carrera}/toggle-activa', [App\Http\Controllers\CarreraController::class, 'toggleActiva'])->name('toggle-activa');
     });
-    
+
     // Rutas para Productos
     Route::prefix('productos')->name('productos.')->group(function () {
         Route::get('/', [App\Http\Controllers\ProductoController::class, 'index'])->name('index');
@@ -291,7 +291,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{producto}/editar', [App\Http\Controllers\ProductoController::class, 'edit'])->name('edit');
         Route::put('/{producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('update');
         Route::delete('/{producto}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('destroy');
-        
+
         // Rutas adicionales
         Route::get('/categorias', [App\Http\Controllers\ProductoController::class, 'categorias'])->name('categorias');
         Route::get('/inventario', [App\Http\Controllers\ProductoController::class, 'inventario'])->name('inventario');

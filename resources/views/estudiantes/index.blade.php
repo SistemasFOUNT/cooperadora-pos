@@ -21,7 +21,7 @@
         <div class="card-header">
             <h3 class="card-title">Lista de Estudiantes</h3>
         </div>
-        
+
         <div class="card-body">
             <table class="table table-striped table-hover" id="estudiantesTable">
                 <thead>
@@ -148,6 +148,21 @@
 <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.colVis.min.js"></script>
 
 <script>
+// Función de búsqueda personalizada - busca desde el inicio de los campos
+$.fn.dataTable.ext.search.push(
+    function(settings, data, dataIndex) {
+        var searchTerm = $('.dataTables_filter input').val();
+        if (!searchTerm) return true;
+        
+        // Buscar solo al inicio de cualquier columna (excluyendo HTML)
+        return data.some(function(cellData) {
+            // Remover HTML y espacios extra
+            var cleanData = cellData.replace(/<[^>]*>/g, '').trim();
+            return cleanData.toLowerCase().indexOf(searchTerm.toLowerCase()) === 0;
+        });
+    }
+);
+
 $(document).ready(function() {
     $('#estudiantesTable').DataTable({
         "language": {

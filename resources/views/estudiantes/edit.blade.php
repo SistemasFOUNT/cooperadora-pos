@@ -21,24 +21,24 @@
                 <form action="{{ route('estudiantes.update', $estudiante) }}" method="POST">
                     @csrf
                     @method('PUT')
-                    
+
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="apellido">Apellido <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('apellido') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('apellido') is-invalid @enderror"
                                            id="apellido" name="apellido" value="{{ old('apellido', $estudiante->apellido) }}" required>
                                     @error('apellido')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="nombre">Nombre <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('nombre') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('nombre') is-invalid @enderror"
                                            id="nombre" name="nombre" value="{{ old('nombre', $estudiante->nombre) }}" required>
                                     @error('nombre')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -51,18 +51,18 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="dni">DNI <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('dni') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('dni') is-invalid @enderror"
                                            id="dni" name="dni" value="{{ old('dni', $estudiante->dni) }}" required>
                                     @error('dni')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="email">Email</label>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
                                            id="email" name="email" value="{{ old('email', $estudiante->email) }}">
                                     @error('email')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -75,19 +75,19 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="telefono">Teléfono</label>
-                                    <input type="text" class="form-control @error('telefono') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('telefono') is-invalid @enderror"
                                            id="telefono" name="telefono" value="{{ old('telefono', $estudiante->telefono) }}">
                                     @error('telefono')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                                    <input type="date" class="form-control @error('fecha_nacimiento') is-invalid @enderror" 
-                                           id="fecha_nacimiento" name="fecha_nacimiento" 
+                                    <input type="date" class="form-control @error('fecha_nacimiento') is-invalid @enderror"
+                                           id="fecha_nacimiento" name="fecha_nacimiento"
                                            value="{{ old('fecha_nacimiento', $estudiante->fecha_nacimiento ? $estudiante->fecha_nacimiento->format('Y-m-d') : '') }}">
                                     @error('fecha_nacimiento')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -98,7 +98,7 @@
 
                         <div class="form-group">
                             <label for="domicilio">Domicilio</label>
-                            <input type="text" class="form-control @error('domicilio') is-invalid @enderror" 
+                            <input type="text" class="form-control @error('domicilio') is-invalid @enderror"
                                    id="domicilio" name="domicilio" value="{{ old('domicilio', $estudiante->domicilio) }}">
                             @error('domicilio')
                                 <span class="invalid-feedback">{{ $message }}</span>
@@ -112,7 +112,7 @@
                                     <select class="form-control @error('carrera_id') is-invalid @enderror" id="carrera_id" name="carrera_id" required>
                                         <option value="">Seleccionar carrera</option>
                                         @foreach($carreras as $carrera)
-                                            <option value="{{ $carrera->id }}" 
+                                            <option value="{{ $carrera->id }}"
                                                 {{ old('carrera_id', $estudiante->carrera_id) == $carrera->id ? 'selected' : '' }}>
                                                 {{ $carrera->nombre_carrera }}
                                             </option>
@@ -123,12 +123,12 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="reinscripcion">Año de Reinscripción</label>
-                                    <input type="number" class="form-control @error('reinscripcion') is-invalid @enderror" 
-                                           id="reinscripcion" name="reinscripcion" 
+                                    <input type="number" class="form-control @error('reinscripcion') is-invalid @enderror"
+                                           id="reinscripcion" name="reinscripcion"
                                            value="{{ old('reinscripcion', $estudiante->reinscripcion) }}"
                                            min="2000" max="{{ now()->year + 5 }}">
                                     @error('reinscripcion')
@@ -155,12 +155,12 @@
                                     @enderror
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="fecha_inscripcion">Fecha de Inscripción</label>
-                                    <input type="date" class="form-control @error('fecha_inscripcion') is-invalid @enderror" 
-                                           id="fecha_inscripcion" name="fecha_inscripcion" 
+                                    <input type="date" class="form-control @error('fecha_inscripcion') is-invalid @enderror"
+                                           id="fecha_inscripcion" name="fecha_inscripcion"
                                            value="{{ old('fecha_inscripcion', $estudiante->fecha_inscripcion ? $estudiante->fecha_inscripcion->format('Y-m-d') : '') }}">
                                     @error('fecha_inscripcion')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -171,7 +171,7 @@
 
                         <div class="form-group">
                             <label for="observaciones">Observaciones</label>
-                            <textarea class="form-control @error('observaciones') is-invalid @enderror" 
+                            <textarea class="form-control @error('observaciones') is-invalid @enderror"
                                       id="observaciones" name="observaciones" rows="3">{{ old('observaciones', $estudiante->observaciones) }}</textarea>
                             @error('observaciones')
                                 <span class="invalid-feedback">{{ $message }}</span>
@@ -205,7 +205,7 @@
                         <li>Carrera</li>
                         <li>Estado</li>
                     </ul>
-                    
+
                     <p><strong>Estados disponibles:</strong></p>
                     <ul>
                         <li><span class="badge badge-success">Activo</span> - Estudiante regular</li>

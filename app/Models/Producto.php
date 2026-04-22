@@ -87,7 +87,7 @@ class Product extends Model
         if ($this->costo == 0) {
             return 100;
         }
-        
+
         return (($this->precio - $this->costo) / $this->costo) * 100;
     }
 

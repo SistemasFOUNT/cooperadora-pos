@@ -15,7 +15,7 @@ class CarreraController extends Controller
     public function index(): View
     {
         $carreras = CareerFeeConfig::orderBy('nombre_carrera')->paginate(15);
-        
+
         return view('carreras.index', compact('carreras'));
     }
 
@@ -58,7 +58,7 @@ class CarreraController extends Controller
     public function show(CareerFeeConfig $carrera): View
     {
         $estudiantes = $carrera->estudiantes()->paginate(10);
-        
+
         return view('carreras.show', compact('carrera', 'estudiantes'));
     }
 
@@ -118,7 +118,7 @@ class CarreraController extends Controller
     public function cuotas(): View
     {
         $carreras = CareerFeeConfig::where('activa', true)->orderBy('nombre_carrera')->get();
-        
+
         return view('carreras.cuotas', compact('carreras'));
     }
 
@@ -137,7 +137,7 @@ class CarreraController extends Controller
 
         $carrera = CareerFeeConfig::findOrFail($validated['carrera_id']);
         unset($validated['carrera_id']);
-        
+
         $carrera->update($validated);
 
         return redirect()->route('carreras.cuotas')
@@ -152,7 +152,7 @@ class CarreraController extends Controller
         $carrera->update(['activa' => !$carrera->activa]);
 
         $status = $carrera->activa ? 'activada' : 'desactivada';
-        
+
         return redirect()->route('carreras.index')
             ->with('success', "Carrera {$status} exitosamente.");
     }

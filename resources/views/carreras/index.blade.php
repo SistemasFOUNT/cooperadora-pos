@@ -21,9 +21,9 @@
         <div class="card-header">
             <h3 class="card-title">Lista de Carreras</h3>
         </div>
-        
-        <div class="card-body table-responsive p-0">
-            <table class="table table-hover text-nowrap">
+
+        <div class="card-body">
+            <table class="table table-striped table-hover" id="carrerasTable">
                 <thead>
                     <tr>
                         <th>Nombre</th>
@@ -75,13 +75,13 @@
                                 </a>
                                 <form method="POST" action="{{ route('carreras.toggle-activa', $carrera) }}" style="display: inline;">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-{{ $carrera->activa ? 'secondary' : 'success' }}" 
+                                    <button type="submit" class="btn btn-sm btn-{{ $carrera->activa ? 'secondary' : 'success' }}"
                                             title="{{ $carrera->activa ? 'Desactivar' : 'Activar' }}">
                                         <i class="fas fa-{{ $carrera->activa ? 'times' : 'check' }}"></i>
                                     </button>
                                 </form>
                                 @if($carrera->estudiantes->count() === 0)
-                                <button type="button" class="btn btn-sm btn-danger" title="Eliminar" 
+                                <button type="button" class="btn btn-sm btn-danger" title="Eliminar"
                                         onclick="confirmarEliminacion({{ $carrera->id }})">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -131,19 +131,76 @@
     </div>
 @stop
 
+@section('css')
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap4.min.css">
+<style>
+.table td {
+    vertical-align: middle;
+}
+.badge {
+    font-size: 0.85em;
+}
+</style>
+@stop
+
 @section('js')
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.colVis.min.js"></script>
+
 <script>
+// Función de búsqueda personalizada - busca desde el inicio de los campos
+$.fn.dataTable.ext.search.push(
+    function(settings, data, dataIndex) {
+        var searchTerm = $('.dataTables_filter input').val();
+        if (!searchTerm) return true;
+        
+        // Buscar solo al inicio de cualquier columna (excluyendo HTML)
+        return data.some(function(cellData) {
+            // Remover HTML y espacios extra
+            var cleanData = cellData.replace(/<[^>]*>/g, '').trim();
+            return cleanData.toLowerCase().indexOf(searchTerm.toLowerCase()) === 0;
+        });
+    }
+);
+
+$(document).ready(function() {
+    $('#carrerasTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+        },
+        "order": [[ 0, "asc" ]], // Ordenar por nombre (columna 0)
+        "columnDefs": [
+            {
+                "targets": [7], // Columna de acciones
+                "orderable": false,
+                "searchable": false
+            }
+        ],
+        "pageLength": 20,
+        "lengthMenu": [[20, 50, 100, -1], [20, 50, 100, "Todos"]],
+        "responsive": true,
+        "dom": 'Bfrtip',
+        "buttons": [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        "searching": true,
+        "paging": true,
+        "info": true
+    });
+});
+
 function confirmarEliminacion(id) {
     $('#formEliminar').attr('action', '/carreras/' + id);
     $('#confirmarEliminacionModal').modal('show');
 }
 </script>
-@stop
-
-@section('css')
-<style>
-.table td {
-    vertical-align: middle;
-}
-</style>
 @stop

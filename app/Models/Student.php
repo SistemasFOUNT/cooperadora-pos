@@ -123,12 +123,12 @@ class Student extends Model implements Auditable
     {
         $fechaActual = now();
         $anioActual = $fechaActual->year;
-        
+
         // Si estamos antes del 1 de abril, el año académico es el anterior
         if ($fechaActual->month < 4) {
             return $anioActual - 1;
         }
-        
+
         return $anioActual;
     }
 
@@ -138,7 +138,7 @@ class Student extends Model implements Auditable
     public function obtenerEstadoAcademico()
     {
         $anioAcademicoActual = $this->obtenerAnioAcademicoActual();
-        
+
         if ($this->reinscripcion == $anioAcademicoActual) {
             return 'cursando';
         } elseif ($this->reinscripcion < $anioAcademicoActual) {
@@ -176,20 +176,20 @@ class Student extends Model implements Auditable
         $anioReinscripcion = $this->reinscripcion;
         $fechaActual = now();
         $mesesAdeudados = 0;
-        
+
         // Calcular años académicos completos transcurridos
         $aniosCompletos = $anioAcademicoActual - $anioReinscripcion;
-        
+
         if ($aniosCompletos > 1) {
             // Años académicos completos (12 meses cada uno)
             $mesesAdeudados += ($aniosCompletos - 1) * 12;
         }
-        
+
         // Calcular meses del último año académico incompleto
         if ($aniosCompletos >= 1) {
             // Desde abril del año de reinscripción hasta marzo del siguiente
             $mesesAdeudados += 12;
-            
+
             // Meses del año académico actual (desde abril hasta el mes actual)
             if ($fechaActual->month >= 4) {
                 $mesesDelAnioActual = $fechaActual->month - 3; // Desde abril (mes 4) hasta el mes actual

@@ -20,7 +20,7 @@ class EstudianteController extends Controller
             ->orderBy('apellido')
             ->orderBy('nombre')
             ->get();
-        
+
         return view('estudiantes.index', compact('estudiantes'));
     }
 
@@ -32,7 +32,7 @@ class EstudianteController extends Controller
         $carreras = CareerFeeConfig::where('activa', true)
             ->orderBy('nombre_carrera')
             ->get();
-        
+
         return view('estudiantes.create', compact('carreras'));
     }
 
@@ -67,7 +67,7 @@ class EstudianteController extends Controller
     public function show(Student $estudiante): View
     {
         $estudiante->load('configuracionCarrera');
-        
+
         return view('estudiantes.show', compact('estudiante'));
     }
 
@@ -79,7 +79,7 @@ class EstudianteController extends Controller
         $carreras = CareerFeeConfig::where('activa', true)
             ->orderBy('nombre_carrera')
             ->get();
-        
+
         return view('estudiantes.edit', compact('estudiante', 'carreras'));
     }
 
@@ -139,10 +139,10 @@ class EstudianteController extends Controller
 
         $archivo = $request->file('archivo_csv');
         $carrera_id = $request->carrera_default;
-        
+
         // Guardar archivo temporalmente
         $path = $archivo->store('temp-csv');
-        
+
         try {
             // Ejecutar comando de importación
             \Artisan::call('estudiantes:importar-csv', [
@@ -154,14 +154,14 @@ class EstudianteController extends Controller
             Storage::delete($path);
 
             $output = \Artisan::output();
-            
+
             return redirect()->route('estudiantes.index')
                 ->with('success', 'Importación completada. ' . $output);
-                
+
         } catch (\Exception $e) {
             // Eliminar archivo temporal en caso de error
             Storage::delete($path);
-            
+
             return redirect()->route('estudiantes.importar')
                 ->with('error', 'Error durante la importación: ' . $e->getMessage());
         }
@@ -185,7 +185,7 @@ class EstudianteController extends Controller
     public function buscar(Request $request)
     {
         $term = $request->get('term');
-        
+
         $estudiantes = Student::where('apellido', 'LIKE', "%{$term}%")
             ->orWhere('nombre', 'LIKE', "%{$term}%")
             ->orWhere('dni', 'LIKE', "%{$term}%")
