@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Services\PDFTicket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -596,13 +597,69 @@ class BoxController extends Controller
     private function generarConPDFTicket($datos)
     {
         // Usar la nueva clase PDFTicket
-        $ticket = new PDFTicket($datos);
-        $ticket->generar();
+        $ticket = new PDFTicket();
+        $pdf = $ticket->generar($datos);
 
-        return response($ticket->obtenerPDF(), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="' . $ticket->obtenerNombreArchivo() . '"')
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
-            ->header('Pragma', 'no-cache');
+        return $pdf->stream('ticket-' . ($datos['numero_ticket'] ?? time()) . '.pdf');
+    }
+
+    /**
+     * Generar ticket general para todos los tipos de cobro
+     */
+    public function generarTicketGeneral(Request $request)
+    {
+        try {
+            // Obtener datos del ticket desde el formulario
+            $datosTicket = json_decode($request->input('datos_ticket'), true);
+
+            if (!$datosTicket) {
+                throw new \Exception('No se recibieron datos del ticket');
+            }
+
+            // Preparar datos para el ticket (reutilizar el formato existente)
+            $datos = [
+                'numero_ticket' => $datosTicket['numero_ticket'] ?? 'BOX-' . Carbon::now()->format('Ymd-His'),
+                'fecha' => Carbon::now(),
+                'punto_venta' => 'BOX Cooperadora',
+                'cajero' => Auth::user()->name ?? 'Sistema',
+                'cliente' => $datosTicket['cliente'] ?? 'Cliente General',
+                'metodo_pago' => ucfirst($datosTicket['metodo_pago'] ?? 'No especificado'),
+                'items' => $datosTicket['items'] ?? [],
+                'subtotal' => $datosTicket['subtotal'] ?? 0,
+                'descuentos' => $datosTicket['descuento'] ?? 0,
+                'total' => $datosTicket['total'] ?? 0,
+                'tipo_modulo' => $datosTicket['tipo_modulo'] ?? 'general'
+            ];
+
+            // Reutilizar el método existente para generar PDF
+            return $this->generarConPDFTicket($datos);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Procesar venta (para futuro uso con base de datos)
+     */
+    public function procesarVenta(Request $request)
+    {
+        try {
+            // Aquí se procesaría la venta en la base de datos
+            $datosVenta = $request->all();
+
+            // Por ahora solo retornamos éxito
+            return response()->json([
+                'success' => true,
+                'message' => 'Venta procesada correctamente',
+                'numero_venta' => 'BOX-' . date('Ymd-His')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

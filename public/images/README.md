@@ -5,7 +5,9 @@ Esta carpeta contiene todas las imágenes personalizables del sistema, organizad
 ## Estructura de Directorios:
 
 ### `/public/images/system/`
-- **fount-logo.png** - Logo principal del sistema
+- **fount-logo.png** - Logo principal del sistema (AdminLTE sidebar)
+- **login-logo.png** - Logo del login (pantalla de autenticación) 
+- **fount-logo-back.png** - Logo de respaldo
 - **fount-favicon.ico** - Ícono del navegador
 - **auth-bg.jpg** - Imagen de fondo para login/registro
 - **dashboard-banner.jpg** - Banner del dashboard principal

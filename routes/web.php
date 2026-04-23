@@ -11,7 +11,12 @@ use App\Http\Controllers\BoxController;
 use App\Http\Controllers\PostgradoController;
 use App\Http\Controllers\OdontoController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AssetController;
 use Illuminate\Support\Facades\Route;
+
+// Ruta para CSS dinámico con cache busting
+Route::get('/css/custom-images.css', [AssetController::class, 'customImages'])
+    ->name('assets.custom-images-css');
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -180,6 +185,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/otros', [BoxController::class, 'cobrosOtros'])->name('box.cobros.otros');
         });
 
+        // Rutas comunes de pago y tickets
+        Route::post('/generar-ticket', [BoxController::class, 'generarTicketGeneral'])->name('box.generar-ticket');
+        Route::post('/procesar-venta', [BoxController::class, 'procesarVenta'])->name('box.procesar-venta');
+
         Route::prefix('inventario')->group(function () {
             Route::get('/ingresos', [BoxController::class, 'inventarioIngresos'])->name('box.inventario.ingresos');
         });
@@ -327,6 +336,48 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/buscar', [App\Http\Controllers\ProductoController::class, 'buscar'])->name('buscar');
         Route::get('/api/generar-codigo-barras', [App\Http\Controllers\ProductoController::class, 'generarCodigoBarras'])->name('generar-codigo-barras');
     });
+});
+
+// =============================================================================
+// RUTAS API PARA SISTEMA DE FINANCIAMIENTO INTERNO
+// =============================================================================
+Route::prefix('api')->middleware(['auth'])->group(function () {
+    // Clientes deudores
+    Route::post('/clientes-deudores/buscar', [App\Http\Controllers\ClienteDeudorController::class, 'buscar']);
+    Route::get('/clientes-deudores/{id}', [App\Http\Controllers\ClienteDeudorController::class, 'obtener']);
+
+    // Financiamientos
+    Route::post('/financiamientos/crear', [App\Http\Controllers\FinanciamientoController::class, 'crear']);
+    Route::get('/financiamientos/{id}', [App\Http\Controllers\FinanciamientoController::class, 'obtener']);
+    Route::post('/financiamientos/{id}/pagar-cuota', [App\Http\Controllers\FinanciamientoController::class, 'pagarCuota']);
+    Route::get('/financiamientos/{id}/estado', [App\Http\Controllers\FinanciamientoController::class, 'obtenerEstado']);
+});
+
+// Rutas específicas para documentos legales
+Route::prefix('documentos')->middleware(['auth'])->group(function () {
+    Route::get('/compromiso-pago/{financiamientoId}', [App\Http\Controllers\DocumentoLegalController::class, 'generarCompromisoPago']);
+    Route::post('/registrar-impresion/{documentoId}', [App\Http\Controllers\DocumentoLegalController::class, 'registrarImpresion']);
+    Route::get('/verificar-integridad/{documentoId}', [App\Http\Controllers\DocumentoLegalController::class, 'verificarIntegridad']);
+});
+
+// Rutas para gestión de clientes deudores (CRUD completo)
+Route::prefix('clientes-deudores')->middleware(['auth'])->name('clientes-deudores.')->group(function () {
+    Route::get('/', [App\Http\Controllers\ClienteDeudorController::class, 'index'])->name('index');
+    Route::get('/crear', [App\Http\Controllers\ClienteDeudorController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\ClienteDeudorController::class, 'store'])->name('store');
+    Route::get('/{id}', [App\Http\Controllers\ClienteDeudorController::class, 'show'])->name('show');
+    Route::get('/{id}/editar', [App\Http\Controllers\ClienteDeudorController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [App\Http\Controllers\ClienteDeudorController::class, 'update'])->name('update');
+    Route::delete('/{id}', [App\Http\Controllers\ClienteDeudorController::class, 'destroy'])->name('destroy');
+});
+
+// Rutas para gestión de financiamientos (interfaz administrativa)
+Route::prefix('financiamientos')->middleware(['auth'])->name('financiamientos.')->group(function () {
+    Route::get('/', [App\Http\Controllers\FinanciamientoController::class, 'index'])->name('index');
+    Route::get('/{id}/detalles', [App\Http\Controllers\FinanciamientoController::class, 'show'])->name('show');
+    Route::get('/vencimientos', [App\Http\Controllers\FinanciamientoController::class, 'vencimientos'])->name('vencimientos');
+    Route::get('/reportes', [App\Http\Controllers\FinanciamientoController::class, 'reportes'])->name('reportes');
+    Route::put('/{id}/cancelar', [App\Http\Controllers\FinanciamientoController::class, 'cancelar'])->name('cancelar');
 });
 
 require __DIR__.'/auth.php';

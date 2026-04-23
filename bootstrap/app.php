@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withProviders([
         \App\Providers\AdminLTEServiceProvider::class,
+        \App\Providers\HelperServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -1,0 +1,193 @@
+/* ===================================================================
+   MEJORAS GLOBALES DE UI - BORDES Y FORMULARIOS
+   =================================================================== */
+
+/* INPUTS Y FORMULARIOS - Bordes más definidos */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+select,
+textarea,
+.form-control,
+.form-select {
+    border: 1px solid #6c757d !important; /* Gris medio en lugar de muy claro */
+    border-radius: 4px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Estados focus para inputs */
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+    border-color: #495057 !important; /* Gris más oscuro al hacer focus */
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;
+    outline: none !important;
+}
+
+/* DATATABLES - Bordes más visibles (Bootstrap 4 y 5) */
+.dataTables_wrapper table.dataTable,
+table.dataTable,
+.table-bordered {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Cabeceras de tabla - Bootstrap 4 y 5 */
+.dataTables_wrapper table.dataTable thead th,
+.dataTables_wrapper table.dataTable thead td,
+table.dataTable thead th,
+table.dataTable thead td,
+.table thead th,
+.table thead td {
+    border-bottom: 2px solid #6c757d !important; /* Cabecera más definida */
+    background-color: #f8f9fa !important;
+}
+
+/* Filas de datos - Bootstrap 4 y 5 */
+.dataTables_wrapper table.dataTable tbody td,
+table.dataTable tbody td,
+.table tbody td {
+    border-top: 1px solid #6c757d !important; /* Filas más visibles */
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Hover en filas */
+.dataTables_wrapper table.dataTable tbody tr:hover td,
+table.dataTable tbody tr:hover td,
+.table tbody tr:hover td {
+    background-color: #f1f3f4 !important;
+    border-color: #495057 !important;
+}
+
+/* Bordes de la tabla completa */
+.dataTables_wrapper table.dataTable,
+table.dataTable,
+.table-bordered {
+    border: 1px solid #6c757d !important;
+    border-radius: 4px;
+}
+
+/* Específico para Bootstrap 4 DataTables */
+table.dataTable.table-bordered thead th,
+table.dataTable.table-bordered thead td {
+    border-left: 1px solid #6c757d !important;
+    border-right: 1px solid #6c757d !important;
+}
+
+table.dataTable.table-bordered tbody th,
+table.dataTable.table-bordered tbody td {
+    border-left: 1px solid #6c757d !important;
+    border-right: 1px solid #6c757d !important;
+}
+
+/* Celdas con bordes laterales */
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #6c757d !important;
+}
+
+/* BOTONES - Mejora consistencia */
+.btn {
+    border-width: 1px;
+    border-style: solid;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-warning,
+.btn-outline-info {
+    border-width: 2px !important; /* Botones outline más visibles */
+}
+
+/* CARDS Y PANELES - Bordes más definidos */
+.card,
+.box,
+.panel {
+    border: 1px solid #6c757d !important;
+    box-shadow: 0 1px 3px rgba(108, 117, 125, 0.1);
+}
+
+.card-header,
+.box-header {
+    border-bottom: 1px solid #6c757d !important;
+    background-color: #f8f9fa;
+}
+
+/* INPUTS EN ADMINLTE - Específicos */
+.form-group .form-control,
+.input-group .form-control {
+    border: 1px solid #6c757d !important;
+}
+
+.input-group-text {
+    border: 1px solid #6c757d !important;
+    background-color: #f8f9fa;
+}
+
+/* SEARCH BOX DATATABLES */
+.dataTables_filter input {
+    border: 1px solid #6c757d !important;
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+
+/* SELECTS DATATABLES */
+.dataTables_length select {
+    border: 1px solid #6c757d !important;
+    border-radius: 4px;
+    padding: 2px 24px 2px 8px;
+    width: auto !important;
+    min-width: 60px;
+    max-width: 100px;
+    font-size: 14px;
+}
+
+/* RESPONSIVE - Mantener en móviles */
+@media (max-width: 768px) {
+    .form-control,
+    .form-select {
+        border-width: 1px !important;
+    }
+
+    .dataTables_wrapper table.dataTable tbody td {
+        border-left: 1px solid #6c757d !important;
+        border-right: 1px solid #6c757d !important;
+    }
+}
+
+/* CHECKBOX Y RADIO - Mejor visibilidad */
+input[type="checkbox"],
+input[type="radio"] {
+    border: 2px solid #6c757d !important;
+    margin-right: 8px;
+}
+
+/* ESTADOS DISABLED */
+.form-control:disabled,
+.form-select:disabled {
+    border-color: #adb5bd !important;
+    background-color: #e9ecef !important;
+}
+
+/* VALIDATION STATES - Mantener colores originales */
+.is-invalid,
+.was-validated .form-control:invalid {
+    border-color: #dc3545 !important;
+}
+
+.is-valid,
+.was-validated .form-control:valid {
+    border-color: #28a745 !important;
+}

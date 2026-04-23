@@ -65,6 +65,50 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+    /* DATATABLES - Mejoras de bordes específicas para esta vista */
+    table.dataTable,
+    #productosTable {
+        border: 1px solid #6c757d !important;
+        border-radius: 4px;
+    }
+
+    table.dataTable thead th,
+    table.dataTable thead td,
+    #productosTable thead th,
+    #productosTable thead td {
+        border-bottom: 2px solid #6c757d !important;
+        background-color: #f8f9fa !important;
+    }
+
+    table.dataTable tbody td,
+    #productosTable tbody td {
+        border-top: 1px solid #6c757d !important;
+        border-left: 1px solid #dee2e6 !important;
+        border-right: 1px solid #dee2e6 !important;
+    }
+
+    table.dataTable tbody tr:hover td,
+    #productosTable tbody tr:hover td {
+        background-color: #f1f3f4 !important;
+    }
+
+    /* Controles de DataTables */
+    .dataTables_filter input {
+        border: 1px solid #6c757d !important;
+        border-radius: 4px;
+        padding: 6px 12px;
+    }
+
+    .dataTables_length select {
+        border: 1px solid #6c757d !important;
+        border-radius: 4px;
+        padding: 2px 24px 2px 8px;
+        width: auto !important;
+        min-width: 60px;
+        max-width: 100px;
+        font-size: 14px;
+    }
 </style>
 @stop
 

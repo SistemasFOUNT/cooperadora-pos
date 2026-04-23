@@ -86,7 +86,7 @@ return [
     'auth_logo' => [
         'enabled' => true,
         'img' => [
-            'path' => 'images/system/fount-logo.png',
+            'path' => 'images/system/fount-logo.png?v=' . filemtime(public_path('images/system/fount-logo.png')),
             'alt' => 'FOUNT Contable',
             'class' => '',
             'width' => 150,
@@ -113,7 +113,7 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => 'images/system/fount-logo.png',
             'alt' => 'AdminLTE Preloader Image',
             'effect' => 'animation__shake',
             'width' => 60,
@@ -638,6 +638,7 @@ return [
     */
 
     'custom_css' => [
-        'css/custom-images.css',
+        '/css/custom-images.css',
+        '/css/ui-improvements.css',
     ],
 ];
