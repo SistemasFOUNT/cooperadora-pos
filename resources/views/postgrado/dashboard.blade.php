@@ -135,9 +135,24 @@
                             </a>
                         </div>
                         <div class="col-md-4">
+                            <a href="{{ route('postgrado.carreras') }}" class="btn btn-success btn-lg btn-block">
+                                <i class="fas fa-graduation-cap"></i><br>
+                                Configurar Carreras
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
                             <a href="{{ route('postgrado.configuracion') }}" class="btn btn-secondary btn-lg btn-block">
                                 <i class="fas fa-cog"></i><br>
-                                Configuración
+                                Configuración General
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ route('carreras.cuotas') }}" class="btn btn-info btn-lg btn-block">
+                                <i class="fas fa-dollar-sign"></i><br>
+                                Gestionar Cuotas
                             </a>
                         </div>
                     </div>

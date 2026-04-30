@@ -71,19 +71,19 @@ class BoxController extends Controller
             'ingresos_hoy' => [
                 'ventas_productos' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('type', 'venta_producto')
+                    ->where('type', 'product_sale')
                     ->sum('total'),
                 'cuotas_tecnicaturas' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('type', 'cuota_tecnicatura')
+                    ->where('type', 'student_fee')
                     ->sum('total'),
                 'bonos_grado' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('type', 'bono_grado')
+                    ->where('type', 'student_fee')
                     ->sum('total'),
                 'prestaciones_clinicas' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('type', 'prestacion_clinica')
+                    ->where('type', 'treatment')
                     ->sum('total'),
             ],
             'egresos_hoy' => [
@@ -137,9 +137,7 @@ class BoxController extends Controller
      */
     public function pos()
     {
-        $productos = Product::where('active', true)
-                          ->where('punto_venta_id', $this->puntoVenta->id)
-                          ->orWhereNull('punto_venta_id')
+        $productos = Product::where('is_active', true)
                           ->get();
 
         return view('box.pos', compact('productos'));
@@ -150,8 +148,7 @@ class BoxController extends Controller
      */
     public function productos()
     {
-        $productos = Product::where('punto_venta_id', $this->puntoVenta->id)
-                          ->orWhereNull('punto_venta_id')
+        $productos = Product::where('is_active', true)
                           ->paginate(15);
 
         return view('box.productos.index', compact('productos'));
@@ -164,7 +161,7 @@ class BoxController extends Controller
     {
         $ventas = Sale::whereDate('created_at', Carbon::today())
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->with(['user', 'products'])
+                    ->with(['user', 'items.product'])
                     ->orderBy('created_at', 'desc')
                     ->get();
 
@@ -211,9 +208,7 @@ class BoxController extends Controller
                               ->sum('total'),
             'productos_activos' => Product::where('is_active', true)
                                          ->count(),
-            'cajeros_activos' => \App\Models\User::where('role', 'usuario_box')
-                                              ->where('punto_venta_id', $this->puntoVenta->id)
-                                              ->where('status', 'active')
+            'cajeros_activos' => \App\Models\User::where('punto_venta_id', $this->puntoVenta->id)
                                               ->count()
         ];
     }
@@ -228,7 +223,7 @@ class BoxController extends Controller
                   ->get();
     }
 
-    private function getProductosMasVendidos()
+    private function getProductosMasVendidos($limit = 10)
     {
         return DB::table('items_venta')
                 ->join('ventas', 'items_venta.sale_id', '=', 'ventas.id')
@@ -238,14 +233,14 @@ class BoxController extends Controller
                 ->selectRaw('productos.name, SUM(items_venta.quantity) as cantidad_vendida')
                 ->groupBy('productos.id', 'productos.name')
                 ->orderByDesc('cantidad_vendida')
-                ->limit(10)
+                ->limit($limit)
                 ->get();
     }
 
     private function getCajerosPerformance()
     {
-        return Sale::where('punto_venta_id', $this->puntoVenta->id)
-                  ->whereMonth('created_at', Carbon::now()->month)
+        return Sale::where('ventas.punto_venta_id', $this->puntoVenta->id)
+                  ->whereMonth('ventas.created_at', Carbon::now()->month)
                   ->join('users', 'ventas.usuario_id', '=', 'users.id')
                   ->selectRaw('users.name, COUNT(*) as total_ventas, SUM(ventas.total) as monto_total')
                   ->groupBy('users.id', 'users.name')
@@ -338,32 +333,307 @@ class BoxController extends Controller
         ]);
     }
 
-    public function reportesDiario()
+    public function reportesDiario(Request $request)
     {
-        return view('box.reportes.diario', [
-            'title' => 'Reporte Diario'
-        ]);
+        $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
+        $cajero_id = $request->get('cajero_id');
+
+        // Obtener ventas del día con relaciones
+        $query = Sale::with(['user', 'items.product', 'paymentMethod'])
+            ->whereDate('created_at', $fecha)
+            ->where('punto_venta_id', $this->puntoVenta->id);
+
+        if ($cajero_id) {
+            $query->where('usuario_id', $cajero_id);
+        }
+
+        $ventas = $query->orderBy('created_at', 'desc')->get();
+
+        // Estadísticas del día
+        $estadisticas = [
+            'total_ventas' => $ventas->count(),
+            'total_recaudado' => $ventas->sum('total'),
+            'total_productos_vendidos' => $ventas->sum(function($venta) {
+                return $venta->items->sum('quantity');
+            }),
+            'ticket_promedio' => $ventas->count() > 0 ? $ventas->sum('total') / $ventas->count() : 0,
+            'primera_venta' => $ventas->max('created_at'),
+            'ultima_venta' => $ventas->min('created_at')
+        ];
+
+        // Productos más vendidos del día
+        $productos_vendidos = $ventas->flatMap->items
+            ->groupBy('product_id')
+            ->map(function ($items) {
+                return [
+                    'producto' => $items->first()->product_name ?? $items->first()->product->name ?? 'Producto sin nombre',
+                    'codigo' => $items->first()->product_code ?? $items->first()->product->code ?? 'N/A',
+                    'cantidad_total' => $items->sum('quantity'),
+                    'ingreso_total' => $items->sum('total'),
+                    'precio_promedio' => $items->avg('unit_price'),
+                    'ventas_count' => $items->count()
+                ];
+            })
+            ->sortByDesc('cantidad_total');
+
+        // Métodos de pago utilizados
+        $metodos_pago = $ventas->groupBy('payment_method_id')
+            ->map(function ($ventas_metodo) {
+                return [
+                    'metodo' => $ventas_metodo->first()->paymentMethod->name ?? 'Efectivo',
+                    'cantidad_transacciones' => $ventas_metodo->count(),
+                    'monto_total' => $ventas_metodo->sum('total'),
+                    'porcentaje' => 0 // Se calculará en la vista
+                ];
+            });
+
+        // Obtener lista de cajeros para filtro
+        $cajeros = \App\Models\User::where('punto_venta_id', $this->puntoVenta->id)
+            ->orWhere('role', 'admin')
+            ->get();
+
+        return view('box.reportes.diario', compact(
+            'ventas',
+            'estadisticas',
+            'productos_vendidos',
+            'metodos_pago',
+            'cajeros',
+            'fecha',
+            'cajero_id'
+        ));
     }
 
-    public function reportesMovimientos()
+    public function reportesMovimientos(Request $request)
     {
-        return view('box.reportes.movimientos', [
-            'title' => 'Movimientos de Caja'
-        ]);
+        $fecha_desde = $request->input('fecha_desde', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $fecha_hasta = $request->input('fecha_hasta', Carbon::now()->format('Y-m-d'));
+
+        // Movimientos de ventas
+        $ventas = Sale::whereBetween('created_at', [$fecha_desde, $fecha_hasta])
+                     ->where('punto_venta_id', $this->puntoVenta->id)
+                     ->with(['user', 'items.product'])
+                     ->orderBy('created_at', 'desc')
+                     ->get();
+
+        // Estadísticas del período
+        $estadisticas = [
+            'total_movimientos' => $ventas->count(),
+            'total_ingresos' => $ventas->sum('total'),
+            'promedio_diario' => $ventas->sum('total') / max(1, Carbon::parse($fecha_desde)->diffInDays($fecha_hasta) + 1),
+            'movimiento_mayor' => $ventas->max('total'),
+            'movimiento_menor' => $ventas->where('total', '>', 0)->min('total'),
+        ];
+
+        // Resumen por día
+        $movimientos_por_dia = $ventas->groupBy(function($venta) {
+            return Carbon::parse($venta->created_at)->format('Y-m-d');
+        })->map(function($ventas_dia) {
+            return [
+                'cantidad' => $ventas_dia->count(),
+                'total' => $ventas_dia->sum('total'),
+                'promedio' => $ventas_dia->avg('total')
+            ];
+        });
+
+        return view('box.reportes.movimientos', compact(
+            'ventas',
+            'estadisticas',
+            'movimientos_por_dia',
+            'fecha_desde',
+            'fecha_hasta'
+        ));
     }
 
-    public function reportesVentas()
+    public function reportesVentas(Request $request)
     {
-        return view('box.reportes.ventas', [
-            'title' => 'Reportes de Ventas'
-        ]);
+        $periodo = $request->input('periodo', 'mes_actual');
+        $fecha_desde = $request->input('fecha_desde');
+        $fecha_hasta = $request->input('fecha_hasta');
+
+        // Determinar rango de fechas según período
+        switch($periodo) {
+            case 'hoy':
+                $fecha_desde = $fecha_hasta = Carbon::today()->format('Y-m-d');
+                break;
+            case 'semana_actual':
+                $fecha_desde = Carbon::now()->startOfWeek()->format('Y-m-d');
+                $fecha_hasta = Carbon::now()->endOfWeek()->format('Y-m-d');
+                break;
+            case 'mes_actual':
+                $fecha_desde = Carbon::now()->startOfMonth()->format('Y-m-d');
+                $fecha_hasta = Carbon::now()->endOfMonth()->format('Y-m-d');
+                break;
+            case 'ano_actual':
+                $fecha_desde = Carbon::now()->startOfYear()->format('Y-m-d');
+                $fecha_hasta = Carbon::now()->endOfYear()->format('Y-m-d');
+                break;
+            default:
+                if (!$fecha_desde) $fecha_desde = Carbon::now()->startOfMonth()->format('Y-m-d');
+                if (!$fecha_hasta) $fecha_hasta = Carbon::now()->format('Y-m-d');
+                break;
+        }
+
+        // Consulta de ventas
+        $ventas = Sale::whereBetween('created_at', [$fecha_desde, $fecha_hasta])
+                     ->where('punto_venta_id', $this->puntoVenta->id)
+                     ->with(['user', 'items.product'])
+                     ->orderBy('created_at', 'desc')
+                     ->get();
+
+        // Análisis de ventas por período
+        $analisis_ventas = [
+            'total_ventas' => $ventas->count(),
+            'total_ingresos' => $ventas->sum('total'),
+            'ticket_promedio' => $ventas->count() > 0 ? $ventas->sum('total') / $ventas->count() : 0,
+            'mejor_dia' => $ventas->groupBy(function($v) {
+                    return Carbon::parse($v->created_at)->format('Y-m-d');
+                })->sortByDesc(function($ventas_dia) {
+                    return $ventas_dia->sum('total');
+                })->keys()->first(),
+        ];
+
+        // Ventas por día (gráfico)
+        $ventas_por_dia = $ventas->groupBy(function($venta) {
+            return Carbon::parse($venta->created_at)->format('Y-m-d');
+        })->map(function($ventas_dia, $fecha) {
+            return [
+                'fecha' => $fecha,
+                'cantidad' => $ventas_dia->count(),
+                'total' => $ventas_dia->sum('total')
+            ];
+        })->values();
+
+        // Top productos vendidos
+        $top_productos = $ventas->flatMap->items
+                               ->groupBy('product_id')
+                               ->map(function($items) {
+                                   return [
+                                       'producto' => $items->first()->product_name ?? $items->first()->product->name ?? 'Producto',
+                                       'cantidad_total' => $items->sum('quantity'),
+                                       'ingreso_total' => $items->sum('total'),
+                                       'ventas_count' => $items->count()
+                                   ];
+                               })
+                               ->sortByDesc('ingreso_total')
+                               ->take(10);
+
+        return view('box.reportes.ventas', compact(
+            'ventas',
+            'analisis_ventas',
+            'ventas_por_dia',
+            'top_productos',
+            'periodo',
+            'fecha_desde',
+            'fecha_hasta'
+        ));
     }
 
-    public function reportesInventario()
+    public function reportesInventario(Request $request)
     {
-        return view('box.reportes.inventario', [
-            'title' => 'Reporte de Inventario'
-        ]);
+        $categoria = $request->input('categoria', 'todas');
+        $stock_minimo = $request->input('stock_minimo', false);
+
+        // Consulta base de productos físicos únicamente (excluye servicios)
+        $query = Product::where('is_active', true)
+                       ->where('type', 'product'); // Solo productos físicos, no servicios
+
+        if ($categoria !== 'todas') {
+            $query->where('category', $categoria);
+        }
+
+        if ($stock_minimo) {
+            $query->whereRaw('stock <= min_stock');
+        }
+
+        $productos = $query->orderBy('category')
+                          ->orderBy('name')
+                          ->get();
+
+        // Estadísticas de inventario (solo productos físicos)
+        $estadisticas = [
+            'total_productos' => $productos->count(),
+            'valor_total_inventario' => $productos->sum(function($p) {
+                return $p->stock * $p->cost;
+            }),
+            'productos_bajo_stock' => Product::whereRaw('stock <= min_stock')
+                                           ->where('is_active', true)
+                                           ->where('type', 'product')
+                                           ->count(),
+            'productos_sin_stock' => Product::where('stock', '<=', 0)
+                                           ->where('is_active', true)
+                                           ->where('type', 'product')
+                                           ->count(),
+        ];
+
+        // Movimientos recientes de stock
+        $movimientos_recientes = DB::table('movimientos_stock')
+                                  ->join('productos', 'movimientos_stock.product_id', '=', 'productos.id')
+                                  ->select(
+                                      'productos.name as producto_name',
+                                      'productos.code as producto_code',
+                                      'movimientos_stock.*'
+                                  )
+                                  ->orderBy('movimientos_stock.created_at', 'desc')
+                                  ->limit(20)
+                                  ->get();
+
+        // Análisis por categoría
+        $analisis_categorias = $productos->groupBy('category')
+                                       ->map(function($productos_cat) {
+                                           return [
+                                               'cantidad_productos' => $productos_cat->count(),
+                                               'valor_total' => $productos_cat->sum(function($p) {
+                                                   return $p->stock * $p->cost;
+                                               }),
+                                               'stock_total' => $productos_cat->sum('stock'),
+                                               'productos_bajo_stock' => $productos_cat->filter(function($p) {
+                                                   return $p->stock <= $p->min_stock;
+                                               })->count()
+                                           ];
+                                       });
+
+        // Productos más vendidos (últimos 30 días)
+        $productos_mas_vendidos = DB::table('items_venta')
+                                    ->join('ventas', 'items_venta.sale_id', '=', 'ventas.id')
+                                    ->join('productos', 'items_venta.product_id', '=', 'productos.id')
+                                    ->where('ventas.punto_venta_id', $this->puntoVenta->id)
+                                    ->where('ventas.created_at', '>=', Carbon::now()->subDays(30))
+                                    ->selectRaw('
+                                        productos.id,
+                                        productos.name,
+                                        productos.code,
+                                        productos.stock,
+                                        productos.min_stock,
+                                        SUM(items_venta.quantity) as total_vendido
+                                    ')
+                                    ->groupBy('productos.id', 'productos.name', 'productos.code', 'productos.stock', 'productos.min_stock')
+                                    ->orderByDesc('total_vendido')
+                                    ->limit(10)
+                                    ->get();
+
+        // Categorías disponibles (solo de productos físicos)
+        $categorias = Product::where('type', 'product')
+                           ->where('is_active', true)
+                           ->distinct()
+                           ->pluck('category')
+                           ->filter();
+
+        // Conteo de servicios (para información adicional)
+        $total_servicios = Product::where('type', 'service')
+                                 ->where('is_active', true)
+                                 ->count();
+
+        return view('box.reportes.inventario', compact(
+            'productos',
+            'estadisticas',
+            'movimientos_recientes',
+            'analisis_categorias',
+            'productos_mas_vendidos',
+            'categorias',
+            'categoria',
+            'stock_minimo',
+            'total_servicios'
+        ));
     }
 
     /**
@@ -617,6 +887,8 @@ class BoxController extends Controller
             }
 
             // Preparar datos para el ticket (reutilizar el formato existente)
+            $items = $datosTicket['carrito'] ?? $datosTicket['items'] ?? [];
+
             $datos = [
                 'numero_ticket' => $datosTicket['numero_ticket'] ?? 'BOX-' . Carbon::now()->format('Ymd-His'),
                 'fecha' => Carbon::now(),
@@ -624,11 +896,14 @@ class BoxController extends Controller
                 'cajero' => Auth::user()->name ?? 'Sistema',
                 'cliente' => $datosTicket['cliente'] ?? 'Cliente General',
                 'metodo_pago' => ucfirst($datosTicket['metodo_pago'] ?? 'No especificado'),
-                'items' => $datosTicket['items'] ?? [],
+                'carrito' => $items, // PDFTicket espera 'carrito'
+                'items' => $items,   // Mantener compatibilidad
                 'subtotal' => $datosTicket['subtotal'] ?? 0,
                 'descuentos' => $datosTicket['descuento'] ?? 0,
+                'descuento' => $datosTicket['descuento'] ?? 0, // Compatibilidad
                 'total' => $datosTicket['total'] ?? 0,
-                'tipo_modulo' => $datosTicket['tipo_modulo'] ?? 'general'
+                'tipo_modulo' => $datosTicket['tipo_modulo'] ?? 'general',
+                'detalles_pago' => $datosTicket['detalles_pago'] ?? []
             ];
 
             // Reutilizar el método existente para generar PDF

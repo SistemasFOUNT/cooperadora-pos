@@ -77,7 +77,7 @@
     </div>
 
     <div class="info">
-        <div><strong>Método de Pago:</strong> 
+        <div><strong>Método de Pago:</strong>
             @if($ticket['metodo_pago'] == 'efectivo')
                 Efectivo
                 @if(isset($ticket['detalles_pago']['vuelto']) && $ticket['detalles_pago']['vuelto'] > 0)

@@ -313,6 +313,7 @@ return [
         // Sidebar items:
         ['header' => 'MENÚ PRINCIPAL'],
         [
+            'key' => 'dashboard',
             'text' => 'Dashboard',
             'url' => '/',
             'icon' => 'fas fa-fw fa-tachometer-alt',
@@ -326,20 +327,24 @@ return [
 
         ['header' => 'GESTIÓN ACADÉMICA'],
         [
+            'key' => 'estudiantes',
             'text' => 'Estudiantes',
             'icon' => 'fas fa-fw fa-user-graduate',
             'submenu' => [
                 [
+                    'key' => 'lista-estudiantes',
                     'text' => 'Lista de Estudiantes',
                     'url' => 'estudiantes',
                     'icon' => 'fas fa-fw fa-list',
                 ],
                 [
+                    'key' => 'agregar-estudiante',
                     'text' => 'Agregar Estudiante',
                     'url' => 'estudiantes/crear',
                     'icon' => 'fas fa-fw fa-plus',
                 ],
                 [
+                    'key' => 'importar-estudiantes',
                     'text' => 'Importar desde CSV',
                     'url' => 'estudiantes/importar',
                     'icon' => 'fas fa-fw fa-upload',
@@ -347,15 +352,18 @@ return [
             ],
         ],
         [
+            'key' => 'carreras-cuotas',
             'text' => 'Carreras y Cuotas',
             'icon' => 'fas fa-fw fa-graduation-cap',
             'submenu' => [
                 [
+                    'key' => 'configurar-carreras',
                     'text' => 'Configurar Carreras',
                     'url' => 'carreras',
                     'icon' => 'fas fa-fw fa-cogs',
                 ],
                 [
+                    'key' => 'gestionar-cuotas',
                     'text' => 'Gestionar Cuotas',
                     'url' => 'carreras/cuotas',
                     'icon' => 'fas fa-fw fa-dollar-sign',

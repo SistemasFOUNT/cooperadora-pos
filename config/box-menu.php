@@ -18,7 +18,7 @@ return [
         ['header' => 'PUNTO DE VENTA'],
         [
             'text' => 'Dashboard BOX',
-            'url' => 'box',
+            'url' => 'box/dashboard',
             'icon' => 'fas fa-fw fa-tachometer-alt',
         ],
 

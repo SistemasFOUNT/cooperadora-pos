@@ -210,12 +210,16 @@ Route::middleware('auth')->group(function () {
     Route::prefix('postgrado')->middleware('punto_venta')->group(function () {
         Route::get('/dashboard', [PostgradoController::class, 'dashboard'])->name('postgrado.dashboard');
         Route::get('/estudiantes', [PostgradoController::class, 'estudiantes'])->name('postgrado.estudiantes');
+        Route::get('/estudiantes/crear', [PostgradoController::class, 'estudiantesCrear'])->name('postgrado.estudiantes.crear');
+        Route::get('/estudiantes/importar', [PostgradoController::class, 'estudiantesImportar'])->name('postgrado.estudiantes.importar');
         Route::get('/pos', [PostgradoController::class, 'pos'])->name('postgrado.pos');
         Route::get('/matriculas', [PostgradoController::class, 'matriculas'])->name('postgrado.matriculas');
         Route::get('/cursos', [PostgradoController::class, 'cursos'])->name('postgrado.cursos');
         Route::get('/certificados', [PostgradoController::class, 'certificados'])->name('postgrado.certificados');
         Route::get('/reportes', [PostgradoController::class, 'reportes'])->name('postgrado.reportes');
         Route::get('/configuracion', [PostgradoController::class, 'configuracion'])->name('postgrado.configuracion');
+        Route::get('/carreras', [PostgradoController::class, 'carreras'])->name('postgrado.carreras');
+        Route::get('/carreras/cuotas', [PostgradoController::class, 'carrerasCuotas'])->name('postgrado.carreras.cuotas');
     });
 
     // CENTRO ODONTOLÓGICO - Rutas específicas

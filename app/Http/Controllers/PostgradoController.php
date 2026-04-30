@@ -6,6 +6,7 @@ use App\Models\PuntoVenta;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Student;
+use App\Models\CareerFeeConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -68,11 +69,11 @@ class PostgradoController extends Controller
             'ingresos_hoy' => [
                 'cuotas_postgrado' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('tipo', 'cuota_postgrado')
+                    ->where('type', 'student_fee')
                     ->sum('total'),
                 'cursos_especializados' => Sale::whereDate('created_at', $fechaHoy)
                     ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->where('tipo', 'curso_especializado')
+                    ->where('type', 'service_sale')
                     ->sum('total'),
             ],
             'egresos_hoy' => [
@@ -126,8 +127,8 @@ class PostgradoController extends Controller
      */
     public function estudiantes()
     {
-        $estudiantes = Student::where('tipo', 'postgrado')
-                            ->orWhere('carrera', 'LIKE', '%postgrado%')
+        $estudiantes = Student::where('activo', true)
+                            ->where('carrera', 'LIKE', '%postgrado%')
                             ->orWhere('carrera', 'LIKE', '%especialización%')
                             ->orWhere('carrera', 'LIKE', '%maestría%')
                             ->orWhere('carrera', 'LIKE', '%doctorado%')
@@ -155,7 +156,7 @@ class PostgradoController extends Controller
     public function matriculas()
     {
         $matriculas = Sale::where('punto_venta_id', $this->puntoVenta->id)
-                        ->where('tipo', 'matricula')
+                        ->where('type', 'student_fee')
                         ->with(['student', 'user'])
                         ->orderBy('created_at', 'desc')
                         ->paginate(20);
@@ -183,7 +184,7 @@ class PostgradoController extends Controller
     public function certificados()
     {
         $certificados = Sale::where('punto_venta_id', $this->puntoVenta->id)
-                          ->where('tipo', 'certificado')
+                          ->where('type', 'service_sale')
                           ->with(['student'])
                           ->orderBy('created_at', 'desc')
                           ->get();
@@ -219,20 +220,36 @@ class PostgradoController extends Controller
         return view('postgrado.configuracion', compact('configuracion'));
     }
 
+    /**
+     * Configuración de carreras específicas de Postgrado
+     */
+    public function carreras()
+    {
+        // Solo mostrar carreras de postgrado - excluyendo explícitamente grado y tecnicaturas
+        $carreras = CareerFeeConfig::whereNotIn('tipo_carrera', [
+                                        'grado_odontologia', 
+                                        'tecnicatura_protesis', 
+                                        'tecnicatura_asistencia'
+                                    ])
+                                    ->orderBy('nombre_carrera')
+                                    ->get();
+
+        return view('postgrado.carreras.index', compact('carreras'));
+    }
+
     // Métodos privados auxiliares
     private function getEstadisticas()
     {
         return [
             'matriculas_mes' => Sale::whereMonth('created_at', Carbon::now()->month)
                                   ->where('punto_venta_id', $this->puntoVenta->id)
-                                  ->where('tipo', 'matricula')
+                                  ->where('type', 'student_fee')
                                   ->count(),
             'ingresos_mes' => Sale::whereMonth('created_at', Carbon::now()->month)
                                 ->where('punto_venta_id', $this->puntoVenta->id)
                                 ->sum('total'),
-            'estudiantes_activos' => Student::where('status', 'active')
-                                          ->where('tipo', 'postgrado')
-                                          ->count(),
+            'estudiantes_activos' => Student::where('activo', true)
+                                          ->count(), // Remover filtro por tipo inexistente
             'cursos_activos' => $this->getCursosActivos()->count()
         ];
     }
@@ -241,7 +258,7 @@ class PostgradoController extends Controller
     {
         return Sale::whereMonth('created_at', Carbon::now()->month)
                   ->where('punto_venta_id', $this->puntoVenta->id)
-                  ->where('tipo', 'matricula')
+                  ->where('type', 'student_fee')
                   ->selectRaw('DATE(created_at) as fecha, COUNT(*) as cantidad')
                   ->groupBy('fecha')
                   ->orderBy('fecha')
@@ -311,5 +328,43 @@ class PostgradoController extends Controller
             'doctorado' => 100000,
             'diplomado' => 25000
         ];
+    }
+
+    /**
+     * Mostrar formulario para crear estudiante
+     */
+    public function estudiantesCrear()
+    {
+        return view('postgrado.estudiantes.crear', [
+            'carreras' => CareerFeeConfig::whereNotIn('type', ['grado', 'tecnicatura'])->get(),
+            'sectionTitle' => 'Agregar Estudiante de Postgrado'
+        ]);
+    }
+
+    /**
+     * Mostrar formulario para importar estudiantes desde CSV
+     */
+    public function estudiantesImportar()
+    {
+        return view('postgrado.estudiantes.importar', [
+            'sectionTitle' => 'Importar Estudiantes de Postgrado'
+        ]);
+    }
+
+    /**
+     * Gestionar cuotas de carreras de postgrado
+     */
+    public function carrerasCuotas()
+    {
+        $cuotas = CareerFeeConfig::whereNotIn('type', ['grado', 'tecnicatura'])
+                    ->with(['fees' => function($query) {
+                        $query->orderBy('due_date');
+                    }])
+                    ->get();
+
+        return view('postgrado.carreras.cuotas', [
+            'cuotas' => $cuotas,
+            'sectionTitle' => 'Gestionar Cuotas de Postgrado'
+        ]);
     }
 }

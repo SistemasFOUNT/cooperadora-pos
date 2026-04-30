@@ -10,6 +10,8 @@ class SaleItem extends Model
 {
     use HasFactory;
 
+    protected $table = 'items_venta';
+
     protected $fillable = [
         'sale_id',
         'product_id',

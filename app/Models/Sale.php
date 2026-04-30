@@ -17,16 +17,16 @@ class Sale extends Model implements Auditable
 
     protected $fillable = [
         'sale_number',
-        'branch_id',
-        'user_id',
+        'punto_venta_id',
+        'usuario_id',
         'student_id',
         'payment_method_id',
-        'sale_datetime',
+        'fecha_venta',
         'type',
         'subtotal',
         'tax_amount',
         'discount_amount',
-        'total_amount',
+        'total',
         'fiscal_document_type',
         'fiscal_document_number',
         'cae',
@@ -37,21 +37,29 @@ class Sale extends Model implements Auditable
     ];
 
     protected $casts = [
-        'sale_datetime' => 'datetime',
+        'fecha_venta' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'total' => 'decimal:2',
         'cae_expiry' => 'datetime',
         'additional_data' => 'array',
     ];
 
     /**
-     * Relación con sucursal
+     * Relación con punto de venta
+     */
+    public function puntoVenta(): BelongsTo
+    {
+        return $this->belongsTo(PuntoVenta::class, 'punto_venta_id');
+    }
+
+    /**
+     * Relación con sucursal (mantener compatibilidad)
      */
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Branch::class, 'punto_venta_id');
     }
 
     /**
@@ -59,7 +67,7 @@ class Sale extends Model implements Auditable
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'usuario_id');
     }
 
     /**
