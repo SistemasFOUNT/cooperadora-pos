@@ -215,4 +215,28 @@ class Student extends Model implements Auditable
             'anio_academico_actual' => $anioAcademicoActual
         ];
     }
+
+    /**
+     * Última venta en POSTGRADO
+     */
+    public function ultimaVentaPostgrado()
+    {
+        return $this->hasOne(Sale::class)->where('punto_venta_id', 2)->latest();
+    }
+
+    /**
+     * Todas las ventas en POSTGRADO
+     */
+    public function ventasPostgrado()
+    {
+        return $this->hasMany(Sale::class)->where('punto_venta_id', 2);
+    }
+
+    /**
+     * Verificar si el estudiante ha participado en POSTGRADO
+     */
+    public function participaEnPostgrado()
+    {
+        return $this->ventas()->where('punto_venta_id', 2)->exists();
+    }
 }

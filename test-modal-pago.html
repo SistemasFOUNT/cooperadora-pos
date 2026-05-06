@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Modal de Pago Unificado - BOX Cooperadora</title>
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
+
+    <style>
+        /* Estilos mejorados para opciones de pago */
+        .metodo-pago-option {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: #f8f9fa;
+        }
+
+        .metodo-pago-option:hover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+        }
+
+        .metodo-pago-option.selected {
+            border-color: #28a745;
+            background-color: #d4edda;
+            box-shadow: 0 0 10px rgba(40,167,69,0.3);
+        }
+
+        .metodo-pago-option input[type="radio"] {
+            transform: scale(1.2);
+            margin-right: 10px;
+        }
+
+        .metodo-pago-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .metodo-pago-option.selected label {
+            color: #155724;
+            font-weight: 600;
+        }
+
+        /* Estilos para opciones de comprobante */
+        .comprobante-option {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: #f8f9fa;
+        }
+
+        .comprobante-option:hover {
+            border-color: #6f42c1;
+            background-color: #f3e5f5;
+            transform: translateY(-1px);
+        }
+
+        .comprobante-option.selected {
+            border-color: #6f42c1;
+            background-color: #e1bee7;
+            box-shadow: 0 0 8px rgba(111,66,193,0.3);
+        }
+
+        .comprobante-option input[type="radio"] {
+            transform: scale(1.1);
+            margin-right: 8px;
+        }
+
+        .comprobante-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.95em;
+        }
+
+        .comprobante-option.selected label {
+            color: #4a148c;
+            font-weight: 600;
+        }
+
+        /* Estilos para secciones del modal */
+        .payment-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+        }
+
+        .section-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        /* Animaciones y transiciones suaves */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Demo styles */
+        .demo-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .demo-products {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .product-item {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .btn-demo {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body class="hold-transition sidebar-mini">
+
+<div class="demo-container">
+    <h1 class="text-center mb-4">
+        <i class="fas fa-cash-register text-success"></i>
+        Test Modal de Pago Unificado - BOX Cooperadora
+    </h1>
+
+    <div class="row">
+        <!-- Simulación de productos -->
+        <div class="col-md-8">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-box"></i> Productos Demo</h3>
+                </div>
+                <div class="card-body demo-products">
+                    <div class="product-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Producto A</strong><br>
+                                <small class="text-muted">Descripción del producto A</small>
+                            </div>
+                            <div class="text-right">
+                                <strong class="text-success">$1.500,00</strong><br>
+                                <button class="btn btn-primary btn-sm add-product"
+                                        data-name="Producto A"
+                                        data-price="1500">
+                                    <i class="fas fa-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Producto B</strong><br>
+                                <small class="text-muted">Descripción del producto B</small>
+                            </div>
+                            <div class="text-right">
+                                <strong class="text-success">$2.800,00</strong><br>
+                                <button class="btn btn-primary btn-sm add-product"
+                                        data-name="Producto B"
+                                        data-price="2800">
+                                    <i class="fas fa-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Servicio Odontológico</strong><br>
+                                <small class="text-muted">Consulta odontológica completa</small>
+                            </div>
+                            <div class="text-right">
+                                <strong class="text-success">$4.500,00</strong><br>
+                                <button class="btn btn-primary btn-sm add-product"
+                                        data-name="Servicio Odontológico"
+                                        data-price="4500">
+                                    <i class="fas fa-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carrito demo -->
+        <div class="col-md-4">
+            <div class="card card-success">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Carrito Demo</h3>
+                </div>
+                <div class="card-body" style="min-height: 300px;">
+                    <div id="cart-items">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-shopping-cart fa-3x"></i>
+                            <p class="mt-2">No hay productos seleccionados</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col">
+                            <h4 class="text-success">Total: $<span id="total-amount">0,00</span></h4>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-success" id="btn-checkout" disabled data-toggle="modal" data-target="#modalPago">
+                                <i class="fas fa-credit-card"></i> Proceder al Pago
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Pago Unificado -->
+<div class="modal fade" id="modalPago" tabindex="-1" role="dialog" aria-labelledby="modalPagoLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h4 class="modal-title" id="modalPagoLabel">
+                    <i class="fas fa-credit-card"></i> Procesar Pago
+                </h4>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Columna izquierda: Métodos de pago y opciones -->
+                    <div class="col-md-8">
+                        <!-- Métodos de Pago -->
+                        <div class="payment-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-credit-card text-primary"></i> Método de Pago
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <div class="metodo-pago-option" data-method="efectivo">
+                                        <input type="radio" name="metodoPago" value="efectivo" id="pago-efectivo" checked>
+                                        <label for="pago-efectivo">
+                                            <i class="fas fa-money-bill-wave text-success"></i> Efectivo
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="metodo-pago-option" data-method="tarjeta">
+                                        <input type="radio" name="metodoPago" value="tarjeta" id="pago-tarjeta">
+                                        <label for="pago-tarjeta">
+                                            <i class="fas fa-credit-card text-primary"></i> Tarjeta
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="metodo-pago-option" data-method="transferencia">
+                                        <input type="radio" name="metodoPago" value="transferencia" id="pago-transferencia">
+                                        <label for="pago-transferencia">
+                                            <i class="fas fa-exchange-alt text-info"></i> Transferencia
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="metodo-pago-option" data-method="mixto">
+                                        <input type="radio" name="metodoPago" value="mixto" id="pago-mixto">
+                                        <label for="pago-mixto">
+                                            <i class="fas fa-coins text-warning"></i> Mixto
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tipo de Comprobante -->
+                        <div class="payment-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-file-invoice text-purple"></i> Tipo de Comprobante
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <div class="comprobante-option" data-receipt="ticket">
+                                        <input type="radio" name="tipoComprobante" value="ticket" id="comprobante-ticket" checked>
+                                        <label for="comprobante-ticket">
+                                            <i class="fas fa-receipt text-secondary"></i> Ticket
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <div class="comprobante-option" data-receipt="factura_local">
+                                        <input type="radio" name="tipoComprobante" value="factura_local" id="comprobante-factura-local">
+                                        <label for="comprobante-factura-local">
+                                            <i class="fas fa-file-alt text-primary"></i> Factura Local
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <div class="comprobante-option" data-receipt="factura_fiscal">
+                                        <input type="radio" name="tipoComprobante" value="factura_fiscal" id="comprobante-factura-fiscal">
+                                        <label for="comprobante-factura-fiscal">
+                                            <i class="fas fa-file-invoice-dollar text-success"></i> Factura Fiscal
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descuentos -->
+                        <div class="payment-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-percentage text-warning"></i> Descuentos (Opcional)
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Tipo de Descuento:</label>
+                                        <select class="form-control" id="tipo-descuento" name="tipoDescuento">
+                                            <option value="">Sin descuento</option>
+                                            <option value="porcentaje">Porcentaje (%)</option>
+                                            <option value="valor">Valor fijo ($)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Valor del Descuento:</label>
+                                        <input type="number" class="form-control" id="valor-descuento" min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Datos del Cliente (solo para facturas) -->
+                        <div class="payment-section" id="datos-cliente" style="display: none;">
+                            <h5 class="section-title">
+                                <i class="fas fa-user text-info"></i> Datos del Cliente
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Nombre/Razón Social:</label>
+                                        <input type="text" class="form-control" id="cliente-nombre" placeholder="Nombre del cliente">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>DNI/CUIT:</label>
+                                        <input type="text" class="form-control" id="cliente-dni" placeholder="DNI o CUIT">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Dirección:</label>
+                                        <input type="text" class="form-control" id="cliente-direccion" placeholder="Dirección del cliente">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha: Resumen -->
+                    <div class="col-md-4">
+                        <div class="payment-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-calculator text-success"></i> Resumen de Pago
+                            </h5>
+
+                            <!-- Items -->
+                            <div class="mb-3">
+                                <strong>Items:</strong>
+                                <div id="resumen-items" class="small text-muted">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+
+                            <!-- Totales -->
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <strong id="modal-subtotal">$0,00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-danger">
+                                <span>Descuento:</span>
+                                <strong id="modal-descuento">-$0,00</strong>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="h5">Total:</span>
+                                <strong class="h5 text-success" id="modal-total">$0,00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btn-procesar-pago">
+                    <i class="fas fa-check"></i> Procesar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    let cart = [];
+    let total = 0;
+
+    // Función para formatear precios
+    function formatPrice(price) {
+        return new Intl.NumberFormat('es-AR', {
+            style: 'currency',
+            currency: 'ARS',
+            minimumFractionDigits: 2
+        }).format(price);
+    }
+
+    // Agregar producto al carrito
+    $('.add-product').on('click', function() {
+        const name = $(this).data('name');
+        const price = parseFloat($(this).data('price'));
+
+        const existingItem = cart.find(item => item.name === name);
+        if (existingItem) {
+            existingItem.quantity++;
+        } else {
+            cart.push({ name, price, quantity: 1 });
+        }
+
+        updateCart();
+    });
+
+    // Actualizar carrito
+    function updateCart() {
+        const $cartItems = $('#cart-items');
+        let html = '';
+        total = 0;
+
+        if (cart.length === 0) {
+            html = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <p class="mt-2">No hay productos seleccionados</p>
+                </div>
+            `;
+            $('#btn-checkout').prop('disabled', true);
+        } else {
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+
+                html += `
+                    <div class="cart-item mb-2 p-2 border rounded bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${item.name}</strong><br>
+                                <small class="text-muted">${formatPrice(item.price)} x ${item.quantity}</small>
+                            </div>
+                            <div class="text-right">
+                                <div class="btn-group btn-group-sm mb-1">
+                                    <button class="btn btn-outline-secondary decrease-qty" data-index="${index}">-</button>
+                                    <button class="btn btn-outline-secondary increase-qty" data-index="${index}">+</button>
+                                    <button class="btn btn-outline-danger remove-item" data-index="${index}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div>
+                                    <strong class="text-success">${formatPrice(subtotal)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#btn-checkout').prop('disabled', false);
+        }
+
+        $cartItems.html(html);
+        $('#total-amount').text(formatPrice(total));
+        updateModalTotals();
+    }
+
+    // Eventos del carrito
+    $(document).on('click', '.increase-qty', function() {
+        const index = $(this).data('index');
+        cart[index].quantity++;
+        updateCart();
+    });
+
+    $(document).on('click', '.decrease-qty', function() {
+        const index = $(this).data('index');
+        if (cart[index].quantity > 1) {
+            cart[index].quantity--;
+            updateCart();
+        }
+    });
+
+    $(document).on('click', '.remove-item', function() {
+        const index = $(this).data('index');
+        cart.splice(index, 1);
+        updateCart();
+    });
+
+    // Manejar selección visual de métodos de pago
+    $('.metodo-pago-option').on('click', function() {
+        $('.metodo-pago-option').removeClass('selected');
+        $(this).addClass('selected');
+        $(this).find('input[type="radio"]').prop('checked', true);
+    });
+
+    // Manejar selección visual de tipos de comprobante
+    $('.comprobante-option').on('click', function() {
+        $('.comprobante-option').removeClass('selected');
+        $(this).addClass('selected');
+        $(this).find('input[type="radio"]').prop('checked', true);
+
+        // Mostrar/ocultar datos del cliente según el tipo
+        const tipo = $(this).data('receipt');
+        if (tipo === 'factura_local' || tipo === 'factura_fiscal') {
+            $('#datos-cliente').show();
+        } else {
+            $('#datos-cliente').hide();
+        }
+    });
+
+    // Establecer estados iniciales
+    $('.metodo-pago-option').first().addClass('selected');
+    $('.comprobante-option').first().addClass('selected');
+
+    // Actualizar totales del modal
+    function updateModalTotals() {
+        $('#modal-subtotal').text(formatPrice(total));
+
+        let discount = 0;
+        const discountType = $('#tipo-descuento').val();
+        const discountValue = parseFloat($('#valor-descuento').val()) || 0;
+
+        if (discountType === 'porcentaje') {
+            discount = total * (discountValue / 100);
+        } else if (discountType === 'valor') {
+            discount = discountValue;
+        }
+
+        const finalTotal = Math.max(0, total - discount);
+
+        $('#modal-descuento').text(formatPrice(discount));
+        $('#modal-total').text(formatPrice(finalTotal));
+    }
+
+    // Eventos de descuento
+    $('#tipo-descuento, #valor-descuento').on('change input', updateModalTotals);
+
+    // Al abrir el modal
+    $('#modalPago').on('shown.bs.modal', function() {
+        let summaryHtml = '';
+        cart.forEach(item => {
+            const subtotal = item.price * item.quantity;
+            summaryHtml += `
+                <div class="d-flex justify-content-between mb-1">
+                    <span>${item.name} x${item.quantity}</span>
+                    <strong>${formatPrice(subtotal)}</strong>
+                </div>
+            `;
+        });
+        $('#resumen-items').html(summaryHtml);
+        updateModalTotals();
+    });
+
+    // Procesar pago
+    $('#btn-procesar-pago').on('click', function() {
+        const paymentMethod = $('input[name="metodoPago"]:checked').val();
+        const receiptType = $('input[name="tipoComprobante"]:checked').val();
+
+        alert(`¡Pago procesado exitosamente!
+
+Método: ${paymentMethod}
+Comprobante: ${receiptType}
+Total: ${formatPrice(total)}
+Items: ${cart.length}`);
+
+        // Limpiar carrito
+        cart = [];
+        updateCart();
+        $('#modalPago').modal('hide');
+    });
+});
+</script>
+
+</body>
+</html>

@@ -102,162 +102,33 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @forelse($servicios as $servicio)
                                 <tr>
-                                    <td><i class="fas fa-teeth text-primary"></i> Limpieza Dental</td>
-                                    <td>Profilaxis y limpieza profesional</td>
-                                    <td class="text-right"><strong>$15.000,00</strong></td>
+                                    <td>
+                                        <i class="fas fa-{{ $servicio->category == 'dental_treatment' ? 'tooth' : ($servicio->category == 'laboratory' ? 'flask' : ($servicio->category == 'student_fee' ? 'graduation-cap' : ($servicio->category == 'postgraduate_fee' ? 'user-graduate' : 'medical-kit'))) }} text-primary"></i>
+                                        {{ $servicio->name }}
+                                    </td>
+                                    <td>{{ $servicio->description ?? 'Servicio odontológico profesional' }}</td>
+                                    <td class="text-right"><strong>${{ number_format($servicio->price, 2) }}</strong></td>
                                     <td>
                                         <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="1"
-                                                data-nombre="Limpieza Dental"
-                                                data-precio="15000">
+                                                data-id="{{ $servicio->id }}"
+                                                data-codigo="{{ $servicio->code }}"
+                                                data-nombre="{{ $servicio->name }}"
+                                                data-precio="{{ $servicio->price }}"
+                                                data-track-stock="{{ $servicio->track_stock ? 'true' : 'false' }}"
+                                                data-stock="{{ $servicio->stock ?? 0 }}">
                                             <i class="fas fa-plus"></i> Agregar
                                         </button>
                                     </td>
                                 </tr>
+                                @empty
                                 <tr>
-                                    <td><i class="fas fa-stethoscope text-primary"></i> Consulta General</td>
-                                    <td>Revisión y diagnóstico completo</td>
-                                    <td class="text-right"><strong>$8.500,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="2"
-                                                data-nombre="Consulta General"
-                                                data-precio="8500">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
+                                    <td colspan="4" class="text-center text-muted">
+                                        <i class="fas fa-info-circle"></i> No hay servicios odontológicos disponibles
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td><i class="fas fa-tooth text-warning"></i> Extracción Simple</td>
-                                    <td>Extracción de pieza dental</td>
-                                    <td class="text-right"><strong>$12.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="3"
-                                                data-nombre="Extracción Simple"
-                                                data-precio="12000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-fill-drip text-info"></i> Empaste/Obturación</td>
-                                    <td>Restauración con composite</td>
-                                    <td class="text-right"><strong>$18.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="4"
-                                                data-nombre="Empaste/Obturación"
-                                                data-precio="18000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-x-ray text-dark"></i> Radiografía</td>
-                                    <td>Radiografía intraoral</td>
-                                    <td class="text-right"><strong>$6.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="5"
-                                                data-nombre="Radiografía"
-                                                data-precio="6000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-smile-beam text-warning"></i> Blanqueamiento</td>
-                                    <td>Blanqueamiento dental profesional</td>
-                                    <td class="text-right"><strong>$35.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="6"
-                                                data-nombre="Blanqueamiento"
-                                                data-precio="35000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-prescription-bottle text-danger"></i> Tratamiento de Conducto</td>
-                                    <td>Endodoncia completa</td>
-                                    <td class="text-right"><strong>$45.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="7"
-                                                data-nombre="Tratamiento de Conducto"
-                                                data-precio="45000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-crown text-warning"></i> Corona Dental</td>
-                                    <td>Corona de porcelana</td>
-                                    <td class="text-right"><strong>$55.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="8"
-                                                data-nombre="Corona Dental"
-                                                data-precio="55000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-tooth text-success"></i> Implante Dental</td>
-                                    <td>Implante de titanio</td>
-                                    <td class="text-right"><strong>$85.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="9"
-                                                data-nombre="Implante Dental"
-                                                data-precio="85000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-teeth-open text-secondary"></i> Prótesis Parcial</td>
-                                    <td>Prótesis removible</td>
-                                    <td class="text-right"><strong>$40.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="10"
-                                                data-nombre="Prótesis Parcial"
-                                                data-precio="40000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-grin-beam text-info"></i> Ortodoncia</td>
-                                    <td>Brackets metálicos</td>
-                                    <td class="text-right"><strong>$120.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="11"
-                                                data-nombre="Ortodoncia"
-                                                data-precio="120000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-heart text-danger"></i> Periodoncia</td>
-                                    <td>Tratamiento de encías</td>
-                                    <td class="text-right"><strong>$28.000,00</strong></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm agregar-servicio"
-                                                data-id="12"
-                                                data-nombre="Periodoncia"
-                                                data-precio="28000">
-                                            <i class="fas fa-plus"></i> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -265,56 +136,54 @@
             </div>
         </div>
 
-        <!-- Panel derecho: Carrito -->
+        <!-- Carrito de Servicios -->
         <div class="col-md-4">
-            <div class="card sticky-top">
-                <div class="card-header bg-gradient-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Carrito de Servicios</h5>
+            <div class="card card-success">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Carrito de Servicios</h3>
                 </div>
-                <div class="card-body carrito-panel">
-                    <div id="lista-servicios">
-                        <p class="text-center text-muted">No hay servicios seleccionados</p>
+                <div class="card-body" style="min-height: 300px;">
+                    <div id="carrito-items">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-shopping-cart fa-3x"></i>
+                            <p class="mt-2">No hay servicios seleccionados</p>
+                        </div>
                     </div>
-                    <hr>
-                    <div class="text-center">
-                        <h4>Total: $<span id="total-general">0,00</span></h4>
-                        <button class="btn btn-success btn-lg btn-block" id="btn-proceder-pago" disabled>
-                            <i class="fas fa-credit-card"></i> Proceder al Pago
-                        </button>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col">
+                            <h4 class="text-success">Total: $<span id="total-carrito">0,00</span></h4>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-success" id="btn-proceder-pago" disabled>
+                                <i class="fas fa-credit-card"></i> Proceder al Pago
+            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{{-- Incluir componente de modal de pago unificado --}}
+@include('components.payment-modals')
 @stop
 
 @section('js')
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-<script src="{{ asset('js/modulo-pagos.js') }}"></script>
-
-<script>
 $(document).ready(function() {
     // Variables globales
     let carrito = [];
     let totalGeneral = 0;
 
-    // Funciones para formatear números al estilo argentino
-    function formatearPrecio(numero) {
+    // Función para formatear precios (estándar obligatorio)
+    function formatearPrecio(precio) {
         return new Intl.NumberFormat('es-AR', {
             style: 'currency',
             currency: 'ARS',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(numero);
-    }
-
-    function formatearNumero(numero) {
-        return new Intl.NumberFormat('es-AR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(numero);
+            minimumFractionDigits: 2
+        }).format(precio);
     }
 
     // Inicializar DataTable
@@ -366,51 +235,56 @@ $(document).ready(function() {
         actualizarCarrito();
     });
 
-    // Función para actualizar el carrito
+// Actualizar carrito visual (estándar obligatorio)
     function actualizarCarrito() {
-        const $listaServicios = $('#lista-servicios');
+        const $listaItems = $('#carrito-items');
+        let html = '';
+        totalGeneral = 0;
 
         if (carrito.length === 0) {
-            $listaServicios.html('<p class="text-center text-muted">No hay servicios seleccionados</p>');
+            html = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <p class="mt-2">No hay servicios seleccionados</p>
+                </div>
+            `;
             $('#btn-proceder-pago').prop('disabled', true);
-            totalGeneral = 0;
         } else {
-            let html = '';
-            totalGeneral = 0;
-
             carrito.forEach(servicio => {
                 const subtotal = servicio.precio * servicio.cantidad;
                 totalGeneral += subtotal;
 
                 html += `
-                    <div class="servicio-item mb-2 p-2 border rounded">
+                    <div class="servicio-item mb-2 p-2 border rounded bg-light">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>${servicio.nombre}</strong><br>
-                                <small>${formatearPrecio(servicio.precio)} x ${servicio.cantidad}</small>
+                                <strong class="text-dark">${servicio.nombre}</strong><br>
+                                <small class="text-muted">${formatearPrecio(servicio.precio)} x ${servicio.cantidad}</small>
                             </div>
                             <div class="text-right">
-                                <div class="btn-group btn-group-sm">
+                                <div class="btn-group btn-group-sm mb-1">
                                     <button class="btn btn-outline-secondary btn-disminuir" data-id="${servicio.id}">-</button>
                                     <button class="btn btn-outline-secondary btn-aumentar" data-id="${servicio.id}">+</button>
                                     <button class="btn btn-outline-danger btn-eliminar" data-id="${servicio.id}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
-                                <div class="mt-1">
-                                    <strong>${formatearPrecio(subtotal)}</strong>
+                                <div>
+                                    <strong class="text-success">${formatearPrecio(subtotal)}</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
             });
-
-            $listaServicios.html(html);
             $('#btn-proceder-pago').prop('disabled', false);
         }
 
-        $('#total-general').text(formatearPrecio(totalGeneral));
+        $listaItems.html(html);
+        $('#total-carrito').text(formatearPrecio(totalGeneral));
+
+        // Actualizar totales del modal (obligatorio)
+        actualizarTotalesModal();
     }
 
     // Eventos del carrito
@@ -438,18 +312,69 @@ $(document).ready(function() {
         actualizarCarrito();
     });
 
-    // Proceder al pago usando el módulo común
-    $(document).on('click', '#btn-proceder-pago', function() {
-        if (window.moduloPagos) {
-            window.moduloPagos.setTipoModulo('servicios');
-            window.moduloPagos.abrirModalPago(carrito, totalGeneral);
-        } else {
-            alert('Error: Módulo de pagos no disponible');
+    // Función específica para actualizar totales del modal
+    function actualizarTotalesModal() {
+        $('#modal-subtotal').text(formatearPrecio(totalGeneral));
+
+        // Calcular descuento
+        let descuento = 0;
+        const tipoDescuento = $('input[name="tipoDescuento"]:checked').val();
+        const valorDescuento = parseFloat($('#valor-descuento').val()) || 0;
+
+        if (tipoDescuento === 'porcentaje') {
+            descuento = totalGeneral * (valorDescuento / 100);
+        } else if (tipoDescuento === 'valor') {
+            descuento = valorDescuento;
         }
+
+        const totalFinal = Math.max(0, totalGeneral - descuento);
+
+        $('#modal-descuento').text(formatearPrecio(descuento));
+        $('#modal-total').text(formatearPrecio(totalFinal));
+    }
+
+    // Al abrir modal, llenar resumen de items
+    $('#modalPago').on('shown.bs.modal', function() {
+        let resumenHtml = '';
+        carrito.forEach(servicio => {
+            const subtotal = servicio.precio * servicio.cantidad;
+            resumenHtml += `
+                <div class="d-flex justify-content-between mb-1">
+                    <span>${servicio.nombre} x${servicio.cantidad}</span>
+                    <strong>${formatearPrecio(subtotal)}</strong>
+                </div>
+            `;
+        });
+        $('#resumen-items').html(resumenHtml);
+        actualizarTotalesModal();
+    });
+
+    // Sobrescribir función de actualizar totales del componente
+    window.actualizarTotales = actualizarTotalesModal;
+
+    // Procesar pago usando el modal unificado
+    $('#btn-proceder-pago').on('click', function() {
+        $('#modalPago').modal('show');
+    });
+
+    // Procesar pago
+    $('#btn-procesar-pago').on('click', function() {
+        // Lógica de procesamiento de pago aquí
+        const metodoPago = $('input[name="metodoPago"]:checked').val();
+        const tipoComprobante = $('input[name="tipoComprobante"]:checked').val();
+
+        console.log('Procesando pago de servicios odontológicos:', {
+            items: carrito,
+            total: totalGeneral,
+            metodoPago: metodoPago,
+            tipoComprobante: tipoComprobante
+        });
+
+        // Simular procesamiento exitoso
+        alert('Pago de servicios odontológicos procesado exitosamente');
+        carrito = [];
+        actualizarCarrito();
+        $('#modalPago').modal('hide');
     });
 });
-</script>
 @stop
-
-{{-- Incluir componente de modales de pago --}}
-@include('components.payment-modals')

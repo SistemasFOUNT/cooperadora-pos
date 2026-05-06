@@ -1,5 +1,88 @@
 # ESTÁNDARES DEL PROYECTO - SISTEMA POS COOPERADORA
 
+## 💳 ESTÁNDAR DE COBROS UNIFICADO (CRÍTICO)
+
+**REGLA FUNDAMENTAL**: TODOS los procesos de cobro deben ser EXACTAMENTE IGUALES independientemente del módulo.
+
+### 🎯 PRINCIPIOS OBLIGATORIOS:
+- **Mecanización del proceso**: Una sola manera de proceder
+- **Prevención de errores**: Sin confusión entre flujos diferentes  
+- **Eficiencia operativa**: No aprender múltiples procesos
+- **Consistencia de UX**: Experiencia uniforme
+
+### 📋 FLUJO ESTÁNDAR OBLIGATORIO:
+
+#### 1. **SELECCIÓN DE ITEMS** (Idéntico en todos los módulos)
+```html
+<!-- Botón estándar para agregar al carrito -->
+<button class="btn btn-[color] btn-sm agregar-[tipo]" 
+        data-id="{{ $item->id }}"
+        data-nombre="{{ $item->name }}"
+        data-precio="{{ $item->price }}">
+    <i class="fas fa-plus"></i> Agregar
+</button>
+```
+
+#### 2. **CARRITO UNIFICADO** (Panel derecho obligatorio)
+- Controles: cantidad (+ / -), eliminar
+- Total automático actualizado  
+- Botón "Proceder al Pago" solo habilitado con items
+
+#### 3. **MODAL DE PAGO UNIFICADO** (MISMO en todos los módulos)
+```blade
+{{-- OBLIGATORIO en todas las vistas de cobro --}}
+@include('components.payment-modals')
+```
+
+#### 4. **JAVASCRIPT ESTÁNDAR** (Funciones obligatorias)
+```javascript
+// Funciones OBLIGATORIAS en todos los módulos de cobro
+function formatearPrecio(precio) { /* Formato argentino */ }
+function actualizarCarrito() { /* Gestión de items */ }
+function actualizarTotalesModal() { /* Cálculos automáticos */ }
+window.actualizarTotales = actualizarTotalesModal; // Override obligatorio
+```
+
+### 🛠️ IMPLEMENTACIÓN TÉCNICA OBLIGATORIA:
+
+#### **Métodos de Pago (Idénticos siempre):**
+- ✅ Efectivo (`efectivo`)
+- ✅ Tarjeta (`tarjeta`)  
+- ✅ Transferencia (`transferencia`)
+- ✅ Mixto (`mixto`)
+
+#### **Tipos de Comprobante (Idénticos siempre):**
+- ✅ Ticket (`ticket`)
+- ✅ Factura Local (`factura_local`)
+- ✅ Factura Fiscal (`factura_fiscal`)
+
+#### **CSS Estándar (Clases obligatorias):**
+```css
+.metodo-pago-option {
+    /* Estilos de métodos de pago */
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.comprobante-option {
+    /* Estilos de comprobantes */
+    border: 2px solid #e9ecef; 
+    transition: all 0.3s ease;
+}
+```
+
+### 🚫 REGLA DE ORO:
+> **"Si cambias el proceso de cobro en UN módulo, DEBES cambiarlo IGUAL en TODOS los módulos"**
+
+### ✅ MÓDULOS IMPLEMENTADOS:
+- ✅ Productos (`/box/cobros/productos`)
+- ✅ Cuotas (`/box/cobros/cuotas`)
+- ✅ Bonos (`/box/cobros/bonos`) 
+- ✅ Odontología (`/box/cobros/odontologia`)
+- ✅ Otros (`/box/cobros/otros`)
+
+---
+
 ## 🎯 ESTÁNDAR DE CAMPOS BOOLEANOS
 
 **REGLA**: Todas las tablas deben usar `is_active` (boolean) para estado activo/inactivo.

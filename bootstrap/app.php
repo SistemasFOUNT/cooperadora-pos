@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
             // Configurar model bindings para nombres en español
@@ -33,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'punto_venta' => \App\Http\Middleware\PuntoVentaMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'box_menu' => \App\Http\Middleware\BoxMenuMiddleware::class,
+            'postgrado_menu' => \App\Http\Middleware\PostgradoMenuMiddleware::class,
+            'odonto_menu' => \App\Http\Middleware\OdontoMenuMiddleware::class,
         ]);
     })
     ->withProviders([

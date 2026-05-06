@@ -22,7 +22,7 @@ class Sale extends Model implements Auditable
         'student_id',
         'payment_method_id',
         'fecha_venta',
-        'type',
+        'type', // Corregido: usar type como en la base de datos
         'subtotal',
         'tax_amount',
         'discount_amount',

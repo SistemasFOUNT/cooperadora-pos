@@ -221,6 +221,29 @@
                                     <button class="btn btn-sm btn-info" title="Imprimir ticket">
                                         <i class="fas fa-print"></i>
                                     </button>
+
+                                    {{-- Botones de Facturación --}}
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-success dropdown-toggle"
+                                                data-toggle="dropdown" title="Generar Factura">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="generarFactura({{ $venta->id }}, 'local')">
+                                                <i class="fas fa-receipt"></i> Factura Local
+                                            </a>
+                                            <a class="dropdown-item" href="javascript:void(0)"
+                                               onclick="generarFactura({{ $venta->id }}, 'arca')">
+                                                <i class="fas fa-stamp"></i> Factura ARCA
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="{{ route('box.facturas.lista') }}?venta_id={{ $venta->id }}">
+                                                <i class="fas fa-list"></i> Ver Facturas
+                                            </a>
+                                        </div>
+                                    </div>
+
                                     <button class="btn btn-sm btn-secondary" title="Duplicar">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -326,6 +349,152 @@
 @stop
 
 @section('js')
+<script>
+// Variables para almacenar venta seleccionada
+let ventaSeleccionada = null;
+
+/**
+ * Función para generar factura
+ */
+function generarFactura(ventaId, tipo) {
+    ventaSeleccionada = ventaId;
+
+    // Cargar modal de datos del cliente
+    $.ajax({
+        url: `{{ route('box.facturas.modal-cliente', '') }}/${ventaId}`,
+        method: 'GET',
+        success: function(data) {
+            $('body').append(data);
+            $('#modalFacturacion').modal('show');
+
+            // Pre-seleccionar el tipo de factura
+            if (tipo === 'arca') {
+                $('#modalFacturacion .nav-link[href="#arca"]').click();
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'No se pudo cargar el formulario de facturación', 'error');
+        }
+    });
+}
+
+/**
+ * Configuración de SweetAlert2 para notificaciones
+ */
+$(document).ready(function() {
+    // Configuración global de SweetAlert
+    window.Swal = Swal.mixin({
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger'
+        },
+        buttonsStyling: false
+    });
+
+    // Agregar eventos para cerrar modal cuando se complete la acción
+    $(document).on('hidden.bs.modal', '#modalFacturacion', function () {
+        $(this).remove();
+    });
+
+    // Validaciones en tiempo real para formularios de facturación
+    $(document).on('change', '#arca_tipo_comprobante', function() {
+        const tipoComprobante = $(this).val();
+        const cuitInput = $('#arca_cliente_cuit');
+
+        if (tipoComprobante === 'A') {
+            cuitInput.attr('required', true);
+            cuitInput.closest('.form-group').find('label').html('CUIT/CUIL <span class="text-danger">*</span>');
+        } else {
+            cuitInput.attr('required', false);
+            cuitInput.closest('.form-group').find('label').html('CUIT/CUIL');
+        }
+    });
+});
+
+// Filtros de tabla
+$('#filtros-ventas select, #filtros-ventas input').on('change keyup', function() {
+    filtrarTablaVentas();
+});
+
+function filtrarTablaVentas() {
+    // Implementar filtros de tabla
+    console.log('Filtrando tabla de ventas...');
+}
+
+// Gráficos (si hay datos)
+@if(isset($ventas) && $ventas->count() > 0)
+$(document).ready(function() {
+    // Gráfico de ventas por hora
+    const ventasPorHora = document.getElementById('ventasPorHora');
+    if (ventasPorHora) {
+        new Chart(ventasPorHora, {
+            type: 'line',
+            data: {
+                labels: [
+                    @for($h = 8; $h <= 22; $h++)
+                        '{{ sprintf("%02d:00", $h) }}'{{ $h < 22 ? ',' : '' }}
+                    @endfor
+                ],
+                datasets: [{
+                    label: 'Ventas',
+                    data: [
+                        @for($h = 8; $h <= 22; $h++)
+                            {{ $ventas->filter(function($v) use ($h) { return $v->created_at->hour == $h; })->count() }}{{ $h < 22 ? ',' : '' }}
+                        @endfor
+                    ],
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Distribución de ventas durante el día'
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de métodos de pago
+    const metodosPago = document.getElementById('metodosPago');
+    if (metodosPago) {
+        const metodos = @json($ventas->groupBy(function($v) {
+            return $v->paymentMethod->name ?? 'Efectivo';
+        })->map->count());
+
+        new Chart(metodosPago, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(metodos),
+                datasets: [{
+                    data: Object.values(metodos),
+                    backgroundColor: [
+                        '#28a745',
+                        '#ffc107',
+                        '#17a2b8',
+                        '#dc3545',
+                        '#6f42c1'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+});
+@endif
+</script>
+@stop
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     $(document).ready(function() {

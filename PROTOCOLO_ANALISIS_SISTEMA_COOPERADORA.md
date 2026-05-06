@@ -399,6 +399,196 @@ curl -X GET "http://127.0.0.1:8000/odonto" -H "Authorization: Bearer {token}"
 
 ---
 
+## VERIFICACIÓN DE CÓDIGO Y ESTRUCTURAS
+
+### 🔍 PROTOCOLO DE VERIFICACIÓN PREVIA AL CAMBIO
+
+**CRÍTICO**: Antes de implementar cualquier modificación en scripts, controladores o servicios, se debe realizar una verificación exhaustiva de estructuras existentes y nuevas.
+
+### 📝 Verificación de Sintaxis y Estructuras de Código
+
+#### 1. Análisis de Estructuras Existentes
+```bash
+# Verificar sintaxis PHP antes de editar
+php -l app/Http/Controllers/[Controlador].php
+php -l app/Services/[Servicio].php
+
+# Verificar apertura y cierre de llaves, paréntesis y corchetes
+grep -n "{" app/Http/Controllers/[Controlador].php | wc -l
+grep -n "}" app/Http/Controllers/[Controlador].php | wc -l
+# Los números deben coincidir
+
+# Verificar estructura de clases
+grep -n "class\|function\|if\|foreach\|while" app/Http/Controllers/[Controlador].php
+```
+
+#### 2. Verificación de Estructuras Embebidas
+```php
+// VERIFICAR ANTES DE MODIFICAR: Contar estructuras anidadas
+// Ejemplo de estructura compleja a verificar:
+if (condicion) {              // Llave 1
+    foreach ($items as $item) {   // Llave 2
+        if ($item->active) {          // Llave 3
+            // código
+        }                             // Cierre 3
+    }                             // Cierre 2
+}                             // Cierre 1
+```
+
+#### 3. Checklist de Verificación Estructural
+- [ ] **Llaves balanceadas**: `{` y `}` coinciden en número
+- [ ] **Paréntesis balanceados**: `(` y `)` coinciden en número  
+- [ ] **Corchetes balanceados**: `[` y `]` coinciden en número
+- [ ] **Comillas balanceadas**: `"` y `'` están correctamente cerradas
+- [ ] **Punto y coma**: Cada sentencia termina correctamente
+- [ ] **Indentación**: Estructura visual clara y consistente
+
+### 🗃️ Verificación de Base de Datos y Modelos
+
+#### 1. Verificación de Estructura de Tablas
+```bash
+# Conectar a PostgreSQL y verificar estructura
+php artisan tinker
+
+# Verificar columnas de tabla específica
+>>> DB::select("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'nombre_tabla' ORDER BY ordinal_position");
+
+# Verificar restricciones y llaves foráneas
+>>> DB::select("SELECT constraint_name, constraint_type FROM information_schema.table_constraints WHERE table_name = 'nombre_tabla'");
+
+# Verificar índices
+>>> DB::select("SELECT indexname FROM pg_indexes WHERE tablename = 'nombre_tabla'");
+```
+
+#### 2. Verificación de Compatibilidad con Modelos
+```php
+// ANTES de usar campos en código, verificar que existen en el modelo
+// Ejemplo de verificación:
+
+// 1. Revisar modelo
+>>> App\Models\Sale::getFillable()
+>>> App\Models\Sale::getHidden()  
+>>> App\Models\Sale::getCasts()
+
+// 2. Verificar tabla real vs modelo
+>>> Schema::getColumnListing('ventas')
+
+// 3. Confirmar nombres de campos en español/inglés
+>>> DB::getSchemaBuilder()->getColumnListing('nombre_tabla')
+```
+
+#### 3. Matriz de Verificación Modelo-Base de Datos
+
+| Aspecto | Comando de Verificación | Resultado Esperado |
+|---------|------------------------|-------------------|
+| **Nombres de campos** | `Schema::getColumnListing('tabla')` | Coincidencia con `$fillable` |
+| **Tipos de datos** | `DB::select("DESCRIBE tabla")` | Coherencia con `$casts` |
+| **Campos obligatorios** | `Information_schema.columns` | Validación con reglas |
+| **Relaciones** | `DB::select("FK constraints")` | Métodos de relación en modelo |
+
+### ⚙️ Verificación de Funcionalidad Específica
+
+#### 1. Para Controladores
+```bash
+# Verificar que métodos públicos están definidos
+grep -n "public function" app/Http/Controllers/[Controlador].php
+
+# Verificar imports y use statements
+grep -n "use " app/Http/Controllers/[Controlador].php
+
+# Verificar que clase termina correctamente
+tail -5 app/Http/Controllers/[Controlador].php
+```
+
+#### 2. Para Servicios  
+```bash
+# Verificar inyección de dependencias
+grep -n "__construct" app/Services/[Servicio].php
+
+# Verificar métodos públicos del servicio
+grep -n "public function" app/Services/[Servicio].php
+```
+
+#### 3. Para Migraciones
+```bash
+# Verificar que migración es válida
+php artisan migrate:status
+
+# Verificar sintaxis de migración específica
+php -l database/migrations/[archivo_migracion].php
+```
+
+### 📋 CHECKLIST PREVIO A CUALQUIER MODIFICACIÓN
+
+#### ✅ Verificaciones Obligatorias:
+
+**ANTES DE TOCAR CUALQUIER ARCHIVO:**
+
+1. **Backup de seguridad**:
+   ```bash
+   cp archivo_original.php archivo_original.php.backup.$(date +%Y%m%d_%H%M%S)
+   ```
+
+2. **Verificación de sintaxis**:
+   ```bash
+   php -l archivo_original.php
+   ```
+
+3. **Análisis de estructura**:
+   - [ ] Contar llaves de apertura `{`
+   - [ ] Contar llaves de cierre `}`
+   - [ ] Verificar que coincidan los números
+   - [ ] Revisar estructuras embebidas (if, foreach, while dentro de otros)
+
+4. **Verificación de base de datos** (si corresponde):
+   - [ ] Confirmar nombres reales de tablas
+   - [ ] Verificar nombres reales de campos
+   - [ ] Comprobar tipos de datos
+   - [ ] Verificar restricciones (NOT NULL, FK, etc.)
+
+5. **Verificación de modelos** (si corresponde):
+   - [ ] Verificar campos en `$fillable`
+   - [ ] Verificar campos en `$casts`
+   - [ ] Confirmar relaciones definidas
+   - [ ] Verificar nombres de tablas en `$table`
+
+### 🚨 Protocolo de Emergencia por Error de Sintaxis
+
+#### Si se detecta error de sintaxis:
+1. **NO CONTINUAR** con más cambios
+2. **Restaurar inmediatamente** desde backup:
+   ```bash
+   cp archivo_original.php.backup.[timestamp] archivo_original.php
+   ```
+3. **Verificar restauración**:
+   ```bash
+   php -l archivo_original.php
+   ```
+4. **Revisar cambio problemático** línea por línea
+5. **Re-implementar** con verificación constante
+
+### 📖 Guía de Referencia Rápida
+
+**Para cualquier script nuevo o modificación:**
+```bash
+# 1. Verificación previa
+php -l archivo.php && echo "✅ Sintaxis OK" || echo "❌ Error de sintaxis"
+
+# 2. Verificación de estructuras  
+grep -c "{" archivo.php; grep -c "}" archivo.php
+
+# 3. Verificación de base de datos (si aplica)
+php artisan tinker --execute="Schema::getColumnListing('tabla_objetivo')"
+
+# 4. Testing después del cambio
+php -l archivo.php && php artisan serve --port=8001 &
+curl -I http://localhost:8001/ruta/afectada
+```
+
+**REGLA DE ORO**: *"Verificar dos veces, escribir una vez. Backup siempre, recuperar cuando sea necesario."*
+
+---
+
 ## ERRORES CRÍTICOS A EVITAR
 
 ### ❌ NUNCA hacer:
