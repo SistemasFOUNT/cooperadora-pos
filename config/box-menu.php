@@ -55,6 +55,19 @@ return [
             ],
         ],
 
+        ['header' => 'FACTURACIÓN'],
+        [
+            'text' => 'Gestión de Facturas',
+            'icon' => 'fas fa-fw fa-file-invoice',
+            'submenu' => [
+                [
+                    'text' => 'Lista de Facturas',
+                    'url' => 'box/facturas/lista',
+                    'icon' => 'fas fa-fw fa-list',
+                ],
+            ],
+        ],
+
         ['header' => 'GESTIÓN DE INVENTARIO'],
         [
             'text' => 'Ingreso de Productos',

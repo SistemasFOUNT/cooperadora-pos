@@ -71,10 +71,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/estadisticas-generales', function () {
             return view('admin.estadisticas', [
                 'estadisticas' => [
-                    'ventas_box' => \App\Models\Sale::whereHas('user', function($q) {
+                    'ventas_box' => \App\Models\Sale::whereHas('user', function ($q) {
                         $q->where('role', 'usuario_box');
                     })->count(),
-                    'estudiantes_postgrado' => \App\Models\Student::whereHas('user', function($q) {
+                    'estudiantes_postgrado' => \App\Models\Student::whereHas('user', function ($q) {
                         $q->where('role', 'usuario_postgrado');
                     })->count(),
                     'pacientes_odonto' => \App\Models\User::where('role', 'usuario_odonto')->count(),
@@ -204,26 +204,109 @@ Route::middleware('auth')->group(function () {
             Route::get('/ventas', [BoxController::class, 'reportesVentas'])->name('box.reportes.ventas');
             Route::get('/inventario', [BoxController::class, 'reportesInventario'])->name('box.reportes.inventario');
         });
+
+        // ===== RUTAS DE FACTURACIÓN =====
+        Route::prefix('facturas')->group(function () {
+            // Generar facturas (método unificado)
+            Route::post('/generar', [BoxController::class, 'generarFactura'])->name('box.facturas.generar');
+
+            // Ver y gestionar facturas
+            Route::get('/lista', [BoxController::class, 'listarFacturas'])->name('box.facturas.lista');
+            Route::get('/ver/{factura}', [BoxController::class, 'verFactura'])->name('box.facturas.ver');
+            Route::post('/anular/{factura}', [BoxController::class, 'anularFactura'])->name('box.facturas.anular');
+
+            // Modal para datos del cliente
+            Route::get('/modal-cliente/{ventaId}', [BoxController::class, 'modalCliente'])->name('box.facturas.modal-cliente');
+
+            // Procesar pago con factura directa (mejora UX)
+            Route::post('/procesar-pago-con-factura', [BoxController::class, 'procesarPagoConFactura'])->name('box.facturas.procesar-pago-factura');
+        });
     });
 
-    // POSTGRADO - Rutas específicas
-    Route::prefix('postgrado')->middleware('punto_venta')->group(function () {
+    // POSTGRADO - Rutas específicas COMPLETAS
+    Route::prefix('postgrado')->middleware(['punto_venta', 'postgrado_menu'])->group(function () {
+        // Dashboard principal
         Route::get('/dashboard', [PostgradoController::class, 'dashboard'])->name('postgrado.dashboard');
+
+        // Gestión de carreras y programas académicos
+        Route::prefix('carreras')->name('carreras.')->group(function () {
+            Route::get('/', [PostgradoController::class, 'carreras'])->name('index');
+            Route::get('/crear', [PostgradoController::class, 'carrerasCrear'])->name('crear');
+            Route::get('/cuotas', [PostgradoController::class, 'carrerasCuotas'])->name('cuotas');
+        });
+
+        // Alias para mantener compatibilidad
+        Route::get('/carreras', [PostgradoController::class, 'carreras'])->name('postgrado.carreras');
+        Route::get('/carreras/crear', [PostgradoController::class, 'carrerasCrear'])->name('postgrado.carreras.crear');
+        Route::get('/carreras/cuotas', [PostgradoController::class, 'carrerasCuotas'])->name('postgrado.carreras.cuotas');
+
+        // Programas específicos
+        Route::get('/maestrias', [PostgradoController::class, 'maestrias'])->name('postgrado.maestrias');
+        Route::get('/doctorados', [PostgradoController::class, 'doctorados'])->name('postgrado.doctorados');
+        Route::get('/especialidades', [PostgradoController::class, 'especialidades'])->name('postgrado.especialidades');
+        Route::get('/diplomaturas', [PostgradoController::class, 'diplomaturas'])->name('postgrado.diplomaturas');
+
+        // Gestión de estudiantes
         Route::get('/estudiantes', [PostgradoController::class, 'estudiantes'])->name('postgrado.estudiantes');
         Route::get('/estudiantes/crear', [PostgradoController::class, 'estudiantesCrear'])->name('postgrado.estudiantes.crear');
         Route::get('/estudiantes/importar', [PostgradoController::class, 'estudiantesImportar'])->name('postgrado.estudiantes.importar');
+        Route::get('/estudiantes/maestrias', [PostgradoController::class, 'estudiantesMaestrias'])->name('postgrado.estudiantes.maestrias');
+        Route::get('/estudiantes/doctorados', [PostgradoController::class, 'estudiantesDoctorados'])->name('postgrado.estudiantes.doctorados');
+        Route::get('/estudiantes/especialidades', [PostgradoController::class, 'estudiantesEspecialidades'])->name('postgrado.estudiantes.especialidades');
+        Route::get('/estudiantes/diplomaturas', [PostgradoController::class, 'estudiantesDiplomaturas'])->name('postgrado.estudiantes.diplomaturas');
+        Route::get('/estudiantes/cursos', [PostgradoController::class, 'estudiantesCursos'])->name('postgrado.estudiantes.cursos');
+
+        // Inscripciones
+        Route::get('/inscripciones/crear', [PostgradoController::class, 'inscripcionesCrear'])->name('postgrado.inscripciones.crear');
+        Route::get('/inscripciones/importar', [PostgradoController::class, 'inscripcionesImportar'])->name('postgrado.inscripciones.importar');
+        Route::get('/inscripciones/estado', [PostgradoController::class, 'inscripcionesEstado'])->name('postgrado.inscripciones.estado');
+
+        // Punto de venta
         Route::get('/pos', [PostgradoController::class, 'pos'])->name('postgrado.pos');
+
+        // Cobros por programa
+        Route::get('/cobros/maestrias', [PostgradoController::class, 'cobrosMaestrias'])->name('postgrado.cobros.maestrias');
+        Route::get('/cobros/doctorados', [PostgradoController::class, 'cobrosDoctorados'])->name('postgrado.cobros.doctorados');
+        Route::get('/cobros/especialidades', [PostgradoController::class, 'cobrosEspecialidades'])->name('postgrado.cobros.especialidades');
+        Route::get('/cobros/diplomaturas', [PostgradoController::class, 'cobrosDiplomaturas'])->name('postgrado.cobros.diplomaturas');
+        Route::get('/cobros/cursos', [PostgradoController::class, 'cobrosCursos'])->name('postgrado.cobros.cursos');
+
+        // Derechos y matrículas
+        Route::get('/derechos/inscripcion', [PostgradoController::class, 'derechosInscripcion'])->name('postgrado.derechos.inscripcion');
+        Route::get('/derechos/examenes', [PostgradoController::class, 'derechosExamenes'])->name('postgrado.derechos.examenes');
+        Route::get('/derechos/titulos', [PostgradoController::class, 'derechosTitulos'])->name('postgrado.derechos.titulos');
+
+        // Gestión académica
         Route::get('/matriculas', [PostgradoController::class, 'matriculas'])->name('postgrado.matriculas');
         Route::get('/cursos', [PostgradoController::class, 'cursos'])->name('postgrado.cursos');
+
+        // Certificados y títulos
         Route::get('/certificados', [PostgradoController::class, 'certificados'])->name('postgrado.certificados');
+        Route::get('/certificados/emitir', [PostgradoController::class, 'certificadosEmitir'])->name('postgrado.certificados.emitir');
+        Route::get('/certificados/historial', [PostgradoController::class, 'certificadosHistorial'])->name('postgrado.certificados.historial');
+        Route::get('/certificados/plantillas', [PostgradoController::class, 'certificadosPlantillas'])->name('postgrado.certificados.plantillas');
+        Route::get('/titulos', [PostgradoController::class, 'titulos'])->name('postgrado.titulos');
+
+        // Reportes
         Route::get('/reportes', [PostgradoController::class, 'reportes'])->name('postgrado.reportes');
+        Route::get('/reportes/estudiantes', [PostgradoController::class, 'reportesEstudiantes'])->name('postgrado.reportes.estudiantes');
+        Route::get('/reportes/recaudacion', [PostgradoController::class, 'reportesRecaudacion'])->name('postgrado.reportes.recaudacion');
+        Route::get('/reportes/matriculas', [PostgradoController::class, 'reportesMatriculas'])->name('postgrado.reportes.matriculas');
+        Route::get('/reportes/inscripciones', [PostgradoController::class, 'reportesInscripciones'])->name('postgrado.reportes.inscripciones');
+        Route::get('/reportes/certificados', [PostgradoController::class, 'reportesCertificados'])->name('postgrado.reportes.certificados');
+        Route::get('/reportes/pagos', [PostgradoController::class, 'reportesPagos'])->name('postgrado.reportes.pagos');
+        Route::get('/reportes/titulos', [PostgradoController::class, 'reportesTitulos'])->name('postgrado.reportes.titulos');
+
+        // Configuración
         Route::get('/configuracion', [PostgradoController::class, 'configuracion'])->name('postgrado.configuracion');
-        Route::get('/carreras', [PostgradoController::class, 'carreras'])->name('postgrado.carreras');
-        Route::get('/carreras/cuotas', [PostgradoController::class, 'carrerasCuotas'])->name('postgrado.carreras.cuotas');
+
+        // API y AJAX
+        Route::post('/venta-rapida', [PostgradoController::class, 'ventaRapida'])->name('postgrado.venta-rapida');
+        Route::get('/api/buscar-estudiantes', [PostgradoController::class, 'buscarEstudiantes'])->name('postgrado.api.buscar-estudiantes');
     });
 
     // CENTRO ODONTOLÓGICO - Rutas específicas
-    Route::prefix('odonto')->middleware('punto_venta')->group(function () {
+    Route::prefix('odonto')->middleware(['punto_venta', 'odonto_menu'])->group(function () {
         Route::get('/dashboard', [OdontoController::class, 'dashboard'])->name('odonto.dashboard');
         Route::get('/pacientes', [OdontoController::class, 'pacientes'])->name('odonto.pacientes');
         Route::get('/agenda', [OdontoController::class, 'agenda'])->name('odonto.agenda');
@@ -384,4 +467,4 @@ Route::prefix('financiamientos')->middleware(['auth'])->name('financiamientos.')
     Route::put('/{id}/cancelar', [App\Http\Controllers\FinanciamientoController::class, 'cancelar'])->name('cancelar');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

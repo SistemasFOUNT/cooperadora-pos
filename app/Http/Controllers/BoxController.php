@@ -6,9 +6,11 @@ use App\Models\PuntoVenta;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\PDFTicket;
+use App\Services\PDFFactura;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class BoxController extends Controller
@@ -272,22 +274,31 @@ class BoxController extends Controller
 
     public function cobrosProductos()
     {
+        // SOLO productos físicos (NO servicios odontológicos)
         $productos = Product::active()
-            ->where('type', '!=', 'fee') // Excluir cuotas estudiantiles
+            ->where('type', 'product') // Solo productos físicos
             ->orderBy('category')
             ->orderBy('name')
             ->get();
 
         return view('box.cobros.productos', [
-            'title' => 'Cobros - Productos',
+            'title' => 'Cobros - Productos Físicos',
             'productos' => $productos
         ]);
     }
 
     public function cobrosOdontologia()
     {
+        // SOLO servicios odontológicos (NO productos físicos)
+        $servicios = Product::active()
+            ->where('type', 'service') // Solo servicios odontológicos
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get();
+
         return view('box.cobros.odontologia', [
-            'title' => 'Cobros - Servicios Odontológicos'
+            'title' => 'Cobros - Servicios Odontológicos',
+            'servicios' => $servicios
         ]);
     }
 
@@ -598,30 +609,18 @@ class BoxController extends Controller
                                     ->join('productos', 'items_venta.product_id', '=', 'productos.id')
                                     ->where('ventas.punto_venta_id', $this->puntoVenta->id)
                                     ->where('ventas.created_at', '>=', Carbon::now()->subDays(30))
-                                    ->selectRaw('
-                                        productos.id,
-                                        productos.name,
-                                        productos.code,
-                                        productos.stock,
-                                        productos.min_stock,
-                                        SUM(items_venta.quantity) as total_vendido
-                                    ')
-                                    ->groupBy('productos.id', 'productos.name', 'productos.code', 'productos.stock', 'productos.min_stock')
-                                    ->orderByDesc('total_vendido')
+                                    ->selectRaw('productos.name, productos.code, SUM(items_venta.quantity) as cantidad_vendida, SUM(items_venta.total) as ingresos')
+                                    ->groupBy('productos.id', 'productos.name', 'productos.code')
+                                    ->orderByDesc('cantidad_vendida')
                                     ->limit(10)
                                     ->get();
 
-        // Categorías disponibles (solo de productos físicos)
-        $categorias = Product::where('type', 'product')
-                           ->where('is_active', true)
-                           ->distinct()
-                           ->pluck('category')
-                           ->filter();
-
-        // Conteo de servicios (para información adicional)
-        $total_servicios = Product::where('type', 'service')
-                                 ->where('is_active', true)
-                                 ->count();
+        // Obtener categorías para filtro
+        $categorias = Product::where('is_active', true)
+                            ->where('type', 'product')
+                            ->distinct()
+                            ->pluck('category')
+                            ->filter();
 
         return view('box.reportes.inventario', compact(
             'productos',
@@ -631,310 +630,330 @@ class BoxController extends Controller
             'productos_mas_vendidos',
             'categorias',
             'categoria',
-            'stock_minimo',
-            'total_servicios'
+            'stock_minimo'
         ));
     }
 
-    /**
-     * Generar PDF del ticket de venta
-     */
-    public function generarTicketPDF(Request $request)
-    {
-        $datosVenta = $request->validate([
-            'carrito' => 'required|array',
-            'carrito.*.id' => 'required|integer',
-            'carrito.*.name' => 'required|string',
-            'carrito.*.code' => 'required|string',
-            'carrito.*.price' => 'required|numeric',
-            'carrito.*.quantity' => 'required|integer',
-            'subtotal' => 'required|numeric',
-            'descuento' => 'required|numeric',
-            'totalFinal' => 'required|numeric',
-            'metodoPago' => 'required|string',
-            'montoRecibido' => 'nullable|numeric',
-            'vuelto' => 'nullable|numeric',
-            'observaciones' => 'nullable|string'
-        ]);
-
-        // Crear el HTML del ticket
-        $html = $this->generarHTMLTicket($datosVenta);
-
-        // Usar TCPDF que viene incluido en muchas instalaciones de PHP
-        // o simplemente generar un PDF básico con HTML
-        return $this->generarPDFBasico($html, $datosVenta);
-    }
-
-    private function generarHTMLTicket($datos)
-    {
-        $fecha = now()->format('d/m/Y H:i:s');
-        $cajero = \Illuminate\Support\Facades\Auth::check() ? \Illuminate\Support\Facades\Auth::user()->name : 'Sistema';
-        $puntoVenta = session('punto_venta_nombre', 'BOX Principal');
-
-        $html = '
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Ticket de Venta</title>
-            <style>
-                @page { margin: 0.5cm; size: 80mm auto; }
-                body {
-                    font-family: "Courier New", monospace;
-                    font-size: 11px;
-                    margin: 0;
-                    padding: 5px;
-                    width: 70mm;
-                    line-height: 1.2;
-                }
-                .header {
-                    text-align: center;
-                    border-bottom: 2px dashed #000;
-                    padding-bottom: 8px;
-                    margin-bottom: 12px;
-                }
-                .header h2 { margin: 0 0 3px 0; font-size: 14px; font-weight: bold; }
-                .header p { margin: 1px 0; font-size: 9px; }
-                .seccion { margin-bottom: 10px; }
-                .titulo-seccion {
-                    font-weight: bold;
-                    border-bottom: 1px solid #000;
-                    margin-bottom: 5px;
-                    font-size: 10px;
-                }
-                .producto {
-                    margin-bottom: 6px;
-                    border-bottom: 1px dotted #ccc;
-                    padding-bottom: 3px;
-                }
-                .producto-nombre { font-weight: bold; font-size: 10px; }
-                .producto-detalle { font-size: 8px; color: #555; margin: 1px 0; }
-                .producto-total { text-align: right; margin-top: 2px; font-weight: bold; }
-                .totales {
-                    border-top: 2px dashed #000;
-                    padding-top: 8px;
-                    margin-top: 10px;
-                }
-                .total-linea {
-                    display: flex;
-                    justify-content: space-between;
-                    margin: 2px 0;
-                    font-size: 10px;
-                }
-                .total-final {
-                    font-weight: bold;
-                    font-size: 12px;
-                    border-top: 1px solid #000;
-                    padding-top: 4px;
-                    margin-top: 4px;
-                }
-                .pago {
-                    border-top: 1px dashed #000;
-                    padding-top: 8px;
-                    margin-top: 8px;
-                }
-                .pago-metodo {
-                    text-align: center;
-                    font-weight: bold;
-                    margin-bottom: 6px;
-                    font-size: 10px;
-                }
-                .footer {
-                    text-align: center;
-                    border-top: 2px dashed #000;
-                    padding-top: 8px;
-                    margin-top: 12px;
-                }
-                .footer p { margin: 1px 0; font-size: 8px; }
-                .observaciones {
-                    border-top: 1px dotted #000;
-                    padding-top: 6px;
-                    margin-top: 8px;
-                    font-size: 9px;
-                }
-                @media print {
-                    body { width: auto; }
-                    .no-print { display: none; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h2>COOPERADORA</h2>
-                <p>BOX - Punto de Venta</p>
-                <p>' . $fecha . '</p>
-                <p>Cajero: ' . htmlspecialchars($cajero) . '</p>
-                <p>Punto: ' . htmlspecialchars($puntoVenta) . '</p>
-            </div>
-
-            <div class="seccion">
-                <div class="titulo-seccion">DETALLE DE PRODUCTOS</div>';
-
-        foreach ($datos['carrito'] as $item) {
-            $subtotalItem = $item['price'] * $item['quantity'];
-            $html .= '
-                <div class="producto">
-                    <div class="producto-nombre">' . htmlspecialchars($item['name']) . '</div>
-                    <div class="producto-detalle">' . htmlspecialchars($item['code']) . ' x ' . $item['quantity'] . ' @ $' . number_format($item['price'], 2) . '</div>
-                    <div class="producto-total">$' . number_format($subtotalItem, 2) . '</div>
-                </div>';
-        }
-
-        $html .= '
-            </div>
-
-            <div class="totales">
-                <div class="total-linea">
-                    <span>Subtotal:</span>
-                    <span>$' . number_format($datos['subtotal'], 2) . '</span>
-                </div>';
-
-        if ($datos['descuento'] > 0) {
-            $html .= '
-                <div class="total-linea">
-                    <span>Descuento:</span>
-                    <span>-$' . number_format($datos['descuento'], 2) . '</span>
-                </div>';
-        }
-
-        $html .= '
-                <div class="total-linea total-final">
-                    <span>TOTAL:</span>
-                    <span>$' . number_format($datos['totalFinal'], 2) . '</span>
-                </div>
-            </div>
-
-            <div class="pago">
-                <div class="pago-metodo">MÉTODO DE PAGO: ' . strtoupper($datos['metodoPago']) . '</div>';
-
-        if ($datos['metodoPago'] === 'efectivo') {
-            $html .= '
-                <div class="total-linea">
-                    <span>Monto recibido:</span>
-                    <span>$' . number_format($datos['montoRecibido'] ?? 0, 2) . '</span>
-                </div>';
-
-            if (($datos['vuelto'] ?? 0) > 0) {
-                $html .= '
-                <div class="total-linea" style="font-weight: bold;">
-                    <span>VUELTO:</span>
-                    <span>$' . number_format($datos['vuelto'], 2) . '</span>
-                </div>';
-            } else {
-                $html .= '
-                <div style="text-align: center; font-style: italic; margin: 4px 0; font-size: 9px;">
-                    Pago exacto - Sin vuelto
-                </div>';
-            }
-        }
-
-        if (!empty($datos['observaciones'])) {
-            $html .= '
-                <div class="observaciones">
-                    <strong>Observaciones:</strong><br>
-                    ' . htmlspecialchars($datos['observaciones']) . '
-                </div>';
-        }
-
-        $html .= '
-            </div>
-
-            <div class="footer">
-                <p>¡Gracias por su compra!</p>
-                <p>Conserve este ticket</p>
-                <p>Ticket #' . time() . '</p>
-            </div>
-
-            <div class="no-print" style="margin-top: 20px; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
-                <button onclick="window.print()" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                    🖨️ Imprimir
-                </button>
-                <button onclick="window.close()" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-                    ✖️ Cerrar
-                </button>
-            </div>
-        </body>
-        </html>';
-
-        return $html;
-    }
-
-    private function generarPDFBasico($html, $datos)
-    {
-        return $this->generarConPDFTicket($datos);
-    }
-
-    private function generarConPDFTicket($datos)
-    {
-        // Usar la nueva clase PDFTicket
-        $ticket = new PDFTicket();
-        $pdf = $ticket->generar($datos);
-
-        return $pdf->stream('ticket-' . ($datos['numero_ticket'] ?? time()) . '.pdf');
-    }
+    // ===== MÉTODOS DE FACTURACIÓN =====
 
     /**
-     * Generar ticket general para todos los tipos de cobro
+     * Generar factura local para una venta
      */
-    public function generarTicketGeneral(Request $request)
+    public function generarFacturaLocal(Request $request, Sale $sale)
     {
         try {
-            // Obtener datos del ticket desde el formulario
-            $datosTicket = json_decode($request->input('datos_ticket'), true);
+            $facturationService = app(\App\Services\FacturacionService::class);
 
-            if (!$datosTicket) {
-                throw new \Exception('No se recibieron datos del ticket');
-            }
-
-            // Preparar datos para el ticket (reutilizar el formato existente)
-            $items = $datosTicket['carrito'] ?? $datosTicket['items'] ?? [];
-
-            $datos = [
-                'numero_ticket' => $datosTicket['numero_ticket'] ?? 'BOX-' . Carbon::now()->format('Ymd-His'),
-                'fecha' => Carbon::now(),
-                'punto_venta' => 'BOX Cooperadora',
-                'cajero' => Auth::user()->name ?? 'Sistema',
-                'cliente' => $datosTicket['cliente'] ?? 'Cliente General',
-                'metodo_pago' => ucfirst($datosTicket['metodo_pago'] ?? 'No especificado'),
-                'carrito' => $items, // PDFTicket espera 'carrito'
-                'items' => $items,   // Mantener compatibilidad
-                'subtotal' => $datosTicket['subtotal'] ?? 0,
-                'descuentos' => $datosTicket['descuento'] ?? 0,
-                'descuento' => $datosTicket['descuento'] ?? 0, // Compatibilidad
-                'total' => $datosTicket['total'] ?? 0,
-                'tipo_modulo' => $datosTicket['tipo_modulo'] ?? 'general',
-                'detalles_pago' => $datosTicket['detalles_pago'] ?? []
+            $datos_cliente = [
+                'nombre' => $request->input('cliente_nombre', 'Consumidor Final'),
+                'cuit' => $request->input('cliente_cuit'),
+                'domicilio' => $request->input('cliente_domicilio'),
+                'condicion_iva' => $request->input('cliente_condicion_iva', 'Consumidor Final')
             ];
 
-            // Reutilizar el método existente para generar PDF
-            return $this->generarConPDFTicket($datos);
+            $factura = $facturationService->generarFacturaLocal($sale, $datos_cliente);
 
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Procesar venta (para futuro uso con base de datos)
-     */
-    public function procesarVenta(Request $request)
-    {
-        try {
-            // Aquí se procesaría la venta en la base de datos
-            $datosVenta = $request->all();
-
-            // Por ahora solo retornamos éxito
             return response()->json([
                 'success' => true,
-                'message' => 'Venta procesada correctamente',
-                'numero_venta' => 'BOX-' . date('Ymd-His')
+                'factura_id' => $factura->id,
+                'numero_factura' => $factura->numero_completo,
+                'mensaje' => 'Factura local generada exitosamente'
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generar factura ARCA para una venta
+     */
+    public function generarFacturaARCA(Request $request, Sale $sale)
+    {
+        $request->validate([
+            'cliente_nombre' => 'required|string|max:255',
+            'cliente_cuit' => 'required|string|size:13', // 00-00000000-0
+            'tipo_comprobante' => 'required|in:A,B,C'
+        ]);
+
+        try {
+            $facturationService = app(\App\Services\FacturacionService::class);
+
+            $datos_cliente = [
+                'nombre' => $request->input('cliente_nombre'),
+                'cuit' => $request->input('cliente_cuit'),
+                'domicilio' => $request->input('cliente_domicilio'),
+                'condicion_iva' => $request->input('cliente_condicion_iva'),
+                'email' => $request->input('cliente_email')
+            ];
+
+            $factura = $facturationService->generarFacturaARCA(
+                $sale,
+                $datos_cliente,
+                $request->input('tipo_comprobante')
+            );
+
+            return response()->json([
+                'success' => true,
+                'factura_id' => $factura->id,
+                'numero_factura' => $factura->numero_completo,
+                'cae' => $factura->cae,
+                'fecha_vto_cae' => $factura->fecha_vto_cae,
+                'qr_arca' => $factura->qr_arca,
+                'mensaje' => $factura->estado === 'autorizada' ? 'Factura ARCA autorizada exitosamente' : 'Factura generada pero pendiente de autorización'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Modal para datos del cliente en facturación
+     */
+    public function modalCliente($ventaId)
+    {
+        $venta = \App\Models\Sale::findOrFail($ventaId);
+
+        // Verificar que la venta pertenece al punto de venta correcto
+        if ($venta->punto_venta_id != $this->puntoVenta->id) {
+            abort(403, 'No tienes acceso a esta venta.');
+        }
+
+        return view('box.facturas.modal-cliente', compact('venta'));
+    }
+
+    /**
+     * Procesar pago y generar factura directamente (mejora UX)
+     */
+    public function procesarPagoConFactura(Request $request)
+    {
+        try {
+            Log::info('procesarPagoConFactura: Datos recibidos', $request->all());
+
+            // DECODIFICAR JSON que viene del frontend
+            $datosCliente = json_decode($request->input('datosCliente', '{}'), true);
+            $carrito = json_decode($request->input('carrito', '[]'), true);
+
+            // Obtener método de pago y tipo de comprobante
+            $metodoPago = $request->input('metodoPago', 'efectivo');
+            $tipoComprobante = $request->input('tipoComprobante', 'factura_local');
+
+            // Datos COMPLETOS para todos los medios de pago
+            $datos = [
+                'cliente_nombre' => $datosCliente['nombre'] ?? 'Cliente Genérico',
+                'cliente_documento' => $datosCliente['documento'] ?? '00000000',
+                'cliente_direccion' => $datosCliente['direccion'] ?? '',
+                'cliente_condicion_iva' => $datosCliente['condicionIva'] ?? 'consumidor_final',
+                'metodo_pago' => $metodoPago,
+                'tipo_comprobante' => $tipoComprobante,
+                'total' => (float) $request->input('totalFinal', 0),
+                'subtotal' => (float) $request->input('subtotal', 0),
+                'descuento' => (float) $request->input('descuento', 0),
+                'observaciones' => $request->input('observaciones', ''),
+                'productos' => []
+            ];
+
+            // Procesar productos del carrito
+            foreach ($carrito as $item) {
+                $producto = \App\Models\Product::find($item['id']);
+                $datos['productos'][] = [
+                    'nombre' => $producto->name ?? 'Producto',
+                    'cantidad' => (int) $item['quantity'],
+                    'precio' => (float) $item['price'],
+                    'total' => (float) $item['quantity'] * (float) $item['price']
+                ];
+            }
+
+            Log::info('procesarPagoConFactura: Datos procesados', $datos);
+
+            // Opcional: Guardar venta en base de datos para auditoría
+            try {
+                $venta = new \App\Models\Sale();
+                $venta->punto_venta_id = $this->puntoVenta->id;
+                $venta->user_id = auth()->id();
+                $venta->subtotal = $datos['subtotal'];
+                $venta->descuento = $datos['descuento'];
+                $venta->total = $datos['total'];
+                $venta->metodo_pago = $datos['metodo_pago'];
+                $venta->estado = 'completada';
+                $venta->fecha_venta = now();
+                $venta->observaciones = $datos['observaciones'];
+                $venta->save();
+
+                Log::info('procesarPagoConFactura: Venta guardada en BD', ['venta_id' => $venta->id]);
+            } catch (\Exception $e) {
+                Log::warning('procesarPagoConFactura: Error guardando venta en BD', ['error' => $e->getMessage()]);
+                // Continúa con PDF aunque falle guardar en BD
+            }
+
+            // PDF con formato oficial y todos los medios de pago
+            $pdfService = new PDFFactura();
+            return $pdfService->generarSimple($datos);
+
+        } catch (\Exception $e) {
+            Log::error('procesarPagoConFactura: Error', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Error generando factura'], 500);
+        }
+    }
+
+    public function verFactura(Request $request, \App\Models\Factura $factura)
+    {
+        // Cargar relaciones necesarias para evitar problemas de datos
+        $factura->load(['sale', 'sale.items', 'sale.items.product', 'sale.user']);
+
+        // Verificar que la factura pertenece al punto de venta correcto
+        if ($factura->sale->punto_venta_id != $this->puntoVenta->id) {
+            abort(403, 'No tienes acceso a esta factura.');
+        }
+
+        $formato = $request->input('formato', 'html'); // html, pdf
+
+        if ($formato === 'pdf') {
+            return $this->generarPDFFactura($factura);
+        }
+
+        return view('box.facturas.ver', compact('factura'));
+    }
+
+    /**
+     * Listar facturas generadas
+     */
+    public function listarFacturas(Request $request)
+    {
+        $filtros = $request->only(['fecha_desde', 'fecha_hasta', 'tipo', 'estado']);
+
+        $query = \App\Models\Factura::whereHas('sale', function($q) {
+            $q->where('punto_venta_id', $this->puntoVenta->id);
+        })->with(['sale', 'sale.user']);
+
+        // Aplicar filtros
+        if (!empty($filtros['fecha_desde'])) {
+            $query->whereDate('fecha_emision', '>=', $filtros['fecha_desde']);
+        }
+
+        if (!empty($filtros['fecha_hasta'])) {
+            $query->whereDate('fecha_emision', '<=', $filtros['fecha_hasta']);
+        }
+
+        if (!empty($filtros['tipo'])) {
+            $query->where('tipo', $filtros['tipo']);
+        }
+
+        if (!empty($filtros['estado'])) {
+            $query->where('estado', $filtros['estado']);
+        }
+
+        $facturas = $query->orderBy('fecha_emision', 'desc')
+                         ->paginate(25);
+
+        return view('box.facturas.lista', compact('facturas', 'filtros'));
+    }
+
+    /**
+     * Anular una factura
+     */
+    public function anularFactura(Request $request, \App\Models\Factura $factura)
+    {
+        $request->validate([
+            'motivo' => 'required|string|max:500'
+        ]);
+
+        // Verificar que la factura pertenece al punto de venta correcto
+        if ($factura->sale->punto_venta_id != $this->puntoVenta->id) {
+            abort(403, 'No tienes acceso a esta factura.');
+        }
+
+        // No se puede anular una factura ya anulada
+        if ($factura->estado === 'anulada') {
+            return back()->withErrors(['error' => 'La factura ya está anulada.']);
+        }
+
+        try {
+            $factura->anular($request->input('motivo'));
+
+            return back()->with('success', 'Factura anulada exitosamente.');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al anular la factura: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Generar PDF de la factura
+     */
+    private function generarPDFFactura(\App\Models\Factura $factura)
+    {
+        try {
+            \Log::info('generarPDFFactura: Iniciando generación PDF', ['factura_id' => $factura->id]);
+
+            $pdfService = new \App\Services\PDFFactura();
+            \Log::info('generarPDFFactura: Servicio PDF creado');
+
+            $pdf = $pdfService->generar($factura);
+            \Log::info('generarPDFFactura: PDF generado exitosamente');
+
+            $response = $pdf->descargar();
+            \Log::info('generarPDFFactura: Response preparada para descarga');
+
+            return $response;
+
+        } catch (\Exception $e) {
+            \Log::error('generarPDFFactura: Error', [
+                'message' => $e->getMessage(),
+                'factura_id' => $factura->id ?? 'null',
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Modal para datos del cliente (facturación)
+     */
+    public function modalFacturacion(Sale $sale)
+    {
+        return view('box.facturas.modal-cliente', compact('sale'));
+    }
+
+    // Métodos auxiliares privados existentes...
+
+    private function getVentasDelDia()
+    {
+        return Sale::whereDate('created_at', Carbon::today())
+                  ->where('punto_venta_id', $this->puntoVenta->id)
+                  ->count();
+    }
+
+    private function getResumenFinanciero()
+    {
+        return [
+            'ingresos_dia' => Sale::whereDate('created_at', Carbon::today())
+                                 ->where('punto_venta_id', $this->puntoVenta->id)
+                                 ->sum('total'),
+            'ingresos_mes' => Sale::whereMonth('created_at', Carbon::now()->month)
+                                 ->where('punto_venta_id', $this->puntoVenta->id)
+                                 ->sum('total'),
+        ];
+    }
+
+    private function getAlertasSistema()
+    {
+        return [
+            'productos_bajo_stock' => Product::whereRaw('stock <= min_stock')
+                                           ->where('is_active', true)
+                                           ->count(),
+            'facturas_pendientes' => \App\Models\Factura::where('estado', 'pendiente_arca')
+                                                       ->whereHas('sale', function($q) {
+                                                           $q->where('punto_venta_id', $this->puntoVenta->id);
+                                                       })
+                                                       ->count(),
+        ];
     }
 }

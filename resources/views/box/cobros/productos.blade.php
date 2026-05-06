@@ -13,12 +13,10 @@
         overflow-y: auto;
     }
     .producto-card {
-        transition: transform 0.2s;
         cursor: pointer;
     }
     .producto-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     /* Estilos específicos para modal de efectivo */
@@ -109,6 +107,35 @@
         max-width: 100px;
         font-size: 14px;
     }
+
+    /* Estilos para tipo de comprobante */
+    .form-check-label {
+        cursor: pointer;
+        padding-left: 0.5rem;
+    }
+
+    .form-check-label strong {
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .form-check-label small {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    #campos-facturacion {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-check-input:checked + .form-check-label {
+        color: #0056b3;
+        font-weight: 500;
+    }
 </style>
 @stop
 
@@ -128,23 +155,6 @@
 @stop
 
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-info">
-                <h4><i class="fas fa-info-circle"></i> Funcionalidad en Desarrollo</h4>
-                <p>Esta sección permitirá realizar cobros de productos de manera eficiente.</p>
-                <p><strong>Características próximas:</strong></p>
-                <ul>
-                    <li>Búsqueda rápida de productos</li>
-                    <li>Carrito de compras</li>
-                    <li>Aplicación de descuentos</li>
-                    <li>Métodos de pago múltiples</li>
-                    <li>Impresión de tickets</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
     <div class="row">
         <div class="col-md-8">
             <div class="card card-primary">
@@ -225,25 +235,28 @@
             </div>
         </div>
 
+        <!-- Carrito de Compras -->
         <div class="col-md-4">
             <div class="card card-success">
                 <div class="card-header">
-                    <h3 class="card-title">Carrito de Compras</h3>
+                    <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Carrito de Compras</h3>
                 </div>
-                <div class="card-body" id="carrito-items">
-                    <div class="text-center text-muted py-4">
-                        <i class="fas fa-shopping-cart fa-3x"></i>
-                        <p class="mt-2">El carrito está vacío</p>
+                <div class="card-body" style="min-height: 300px;">
+                    <div id="carrito-items">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-shopping-cart fa-3x"></i>
+                            <p class="mt-2">No hay productos seleccionados</p>
+                        </div>
                     </div>
                 </div>
                 <div class="card-footer">
                     <div class="row">
                         <div class="col">
-                            <strong id="total-carrito">Total: $0.00</strong>
+                            <h4 class="text-success">Total: $<span id="total-general">0,00</span></h4>
                         </div>
                         <div class="col-auto">
-                            <button class="btn btn-success btn-sm" id="btn-cobrar" disabled>
-                                <i class="fas fa-credit-card"></i> Cobrar
+                            <button class="btn btn-success" id="btn-proceder-pago" disabled>
+                                <i class="fas fa-credit-card"></i> Proceder al Pago
                             </button>
                         </div>
                     </div>
@@ -252,236 +265,85 @@
         </div>
     </div>
 
-    <!-- Modal de Pago -->
-    <div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-success">
-                    <h5 class="modal-title text-white" id="modalPagoLabel">
-                        <i class="fas fa-cash-register"></i> Procesar Pago
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="form-pago">
-                        <div class="row">
-                            <!-- Resumen de compra -->
-                            <div class="col-md-6">
-                                <h6><i class="fas fa-shopping-cart"></i> Resumen de Compra</h6>
-                                <div id="resumen-compra" class="border rounded p-2 mb-3" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- Se llena dinámicamente -->
-                                </div>
-
-                                <!-- Descuentos -->
-                                <div class="form-group">
-                                    <label for="tipo-descuento">Aplicar Descuento</label>
-                                    <select class="form-control" id="tipo-descuento">
-                                        <option value="">Sin descuento</option>
-                                        <option value="porcentaje">Porcentaje (%)</option>
-                                        <option value="fijo">Monto fijo ($)</option>
-                                        <option value="estudiante">Descuento estudiante (10%)</option>
-                                        <option value="empleado">Descuento empleado (15%)</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" id="grupo-valor-descuento" style="display: none;">
-                                    <label for="valor-descuento">Valor del descuento</label>
-                                    <input type="number" class="form-control" id="valor-descuento" step="0.01" min="0">
-                                </div>
-                            </div>
-
-                            <!-- Métodos de pago -->
-                            <div class="col-md-6">
-                                <h6><i class="fas fa-credit-card"></i> Método de Pago</h6>
-
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="metodoPago" value="efectivo" id="efectivo" checked>
-                                    <label class="form-check-label" for="efectivo">
-                                        <i class="fas fa-money-bill-wave text-success"></i> Efectivo
-                                    </label>
-                                </div>
-
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="metodoPago" value="tarjeta" id="tarjeta">
-                                    <label class="form-check-label" for="tarjeta">
-                                        <i class="fas fa-credit-card text-primary"></i> Tarjeta Débito/Crédito
-                                    </label>
-                                </div>
-
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="metodoPago" value="transferencia" id="transferencia">
-                                    <label class="form-check-label" for="transferencia">
-                                        <i class="fas fa-exchange-alt text-info"></i> Transferencia
-                                    </label>
-                                </div>
-
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="metodoPago" value="mixto" id="mixto">
-                                    <label class="form-check-label" for="mixto">
-                                        <i class="fas fa-coins text-warning"></i> Pago Mixto
-                                    </label>
-                                </div>
-
-                                <!-- Campos para pago mixto -->
-                                <div id="campos-mixto" style="display: none;">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <label>Efectivo</label>
-                                            <input type="number" class="form-control" id="mixto-efectivo" step="0.01" min="0">
-                                        </div>
-                                        <div class="col-6">
-                                            <label>Tarjeta</label>
-                                            <input type="number" class="form-control" id="mixto-tarjeta" step="0.01" min="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Totales -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <strong>Subtotal: $<span id="modal-subtotal">0.00</span></strong>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <strong>Descuento: $<span id="modal-descuento">0.00</span></strong>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <strong class="text-success">Total: $<span id="modal-total">0.00</span></strong>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group mb-0">
-                                                    <label for="observaciones">Observaciones</label>
-                                                    <textarea class="form-control form-control-sm" id="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
-                    </button>
-                    <button type="button" class="btn btn-success" id="btn-procesar-pago">
-                        <i class="fas fa-check"></i> Procesar Pago
-                    </button>
-                    <button type="button" class="btn btn-info" id="btn-imprimir-ticket" style="display: none;">
-                        <i class="fas fa-print"></i> Imprimir Ticket
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal específico para Pago en Efectivo -->
-    <div class="modal fade" id="modalPagoEfectivo" tabindex="-1" aria-labelledby="modalPagoEfectivoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-success">
-                    <h5 class="modal-title text-white" id="modalPagoEfectivoLabel">
-                        <i class="fas fa-money-bill-wave"></i> Pago en Efectivo
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <!-- Detalle de la venta -->
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-receipt"></i> Detalle de la Venta</h6>
-                            <div id="detalle-venta-efectivo" class="border rounded p-3 mb-3" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa;">
-                                <!-- Se llena dinámicamente -->
-                            </div>
-                        </div>
-
-                        <!-- Cálculos y pago -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0"><i class="fas fa-calculator"></i> Resumen de Cobro</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row mb-2">
-                                        <div class="col-6"><strong>Subtotal:</strong></div>
-                                        <div class="col-6 text-right">$<span id="efectivo-subtotal">0.00</span></div>
-                                    </div>
-                                    <div class="row mb-2" id="fila-descuento-efectivo" style="display: none;">
-                                        <div class="col-6"><strong>Descuento:</strong></div>
-                                        <div class="col-6 text-right text-danger">-$<span id="efectivo-descuento">0.00</span></div>
-                                    </div>
-                                    <hr>
-                                    <div class="row mb-3">
-                                        <div class="col-6"><strong class="text-success">TOTAL A COBRAR:</strong></div>
-                                        <div class="col-6 text-right"><strong class="text-success h5">$<span id="efectivo-total">0.00</span></strong></div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="monto-cliente-efectivo" class="font-weight-bold">Monto recibido del cliente:</label>
-                                        <div class="input-group">
-                                            <div class="input-group-prepend">
-                                                <span class="input-group-text">$</span>
-                                            </div>
-                                            <input type="number" class="form-control form-control-lg" id="monto-cliente-efectivo"
-                                                   step="0.01" min="0" placeholder="0.00" autofocus>
-                                        </div>
-                                    </div>
-
-                                    <!-- Resultado del cálculo -->
-                                    <div id="resultado-pago" class="mt-3">
-                                        <div id="mensaje-insuficiente" class="alert alert-warning" style="display: none;">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            <strong class="text-dark">Monto insuficiente</strong><br>
-                                            <span class="text-dark">Faltan: <span class="h6 text-dark">$<span id="falta-monto">0.00</span></span></span>
-                                        </div>
-
-                                        <div id="mensaje-exacto" class="alert alert-success" style="display: none;">
-                                            <i class="fas fa-check-circle"></i>
-                                            <strong class="text-dark">Pago exacto</strong><br>
-                                            <span class="text-dark">Sin vuelto a entregar</span>
-                                        </div>
-
-                                        <div id="mensaje-vuelto" class="alert alert-info" style="display: none;">
-                                            <i class="fas fa-hand-holding-usd"></i>
-                                            <strong class="text-dark">Vuelto a entregar:</strong><br>
-                                            <span class="h4 text-dark">$<span id="vuelto-cliente">0.00</span></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-arrow-left"></i> Volver
-                    </button>
-                    <button type="button" class="btn btn-primary" id="btn-imprimir-ticket-efectivo" disabled>
-                        <i class="fas fa-print"></i> Imprimir Ticket
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Incluir componente de modal de pago unificado --}}
+    @include('components.payment-modals')
 @stop
 
 @section('js')
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-<script>
-$(document).ready(function() {
+// Esperar a que jQuery esté disponible
+function waitForJQuery(callback) {
+    if (typeof jQuery !== 'undefined') {
+        callback();
+    } else {
+        setTimeout(function() {
+            waitForJQuery(callback);
+        }, 100);
+    }
+}
+
+waitForJQuery(function() {
+    $(document).ready(function() {
     let carrito = [];
     let total = 0;
+
+    // Cargar DataTables dinámicamente
+    $.getScript('https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', function() {
+        $.getScript('https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js', function() {
+            initializeDataTable();
+        });
+    });
+
+    function initializeDataTable() {
+        $('#productosTable').DataTable({
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "order": [[1, "asc"]], // Ordenar por nombre de producto
+            "columnDefs": [
+                {
+                    "targets": [5], // Columna de acciones
+                    "orderable": false,
+                    "searchable": false
+                }
+            ],
+            "search": {
+                "regex": true,
+                "smart": false
+            },
+            "initComplete": function() {
+                // Función de búsqueda desde el inicio personalizada
+                $.fn.dataTable.ext.search.push(
+                    function(settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'productosTable') {
+                            return true;
+                        }
+
+                        var searchTerm = $('#productosTable_filter input').val().toLowerCase();
+                        if (searchTerm === '') {
+                            return true;
+                        }
+
+                        // Buscar desde el inicio en todas las columnas
+                        for (var i = 0; i < data.length; i++) {
+                            var columnData = data[i].toLowerCase().replace(/<[^>]*>/g, ''); // Limpiar HTML
+                            if (columnData.startsWith(searchTerm)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                );
+
+                // Actualizar búsqueda en tiempo real
+                $('#productosTable_filter input').unbind().bind('keyup', function(e) {
+                    $('#productosTable').DataTable().draw();
+                });
+            }
+        });
+    }
+
+    // ===== FUNCIONES DE MANEJO DEL CARRITO =====
 
     // Agregar producto al carrito
     $(document).on('click', '.agregar-producto', function() {
@@ -541,133 +403,7 @@ $(document).ready(function() {
         }
     });
 
-    function actualizarCarrito() {
-        const carritoBody = $('#carrito-items');
-        carritoBody.empty();
-        total = 0;
-
-        if (carrito.length === 0) {
-            carritoBody.append(`
-                <div class="text-center text-muted py-4">
-                    <i class="fas fa-shopping-cart fa-3x"></i>
-                    <p class="mt-2">El carrito está vacío</p>
-                </div>
-            `);
-            $('#btn-cobrar').prop('disabled', true);
-        } else {
-            carrito.forEach(producto => {
-                const subtotal = producto.price * producto.quantity;
-                total += subtotal;
-
-                carritoBody.append(`
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
-                        <div>
-                            <small class="font-weight-bold">${producto.name}</small>
-                            <br>
-                            <small class="text-muted">${producto.code} - $${producto.price.toFixed(2)}</small>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <input type="number" class="form-control form-control-sm cantidad-input mr-1"
-                                   style="width: 60px;" value="${producto.quantity}" min="1"
-                                   data-id="${producto.id}">
-                            <button type="button" class="btn btn-danger btn-sm eliminar-producto"
-                                    data-id="${producto.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="text-right mb-2">
-                        <small>Subtotal: $${subtotal.toFixed(2)}</small>
-                    </div>
-                `);
-            });
-            $('#btn-cobrar').prop('disabled', false);
-        }
-
-        $('#total-carrito').text('$' + total.toFixed(2));
-    }
-
-    // Configurar DataTables con búsqueda desde el inicio
-    $('#productosTable').DataTable({
-        "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-        },
-        "pageLength": 10,
-        "order": [[1, "asc"]], // Ordenar por nombre de producto
-        "columnDefs": [
-            {
-                "targets": [5], // Columna de acciones
-                "orderable": false,
-                "searchable": false
-            }
-        ],
-        "search": {
-            "regex": true,
-            "smart": false
-        },
-        "initComplete": function() {
-            // Función de búsqueda desde el inicio personalizada
-            $.fn.dataTable.ext.search.push(
-                function(settings, data, dataIndex) {
-                    if (settings.nTable.id !== 'productosTable') {
-                        return true;
-                    }
-
-                    var searchTerm = $('#productosTable_filter input').val().toLowerCase();
-                    if (searchTerm === '') {
-                        return true;
-                    }
-
-                    // Buscar desde el inicio en todas las columnas
-                    for (var i = 0; i < data.length; i++) {
-                        var columnData = data[i].toLowerCase().replace(/<[^>]*>/g, ''); // Limpiar HTML
-                        if (columnData.startsWith(searchTerm)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            );
-
-            // Actualizar búsqueda en tiempo real
-            $('#productosTable_filter input').unbind().bind('keyup', function(e) {
-                $('#productosTable').DataTable().draw();
-            });
-        }
-    });
-
     // ===== FUNCIONALIDAD DEL MODAL DE PAGO =====
-
-    // Abrir modal de pago
-    $('#btn-cobrar').on('click', function() {
-        if (carrito.length === 0) {
-            alert('El carrito está vacío');
-            return;
-        }
-
-        mostrarResumenCompra();
-        calcularTotalesModal();
-        $('#modalPago').modal('show');
-    });
-
-    // Mostrar resumen de compra en el modal
-    function mostrarResumenCompra() {
-        const resumenDiv = $('#resumen-compra');
-        resumenDiv.empty();
-
-        carrito.forEach(producto => {
-            const subtotal = producto.price * producto.quantity;
-            resumenDiv.append(`
-                <div class="d-flex justify-content-between mb-1">
-                    <div>
-                        <small class="font-weight-bold">${producto.name}</small><br>
-                        <small class="text-muted">${producto.code} x ${producto.quantity}</small>
-                    </div>
-                    <small class="font-weight-bold">$${subtotal.toFixed(2)}</small>
-                </div>
-            `);
-        });
-    }
 
     // Manejar cambios en tipo de descuento
     $('#tipo-descuento').on('change', function() {
@@ -702,6 +438,35 @@ $(document).ready(function() {
 
         if (metodo === 'mixto') {
             $('#campos-mixto').show();
+        }
+    });
+
+    // Manejar cambios en tipo de comprobante
+    $('input[name="tipoComprobante"]').on('change', function() {
+        const tipo = $(this).val();
+        const camposFacturacion = $('#campos-facturacion');
+
+        if (tipo === 'factura_local' || tipo === 'factura_fiscal') {
+            camposFacturacion.show();
+
+            // Hacer obligatorios los campos requeridos
+            $('#cliente-nombre, #cliente-documento').prop('required', true);
+
+            // Si es factura fiscal, actualizar etiquetas para CUIT
+            if (tipo === 'factura_fiscal') {
+                $('#condicion-iva').prop('disabled', false);
+                $('label[for="cliente-documento"]').html('CUIT *');
+                $('#cliente-documento').attr('placeholder', '20-12345678-9');
+            } else {
+                $('#condicion-iva').prop('disabled', false);
+                $('label[for="cliente-documento"]').html('DNI/CUIT *');
+                $('#cliente-documento').attr('placeholder', '12345678 ó 20-12345678-9');
+            }
+        } else {
+            camposFacturacion.hide();
+
+            // Remover obligatoriedad
+            $('#cliente-nombre, #cliente-documento').prop('required', false);
         }
     });
 
@@ -751,7 +516,7 @@ $(document).ready(function() {
     }
 
     // Procesar pago
-    $('#btn-procesar-pago').on('click', function() {
+    $('#btn-proceder-pago').on('click', function() {
         if (!validarPago()) {
             return;
         }
@@ -806,7 +571,24 @@ $(document).ready(function() {
         // Limpiar campos
         $('#monto-cliente-efectivo').val('');
         $('#resultado-pago div').hide();
-        $('#btn-imprimir-ticket-efectivo').prop('disabled', true);
+
+        // Actualizar botón según tipo de comprobante
+        const btnEfectivo = $('#btn-imprimir-ticket-efectivo');
+        const tipoComprobante = $('input[name="tipoComprobante"]:checked').val();
+
+        switch(tipoComprobante) {
+            case 'ticket':
+                btnEfectivo.html('<i class="fas fa-print"></i> Imprimir Ticket');
+                break;
+            case 'factura_local':
+                btnEfectivo.html('<i class="fas fa-file-alt"></i> Generar Factura Local');
+                break;
+            case 'factura_fiscal':
+                btnEfectivo.html('<i class="fas fa-stamp"></i> Generar Factura Fiscal');
+                break;
+        }
+
+        btnEfectivo.prop('disabled', true);
 
         // Cerrar modal de pago y abrir modal de efectivo
         $('#modalPago').modal('hide');
@@ -823,25 +605,171 @@ $(document).ready(function() {
             descuento: descuento,
             totalFinal: totalFinal,
             metodoPago: 'efectivo',
+            tipoComprobante: $('input[name="tipoComprobante"]:checked').val(),
+            datosCliente: {
+                nombre: $('#cliente-nombre').val().trim(),
+                documento: $('#cliente-documento').val().trim(),
+                direccion: $('#cliente-direccion').val().trim(),
+                condicionIva: $('#condicion-iva').val()
+            },
             observaciones: $('#observaciones').val()
         };
     }
 
     function procesarPagoDirecto() {
+        const tipoComprobante = $('input[name="tipoComprobante"]:checked').val();
+        const metodoPago = $('input[name="metodoPago"]:checked').val();
+
+        // Si es factura (local o fiscal), procesar con nueva funcionalidad
+        if (tipoComprobante === 'factura_local' || tipoComprobante === 'factura_fiscal') {
+            procesarPagoConFactura(tipoComprobante, metodoPago);
+            return;
+        }
+
+        let mensaje = '¡Pago procesado exitosamente!\\n\\n';
+
+        // Personalizar mensaje según tipo de comprobante
+        switch(tipoComprobante) {
+            case 'ticket':
+                mensaje += 'Ticket generado.';
+                break;
+            case 'factura_local':
+                mensaje += 'Factura Local generada.';
+                break;
+            case 'factura_fiscal':
+                mensaje += 'Factura Fiscal ARCA generada.';
+                break;
+        }
+
         // Simular procesamiento para otros métodos
-        $('#btn-procesar-pago').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+        $('#btn-proceder-pago').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
 
         setTimeout(() => {
-            alert('¡Pago procesado exitosamente!\\n\\nTicket generado.');
+            alert(mensaje);
 
-            // Mostrar botón de imprimir
-            $('#btn-imprimir-ticket').show();
-            $('#btn-procesar-pago').hide();
+            // Guardar datos para posibles reimpresiones
+            window.datosUltimaVenta = {
+                carrito: carrito,
+                metodoPago: metodoPago,
+                tipoComprobante: tipoComprobante,
+                subtotal: parseFloat($('#modal-subtotal').text()) || 0,
+                descuento: parseFloat($('#modal-descuento').text()) || 0,
+                totalFinal: parseFloat($('#modal-total').text()) || 0,
+                datosCliente: {
+                    nombre: $('#cliente-nombre').val().trim(),
+                    documento: $('#cliente-documento').val().trim(),
+                    direccion: $('#cliente-direccion').val().trim(),
+                    condicionIva: $('#condicion-iva').val()
+                },
+                observaciones: $('#observaciones').val()
+            };
+
+            // Actualizar botón según tipo de comprobante
+            const btnImprimir = $('#btn-imprimir-ticket');
+            switch(tipoComprobante) {
+                case 'ticket':
+                    btnImprimir.html('<i class="fas fa-print"></i> Imprimir Ticket');
+                    break;
+                case 'factura_local':
+                    btnImprimir.html('<i class="fas fa-file-alt"></i> Generar Factura Local');
+                    break;
+                case 'factura_fiscal':
+                    btnImprimir.html('<i class="fas fa-stamp"></i> Generar Factura Fiscal');
+                    break;
+            }
+
+            btnImprimir.show();
+            $('#btn-proceder-pago').hide();
 
             // Limpiar carrito
             carrito = [];
             actualizarCarrito();
         }, 2000);
+    }
+
+    // Función SIMPLE para procesar pago con facturación directa
+    function procesarPagoConFactura(tipoComprobante, metodoPago) {
+        console.log('Procesando pago con factura:', tipoComprobante, metodoPago);
+
+        // Datos COMPLETOS incluyendo método de pago
+        const datos = {
+            datosCliente: {
+                nombre: $('#cliente-nombre').val() || 'Cliente Genérico',
+                documento: $('#cliente-documento').val() || '00000000',
+                direccion: $('#cliente-direccion').val() || '',
+                condicionIva: $('#condicion-iva').val() || 'consumidor_final'
+            },
+            tipoComprobante: tipoComprobante,
+            metodoPago: metodoPago,
+            totalFinal: parseFloat($('#modal-total').text()) || 0,
+            subtotal: parseFloat($('#modal-subtotal').text()) || 0,
+            descuento: parseFloat($('#modal-descuento').text()) || 0,
+            observaciones: $('#observaciones').val() || '',
+            carrito: carrito
+        };
+
+        console.log('Enviando datos completos:', datos);
+        // XMLHttpRequest nativo para manejar blob correctamente
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{{ route("box.facturas.procesar-pago-factura") }}');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
+        xhr.responseType = 'blob';
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                console.log('PDF recibido exitosamente');
+
+                // Crear blob y abrir
+                const blob = new Blob([xhr.response], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const ventana = window.open(url, '_blank');
+
+                if (ventana) {
+                    console.log('PDF abierto en nueva ventana');
+                } else {
+                    alert('Bloqueador de pop-ups detectado. Verifique su configuración.');
+                }
+
+                // Limpiar
+                $('#modalPago').modal('hide');
+                carrito = [];
+                actualizarCarrito();
+            } else {
+                console.error('Error HTTP:', xhr.status);
+                alert('Error generando factura: Código ' + xhr.status);
+            }
+
+            // Restaurar botón
+            $('#btn-proceder-pago').prop('disabled', false).html('Procesar Pago');
+        };
+
+        xhr.onerror = function() {
+            console.error('Error de red');
+            alert('Error de conexión al generar factura');
+            $('#btn-proceder-pago').prop('disabled', false).html('Procesar Pago');
+        };
+
+        // Convertir datos a formato URL-encoded
+        const formData = new URLSearchParams();
+        Object.keys(datos).forEach(key => {
+            if (typeof datos[key] === 'object') {
+                formData.append(key, JSON.stringify(datos[key]));
+            } else {
+                formData.append(key, datos[key]);
+            }
+        });
+
+        xhr.send(formData);
+    }
+
+    // Función auxiliar para validar carrito antes de pago
+    function validarCarritoParaPago() {
+        if (carrito.length === 0) {
+            alert('Debe agregar al menos un producto al carrito.');
+            return false;
+        }
+        return true;
     }
 
     // Manejar cambios en el monto recibido (modal efectivo)
@@ -900,8 +828,13 @@ $(document).ready(function() {
         // Aquí puedes agregar la lógica para guardar en la base de datos
         console.log('Finalizando venta en efectivo:', datos);
 
-        // Generar ticket específico para efectivo
-        generarTicketEfectivo(datos);
+        // Manejar según tipo de comprobante
+        if (datos.tipoComprobante === 'factura_local' || datos.tipoComprobante === 'factura_fiscal') {
+            generarFacturaEfectivo(datos);
+        } else {
+            // Generar ticket específico para efectivo
+            generarTicketEfectivo(datos);
+        }
 
         // Limpiar carrito y cerrar modal
         carrito = [];
@@ -909,14 +842,11 @@ $(document).ready(function() {
         $('#modalPagoEfectivo').modal('hide');
 
         // Reset del modal principal
-        $('#btn-procesar-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+        $('#btn-proceder-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
         $('#btn-imprimir-ticket').hide();
         $('#form-pago')[0].reset();
         $('#tipo-descuento').trigger('change');
         $('input[name="metodoPago"][value="efectivo"]').prop('checked', true).trigger('change');
-
-        // Mensaje de éxito
-        alert('¡Venta procesada exitosamente!');
     }
 
     function generarTicketEfectivo(datos) {
@@ -1018,14 +948,74 @@ $(document).ready(function() {
         });
     }
 
+    // Generar factura para pago en efectivo
+    function generarFacturaEfectivo(datos) {
+        console.log('Generando factura en efectivo:', datos.tipoComprobante, datos);
+
+        // Validar que tengamos datos de cliente para facturación
+        if (!datos.datosCliente.nombre || !datos.datosCliente.documento) {
+            alert('Error: Faltan datos del cliente para generar la factura');
+            return;
+        }
+
+        const tipoFactura = datos.tipoComprobante === 'factura_fiscal' ? 'Fiscal ARCA' : 'Local';
+        const montoRecibido = datos.montoRecibido || 0;
+        const vuelto = datos.vuelto || 0;
+
+        let mensajeEfectivo = `Monto recibido: $${montoRecibido.toFixed(2)}`;
+        if (vuelto > 0) {
+            mensajeEfectivo += `\nVuelto: $${vuelto.toFixed(2)}`;
+        }
+
+        if (confirm(`¿Confirma generar ${tipoFactura}?\n\n` +
+                   `Cliente: ${datos.datosCliente.nombre}\n` +
+                   `Documento: ${datos.datosCliente.documento}\n` +
+                   `Total: $${datos.totalFinal.toFixed(2)}\n\n` +
+                   `${mensajeEfectivo}`)) {
+
+            // Llamar al mismo método que tarjeta para generar PDF real
+            console.log('Procesando factura efectivo con datos:', datos);
+            procesarPagoConFactura(datos.tipoComprobante, 'efectivo');
+        }
+    }
+
     // Validar pago
     function validarPago() {
         const metodoPago = $('input[name="metodoPago"]:checked').val();
+        const tipoComprobante = $('input[name="tipoComprobante"]:checked').val();
         const totalFinal = parseFloat($('#modal-total').text()) || 0;
 
         if (totalFinal <= 0) {
             alert('El total debe ser mayor a 0');
             return false;
+        }
+
+        // Validar campos de facturación si es necesario
+        if (tipoComprobante === 'factura_local' || tipoComprobante === 'factura_fiscal') {
+            const nombreCliente = $('#cliente-nombre').val().trim();
+            const documentoCliente = $('#cliente-documento').val().trim();
+
+            if (!nombreCliente) {
+                alert('Debe ingresar el nombre del cliente para generar factura');
+                $('#cliente-nombre').focus();
+                return false;
+            }
+
+            if (!documentoCliente) {
+                alert('Debe ingresar el DNI/CUIT del cliente para generar factura');
+                $('#cliente-documento').focus();
+                return false;
+            }
+
+            // Validar formato de CUIT para factura fiscal
+            if (tipoComprobante === 'factura_fiscal') {
+                const cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
+                if (!cuitRegex.test(documentoCliente)) {
+                    alert('Para factura fiscal el CUIT debe tener formato: 20-12345678-9');
+                    $('#cliente-documento').focus();
+                    return false;
+                }
+            }
         }
 
         if (metodoPago === 'mixto') {
@@ -1049,11 +1039,35 @@ $(document).ready(function() {
 
     // Generar ticket para impresión
     function generarTicket() {
-        const metodoPago = $('input[name="metodoPago"]:checked').val();
-        const subtotal = parseFloat($('#modal-subtotal').text()) || 0;
-        const descuento = parseFloat($('#modal-descuento').text()) || 0;
-        const totalFinal = parseFloat($('#modal-total').text()) || 0;
-        const observaciones = $('#observaciones').val();
+        // Usar datos guardados si están disponibles, sino tomar del modal
+        const datos = window.datosUltimaVenta || {
+            carrito: carrito,
+            metodoPago: $('input[name="metodoPago"]:checked').val(),
+            tipoComprobante: $('input[name="tipoComprobante"]:checked').val(),
+            subtotal: parseFloat($('#modal-subtotal').text()) || 0,
+            descuento: parseFloat($('#modal-descuento').text()) || 0,
+            totalFinal: parseFloat($('#modal-total').text()) || 0,
+            datosCliente: {
+                nombre: $('#cliente-nombre').val().trim(),
+                documento: $('#cliente-documento').val().trim(),
+                direccion: $('#cliente-direccion').val().trim(),
+                condicionIva: $('#condicion-iva').val()
+            },
+            observaciones: $('#observaciones').val()
+        };
+
+        // Manejar según tipo de comprobante
+        if (datos.tipoComprobante === 'factura_local' || datos.tipoComprobante === 'factura_fiscal') {
+            generarFactura(datos);
+            return;
+        }
+
+        // Continuar con ticket normal
+        const metodoPago = datos.metodoPago;
+        const subtotal = datos.subtotal;
+        const descuento = datos.descuento;
+        const totalFinal = datos.totalFinal;
+        const observaciones = datos.observaciones;
 
         let ticketContent = `
             <div style="width: 300px; margin: 0 auto; font-family: monospace; font-size: 12px;">
@@ -1067,7 +1081,8 @@ $(document).ready(function() {
                     <strong>DETALLE DE COMPRA</strong><br>
         `;
 
-        carrito.forEach(producto => {
+        const carritoData = datos.carrito || carrito;
+        carritoData.forEach(producto => {
             const subtotalProd = producto.price * producto.quantity;
             ticketContent += `
                 ${producto.name}<br>
@@ -1119,13 +1134,302 @@ $(document).ready(function() {
         setTimeout(() => {
             $('#modalPago').modal('hide');
             // Reset del modal
-            $('#btn-procesar-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
-            $('#btn-imprimir-ticket').hide();
+            $('#btn-proceder-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+            $('#btn-imprimir-ticket').hide().html('<i class="fas fa-print"></i> Imprimir Ticket');
             $('#form-pago')[0].reset();
             $('#tipo-descuento').trigger('change');
             $('input[name="metodoPago"][value="efectivo"]').prop('checked', true).trigger('change');
+            $('input[name="tipoComprobante"][value="ticket"]').prop('checked', true).trigger('change');
         }, 1000);
     }
+
+    // Generar factura (local o fiscal) - MEJORADA para mostrar PDF directamente
+    function generarFactura(datos) {
+        console.log('Generando factura:', datos.tipoComprobante, datos);
+
+        // Validar que tengamos datos de cliente para facturación
+        if (!datos.datosCliente.nombre || !datos.datosCliente.documento) {
+            alert('Error: Faltan datos del cliente para generar la factura');
+            return;
+        }
+
+        // Simular proceso de facturación
+        const tipoFactura = datos.tipoComprobante === 'factura_fiscal' ? 'Fiscal ARCA' : 'Local';
+
+        if (confirm(`¿Confirma generar ${tipoFactura}?\n\nCliente: ${datos.datosCliente.nombre}\nDocumento: ${datos.datosCliente.documento}\nTotal: $${datos.totalFinal.toFixed(2)}`)) {
+
+            // Preparar datos para el nuevo endpoint
+            const datosPago = {
+                tipoComprobante: datos.tipoComprobante,
+                metodoPago: datos.metodoPago,
+                carrito: carrito.map(item => ({
+                    producto_id: item.id,
+                    cantidad: item.quantity,
+                    precio_unitario: item.price
+                })),
+                subtotal: datos.subtotal,
+                descuento: datos.descuento,
+                totalFinal: datos.totalFinal,
+                datosCliente: datos.datosCliente,
+                observaciones: datos.observaciones
+            };
+
+            // Llamar al nuevo endpoint que genera PDF directamente
+            $.ajax({
+                url: '{{ route("box.facturas.procesar-pago-factura") }}',
+                method: 'POST',
+                data: datosPago,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                xhrFields: {
+                    responseType: 'blob' // Importante para recibir PDF
+                },
+                success: function(data, status, xhr) {
+                    // Crear URL del blob y abrir en nueva ventana
+                    const blob = new Blob([data], { type: 'application/pdf' });
+                    const pdfUrl = window.URL.createObjectURL(blob);
+
+                    // Abrir PDF en nueva ventana para impresión
+                    const ventanaPDF = window.open(pdfUrl, '_blank');
+
+                    if (ventanaPDF) {
+                        // Cerrar modal y resetear
+                        setTimeout(() => {
+                            $('#modalPago').modal('hide');
+                            carrito = [];
+                            actualizarCarrito();
+                        }, 500);
+                    } else {
+                        alert('PDF generado pero no se pudo abrir automáticamente.\nVerifique el bloqueador de ventanas emergentes.');
+                    }
+
+                    // Liberar memoria del blob
+                    setTimeout(() => window.URL.revokeObjectURL(pdfUrl), 1000);
+                },
+                error: function(xhr, status, error) {
+                    let errorMsg = `Error al generar factura ${tipoFactura}.`;
+
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg += '\n\n' + xhr.responseJSON.error;
+                    }
+
+                    alert(errorMsg);
+                }
+            });
+        }
+    }
+
+    // Limpiar modal al cerrarse
+    $('#modalPago').on('hidden.bs.modal', function() {
+        // Resetear formulario
+        $('#form-pago')[0].reset();
+
+        // Resetear tipo de comprobante a ticket
+        $('#ticket').prop('checked', true);
+
+        // Ocultar campos de facturación
+        $('#campos-facturacion').hide();
+
+        // Limpiar campos adicionales
+        $('#cliente-nombre, #cliente-documento, #cliente-direccion').val('');
+        $('#condicion-iva').val('consumidor_final');
+
+        // Ocultar campos de pago mixto
+        $('#campos-mixto').hide();
+
+        // Remover clases de validación
+        $('.form-control').removeClass('is-valid is-invalid');
+
+        // Resetear botones
+        $('#btn-proceder-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+        $('#btn-imprimir-ticket').hide().html('<i class="fas fa-print"></i> Imprimir Ticket');
+    });
+
+    // Limpiar modal de efectivo al cerrarse
+    $('#modalPagoEfectivo').on('hidden.bs.modal', function() {
+        $('#monto-cliente-efectivo').val('');
+        $('#resultado-pago div').hide();
+        $('#btn-imprimir-ticket-efectivo').prop('disabled', true).html('<i class="fas fa-print"></i> Imprimir Ticket');
+    });
+
+    // === NUEVAS FUNCIONES PARA SELECCIÓN MEJORADA ===
+
+    // Manejar selección de métodos de pago
+    $('.metodo-pago-option').on('click', function() {
+        // Remover selección anterior
+        $('.metodo-pago-option').removeClass('selected');
+
+        // Agregar selección al elemento clickeado
+        $(this).addClass('selected');
+
+        // Marcar el radio button correspondiente
+        $(this).find('input[type="radio"]').prop('checked', true);
+
+        // Manejar campos específicos
+        const metodo = $(this).data('metodo');
+        if (metodo === 'mixto') {
+            $('#campos-mixto').slideDown();
+        } else {
+            $('#campos-mixto').slideUp();
+        }
+    });
+
+    // Manejar selección de tipos de comprobante
+    $('.comprobante-option').on('click', function() {
+        // Remover selección anterior
+        $('.comprobante-option').removeClass('selected');
+
+        // Agregar selección al elemento clickeado
+        $(this).addClass('selected');
+
+        // Marcar el radio button correspondiente
+        $(this).find('input[type="radio"]').prop('checked', true);
+
+        // Manejar campos específicos
+        const comprobante = $(this).data('comprobante');
+        if (comprobante === 'factura_local' || comprobante === 'factura_fiscal') {
+            $('#campos-facturacion').slideDown();
+        } else {
+            $('#campos-facturacion').slideUp();
+        }
+    });
+
+    // Inicializar selecciones por defecto
+    function inicializarSelecciones() {
+        // Seleccionar método de pago por defecto (efectivo)
+        $('.metodo-pago-option[data-metodo="efectivo"]').addClass('selected');
+
+        // Seleccionar tipo de comprobante por defecto (ticket)
+        $('.comprobante-option[data-comprobante="ticket"]').addClass('selected');
+    }
+
+    // Llamar al inicializar
+    inicializarSelecciones();
+
+    // Reinicializar al abrir modal
+    $('#modalPago').on('shown.bs.modal', function() {
+        inicializarSelecciones();
+    });
+
+    // ===== FUNCIONES ESTÁNDAR DEL PROTOCOLO =====
+
+    // Función para formatear precios
+    function formatearPrecio(precio) {
+        return new Intl.NumberFormat('es-AR', {
+            style: 'currency',
+            currency: 'ARS',
+            minimumFractionDigits: 2
+        }).format(precio);
+    }
+
+    // Actualizar carrito visual
+    function actualizarCarrito() {
+        const carritoBody = $('#carrito-items');
+        carritoBody.empty();
+        total = 0;
+
+        if (carrito.length === 0) {
+            carritoBody.append(`
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <p class="mt-2">El carrito está vacío</p>
+                </div>
+            `);
+            $('#btn-proceder-pago').prop('disabled', true);
+        } else {
+            carrito.forEach(producto => {
+                const subtotal = producto.price * producto.quantity;
+                total += subtotal;
+
+                carritoBody.append(`
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                        <div>
+                            <small class="font-weight-bold">${producto.name}</small>
+                            <br>
+                            <small class="text-muted">${producto.code} - ${formatearPrecio(producto.price)}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <input type="number" class="form-control form-control-sm cantidad-input mr-1"
+                                   style="width: 60px;" value="${producto.quantity}" min="1"
+                                   data-id="${producto.id}">
+                            <button type="button" class="btn btn-danger btn-sm eliminar-producto"
+                                    data-id="${producto.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-right mb-2">
+                        <small>Subtotal: ${formatearPrecio(subtotal)}</small>
+                    </div>
+                `);
+            });
+            $('#btn-proceder-pago').prop('disabled', false);
+        }
+
+        $('#total-carrito').text(formatearPrecio(total));
+    }
+
+    // Abrir modal de pago (evento estándar del protocolo)
+    $('#btn-proceder-pago').on('click', function() {
+        if (carrito.length === 0) {
+            alert('El carrito está vacío');
+            return;
+        }
+
+        mostrarResumenCompra();
+        calcularTotalesModal();
+        $('#modalPago').modal('show');
+    });
+
+    // Función estándar para mostrar resumen de compra en el modal
+    function mostrarResumenCompra() {
+        const resumenDiv = $('#resumen-compra');
+        resumenDiv.empty();
+
+        carrito.forEach(producto => {
+            const subtotal = producto.price * producto.quantity;
+            resumenDiv.append(`
+                <div class="d-flex justify-content-between mb-1">
+                    <div>
+                        <small class="font-weight-bold">${producto.name}</small><br>
+                        <small class="text-muted">${producto.code} x ${producto.quantity}</small>
+                    </div>
+                    <small class="font-weight-bold">${formatearPrecio(subtotal)}</small>
+                </div>
+            `);
+        });
+    }
+
+    // Función estándar para calcular totales del modal
+    function calcularTotalesModal() {
+        let subtotal = total;
+        let descuento = 0;
+
+        const tipoDescuento = $('#tipo-descuento').val();
+        const valorDescuento = parseFloat($('#valor-descuento').val()) || 0;
+
+        switch (tipoDescuento) {
+            case 'porcentaje':
+                descuento = subtotal * (valorDescuento / 100);
+                break;
+            case 'fijo':
+                descuento = valorDescuento;
+                break;
+            case 'estudiante':
+                descuento = subtotal * 0.1;
+                break;
+            case 'empleado':
+                descuento = subtotal * 0.15;
+                break;
+        }
+
+        const totalFinal = subtotal - descuento;
+
+        $('#modal-subtotal').text(subtotal.toFixed(2));
+        $('#modal-descuento').text(descuento.toFixed(2));
+        $('#modal-total').text(totalFinal.toFixed(2));
+    }
+    });
 });
-</script>
 @stop
