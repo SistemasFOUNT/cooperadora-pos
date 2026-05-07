@@ -27,6 +27,20 @@ class PDFFactura extends \FPDF
         return mb_convert_encoding($texto, 'ISO-8859-1', 'UTF-8');
     }
 
+    /**
+     * Obtener un dato de cliente priorizando facturas persistidas (datos_cliente JSON).
+     */
+    private function obtenerDatoCliente(string $clave, $default = null)
+    {
+        $datosCliente = $this->factura->datos_cliente ?? null;
+
+        if (is_array($datosCliente) && array_key_exists($clave, $datosCliente) && $datosCliente[$clave] !== null && $datosCliente[$clave] !== '') {
+            return $datosCliente[$clave];
+        }
+
+        return $default;
+    }
+
     public function generar($factura)
     {
         $this->factura = $factura;
@@ -103,7 +117,9 @@ class PDFFactura extends \FPDF
 
         $this->SetFont('Arial', '', 8);
         $this->SetX(113);
-        $numero = str_pad($this->factura->numero_factura ?? '0010-00018419', 15, '0', STR_PAD_LEFT);
+        $numero = (string) ($this->factura->numero_factura
+            ?? $this->factura->numero_completo
+            ?? '00000000');
         $this->Cell(80, 3, $this->convertirTexto('Numero.: ' . $numero), 0, 1, 'L');
         $this->SetX(113);
         $fecha = $this->factura->fecha_emision ?? $this->factura->created_at ?? now();
@@ -132,11 +148,11 @@ class PDFFactura extends \FPDF
         // Datos del cliente - lado izquierdo
         $this->SetFont('Arial', '', 7);
         $this->SetXY(12, $y + 1);
-        $cliente_nombre = $this->factura->cliente_nombre ?? 'CONSUMIDOR FINAL';
+        $cliente_nombre = $this->obtenerDatoCliente('nombre', $this->factura->cliente_nombre ?? 'CONSUMIDOR FINAL');
         $this->Cell(90, 3, $this->convertirTexto('Cliente : (0001)-' . strtoupper($cliente_nombre)), 0, 1, 'L');
 
         $this->SetX(12);
-        $direccion = $this->factura->cliente_direccion ?? 'TUCUMAN';
+        $direccion = $this->obtenerDatoCliente('direccion', $this->factura->cliente_direccion ?? 'TUCUMAN');
         $this->Cell(90, 3, $this->convertirTexto('Direccion: ' . strtoupper($direccion)), 0, 1, 'L');
 
         $this->SetX(12);
@@ -149,7 +165,7 @@ class PDFFactura extends \FPDF
 
         // Datos del cliente - lado derecho
         $this->SetXY(125, $y + 3);
-        $documento = $this->factura->cliente_cuit ?? $this->factura->cliente_documento ?? '20111111112';
+        $documento = $this->obtenerDatoCliente('documento', $this->factura->cliente_cuit ?? $this->factura->cliente_documento ?? '20111111112');
         $this->Cell(65, 3, $this->convertirTexto('DNI/CUIT: ' . $documento), 0, 1, 'L');
 
         $this->SetX(125);
@@ -327,7 +343,16 @@ class PDFFactura extends \FPDF
      */
     private function obtenerCondicionIVA()
     {
-        $condicion = $this->factura->condicion_iva ?? 'CF';
+        $condicion = $this->obtenerDatoCliente('condicion_iva', $this->factura->condicion_iva ?? 'CF');
+
+        $equivalencias = [
+            'consumidor_final' => 'CF',
+            'responsable_inscripto' => 'RI',
+            'exento' => 'EX',
+            'monotributo' => 'MT',
+        ];
+
+        $condicion = $equivalencias[$condicion] ?? $condicion;
 
         $condiciones = [
             'CF' => 'Consumidor Final',
@@ -378,8 +403,13 @@ class PDFFactura extends \FPDF
         ][$datos['cliente_condicion_iva']] ?? 'CONSUMIDOR FINAL';
 
         // Crear estructura compatible con el método generar() existente
+        $numeroFactura = (string) ($datos['numero_factura']
+            ?? $datos['numero_completo']
+            ?? ('0010-' . str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT)));
+
         $this->factura = (object) [
-            'numero_factura' => '0010-' . str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT),
+            'numero_factura' => $numeroFactura,
+            'numero_completo' => $numeroFactura,
             'fecha_emision' => now()->format('d/m/Y'),
             'created_at' => now(), // Para compatibilidad
             'tipo_comprobante' => 'C',

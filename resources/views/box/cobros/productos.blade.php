@@ -270,6 +270,7 @@
 @stop
 
 @section('js')
+<script>
 // Esperar a que jQuery esté disponible
 function waitForJQuery(callback) {
     if (typeof jQuery !== 'undefined') {
@@ -516,15 +517,19 @@ waitForJQuery(function() {
     }
 
     // Procesar pago
-    $('#btn-proceder-pago').on('click', function() {
+    // Procesar pago (botón "Procesar Pago" dentro del modal)
+    $('#btn-procesar-pago').on('click', function() {
         if (!validarPago()) {
             return;
         }
 
         const metodoPago = $('input[name="metodoPago"]:checked').val();
+        const tipoComprobante = $('input[name="tipoComprobante"]:checked').val();
+        const tieneModalEfectivo = $('#modalPagoEfectivo').length > 0;
 
-        if (metodoPago === 'efectivo') {
-            // Abrir modal específico para efectivo
+        // Solo usar modal de efectivo para ticket y cuando el modal exista en DOM.
+        // Para facturas, el flujo debe ir directo a generación del comprobante.
+        if (metodoPago === 'efectivo' && tipoComprobante === 'ticket' && tieneModalEfectivo) {
             mostrarModalEfectivo();
             return;
         }
@@ -534,6 +539,12 @@ waitForJQuery(function() {
     });
 
     function mostrarModalEfectivo() {
+        if ($('#modalPagoEfectivo').length === 0) {
+            console.warn('modalPagoEfectivo no encontrado. Se continúa con procesamiento directo.');
+            procesarPagoDirecto();
+            return;
+        }
+
         // Obtener datos actuales del modal de pago
         const subtotal = parseFloat($('#modal-subtotal').text()) || 0;
         const descuento = parseFloat($('#modal-descuento').text()) || 0;
@@ -622,7 +633,22 @@ waitForJQuery(function() {
 
         // Si es factura (local o fiscal), procesar con nueva funcionalidad
         if (tipoComprobante === 'factura_local' || tipoComprobante === 'factura_fiscal') {
-            procesarPagoConFactura(tipoComprobante, metodoPago);
+            const ventanaFactura = window.open('', '_blank');
+
+            if (ventanaFactura) {
+                ventanaFactura.document.write(`
+                    <html>
+                        <head><title>Generando factura...</title></head>
+                        <body style="font-family: Arial, sans-serif; padding: 24px; color: #333;">
+                            <h3>Generando factura...</h3>
+                            <p>Espere un momento mientras se prepara el PDF.</p>
+                        </body>
+                    </html>
+                `);
+                ventanaFactura.document.close();
+            }
+
+            procesarPagoConFactura(tipoComprobante, metodoPago, ventanaFactura);
             return;
         }
 
@@ -642,7 +668,7 @@ waitForJQuery(function() {
         }
 
         // Simular procesamiento para otros métodos
-        $('#btn-proceder-pago').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+        $('#btn-procesar-pago').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
 
         setTimeout(() => {
             alert(mensaje);
@@ -679,7 +705,7 @@ waitForJQuery(function() {
             }
 
             btnImprimir.show();
-            $('#btn-proceder-pago').hide();
+            $('#btn-procesar-pago').hide();
 
             // Limpiar carrito
             carrito = [];
@@ -687,8 +713,43 @@ waitForJQuery(function() {
         }, 2000);
     }
 
+    // Envío robusto de factura por POST real a nueva pestaña
+    function enviarFacturaEnNuevaPestana(datos, ventanaFactura = null) {
+        const nombreVentana = (ventanaFactura && !ventanaFactura.closed)
+            ? (ventanaFactura.name || `factura_${Date.now()}`)
+            : `factura_${Date.now()}`;
+
+        if (ventanaFactura && !ventanaFactura.closed && !ventanaFactura.name) {
+            ventanaFactura.name = nombreVentana;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("box.facturas.procesar-pago-factura") }}';
+        form.target = nombreVentana;
+        form.style.display = 'none';
+
+        const token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = $('meta[name="csrf-token"]').attr('content');
+        form.appendChild(token);
+
+        Object.keys(datos).forEach((key) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = (typeof datos[key] === 'object') ? JSON.stringify(datos[key]) : datos[key];
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+
     // Función SIMPLE para procesar pago con facturación directa
-    function procesarPagoConFactura(tipoComprobante, metodoPago) {
+    function procesarPagoConFactura(tipoComprobante, metodoPago, ventanaFactura = null) {
         console.log('Procesando pago con factura:', tipoComprobante, metodoPago);
 
         // Datos COMPLETOS incluyendo método de pago
@@ -709,58 +770,21 @@ waitForJQuery(function() {
         };
 
         console.log('Enviando datos completos:', datos);
-        // XMLHttpRequest nativo para manejar blob correctamente
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '{{ route("box.facturas.procesar-pago-factura") }}');
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
-        xhr.responseType = 'blob';
 
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                console.log('PDF recibido exitosamente');
-
-                // Crear blob y abrir
-                const blob = new Blob([xhr.response], { type: 'application/pdf' });
-                const url = window.URL.createObjectURL(blob);
-                const ventana = window.open(url, '_blank');
-
-                if (ventana) {
-                    console.log('PDF abierto en nueva ventana');
-                } else {
-                    alert('Bloqueador de pop-ups detectado. Verifique su configuración.');
-                }
-
-                // Limpiar
-                $('#modalPago').modal('hide');
-                carrito = [];
-                actualizarCarrito();
-            } else {
-                console.error('Error HTTP:', xhr.status);
-                alert('Error generando factura: Código ' + xhr.status);
+        try {
+            enviarFacturaEnNuevaPestana(datos, ventanaFactura);
+            $('#modalPago').modal('hide');
+            carrito = [];
+            actualizarCarrito();
+        } catch (error) {
+            console.error('Error enviando formulario de factura:', error);
+            if (ventanaFactura && !ventanaFactura.closed) {
+                ventanaFactura.close();
             }
-
-            // Restaurar botón
-            $('#btn-proceder-pago').prop('disabled', false).html('Procesar Pago');
-        };
-
-        xhr.onerror = function() {
-            console.error('Error de red');
-            alert('Error de conexión al generar factura');
-            $('#btn-proceder-pago').prop('disabled', false).html('Procesar Pago');
-        };
-
-        // Convertir datos a formato URL-encoded
-        const formData = new URLSearchParams();
-        Object.keys(datos).forEach(key => {
-            if (typeof datos[key] === 'object') {
-                formData.append(key, JSON.stringify(datos[key]));
-            } else {
-                formData.append(key, datos[key]);
-            }
-        });
-
-        xhr.send(formData);
+            alert('No se pudo generar la factura. Intente nuevamente.');
+        } finally {
+            $('#btn-procesar-pago').prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+        }
     }
 
     // Función auxiliar para validar carrito antes de pago
@@ -842,7 +866,7 @@ waitForJQuery(function() {
         $('#modalPagoEfectivo').modal('hide');
 
         // Reset del modal principal
-        $('#btn-proceder-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+        $('#btn-procesar-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
         $('#btn-imprimir-ticket').hide();
         $('#form-pago')[0].reset();
         $('#tipo-descuento').trigger('change');
@@ -1134,7 +1158,7 @@ waitForJQuery(function() {
         setTimeout(() => {
             $('#modalPago').modal('hide');
             // Reset del modal
-            $('#btn-proceder-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+            $('#btn-procesar-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
             $('#btn-imprimir-ticket').hide().html('<i class="fas fa-print"></i> Imprimir Ticket');
             $('#form-pago')[0].reset();
             $('#tipo-descuento').trigger('change');
@@ -1157,8 +1181,22 @@ waitForJQuery(function() {
         const tipoFactura = datos.tipoComprobante === 'factura_fiscal' ? 'Fiscal ARCA' : 'Local';
 
         if (confirm(`¿Confirma generar ${tipoFactura}?\n\nCliente: ${datos.datosCliente.nombre}\nDocumento: ${datos.datosCliente.documento}\nTotal: $${datos.totalFinal.toFixed(2)}`)) {
+            const ventanaFactura = window.open('', '_blank');
 
-            // Preparar datos para el nuevo endpoint
+            if (ventanaFactura) {
+                ventanaFactura.document.write(`
+                    <html>
+                        <head><title>Generando factura...</title></head>
+                        <body style="font-family: Arial, sans-serif; padding: 24px; color: #333;">
+                            <h3>Generando factura...</h3>
+                            <p>Espere un momento mientras se prepara el PDF.</p>
+                        </body>
+                    </html>
+                `);
+                ventanaFactura.document.close();
+            }
+
+            // Preparar datos para el endpoint de facturación
             const datosPago = {
                 tipoComprobante: datos.tipoComprobante,
                 metodoPago: datos.metodoPago,
@@ -1174,49 +1212,19 @@ waitForJQuery(function() {
                 observaciones: datos.observaciones
             };
 
-            // Llamar al nuevo endpoint que genera PDF directamente
-            $.ajax({
-                url: '{{ route("box.facturas.procesar-pago-factura") }}',
-                method: 'POST',
-                data: datosPago,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                xhrFields: {
-                    responseType: 'blob' // Importante para recibir PDF
-                },
-                success: function(data, status, xhr) {
-                    // Crear URL del blob y abrir en nueva ventana
-                    const blob = new Blob([data], { type: 'application/pdf' });
-                    const pdfUrl = window.URL.createObjectURL(blob);
-
-                    // Abrir PDF en nueva ventana para impresión
-                    const ventanaPDF = window.open(pdfUrl, '_blank');
-
-                    if (ventanaPDF) {
-                        // Cerrar modal y resetear
-                        setTimeout(() => {
-                            $('#modalPago').modal('hide');
-                            carrito = [];
-                            actualizarCarrito();
-                        }, 500);
-                    } else {
-                        alert('PDF generado pero no se pudo abrir automáticamente.\nVerifique el bloqueador de ventanas emergentes.');
-                    }
-
-                    // Liberar memoria del blob
-                    setTimeout(() => window.URL.revokeObjectURL(pdfUrl), 1000);
-                },
-                error: function(xhr, status, error) {
-                    let errorMsg = `Error al generar factura ${tipoFactura}.`;
-
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        errorMsg += '\n\n' + xhr.responseJSON.error;
-                    }
-
-                    alert(errorMsg);
+            try {
+                enviarFacturaEnNuevaPestana(datosPago, ventanaFactura);
+                setTimeout(() => {
+                    $('#modalPago').modal('hide');
+                    carrito = [];
+                    actualizarCarrito();
+                }, 300);
+            } catch (error) {
+                if (ventanaFactura && !ventanaFactura.closed) {
+                    ventanaFactura.close();
                 }
-            });
+                alert(`Error al generar factura ${tipoFactura}.`);
+            }
         }
     }
 
@@ -1242,7 +1250,7 @@ waitForJQuery(function() {
         $('.form-control').removeClass('is-valid is-invalid');
 
         // Resetear botones
-        $('#btn-proceder-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+        $('#btn-procesar-pago').show().prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
         $('#btn-imprimir-ticket').hide().html('<i class="fas fa-print"></i> Imprimir Ticket');
     });
 
@@ -1402,34 +1410,7 @@ waitForJQuery(function() {
     }
 
     // Función estándar para calcular totales del modal
-    function calcularTotalesModal() {
-        let subtotal = total;
-        let descuento = 0;
-
-        const tipoDescuento = $('#tipo-descuento').val();
-        const valorDescuento = parseFloat($('#valor-descuento').val()) || 0;
-
-        switch (tipoDescuento) {
-            case 'porcentaje':
-                descuento = subtotal * (valorDescuento / 100);
-                break;
-            case 'fijo':
-                descuento = valorDescuento;
-                break;
-            case 'estudiante':
-                descuento = subtotal * 0.1;
-                break;
-            case 'empleado':
-                descuento = subtotal * 0.15;
-                break;
-        }
-
-        const totalFinal = subtotal - descuento;
-
-        $('#modal-subtotal').text(subtotal.toFixed(2));
-        $('#modal-descuento').text(descuento.toFixed(2));
-        $('#modal-total').text(totalFinal.toFixed(2));
-    }
     });
 });
+</script>
 @stop

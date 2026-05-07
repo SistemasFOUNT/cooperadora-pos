@@ -12,6 +12,7 @@ use App\Http\Controllers\PostgradoController;
 use App\Http\Controllers\OdontoController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\ConceptosController;
 use Illuminate\Support\Facades\Route;
 
 // Ruta para CSS dinámico con cache busting
@@ -190,7 +191,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/procesar-venta', [BoxController::class, 'procesarVenta'])->name('box.procesar-venta');
 
         Route::prefix('inventario')->group(function () {
-            Route::get('/ingresos', [BoxController::class, 'inventarioIngresos'])->name('box.inventario.ingresos');
+            Route::get('/ingresos',                             [BoxController::class, 'inventarioIngresos'])->name('box.inventario.ingresos');
+            Route::get('/productos',                            [ConceptosController::class, 'editarProductos'])->name('box.inventario.productos');
+            Route::put('/producto/{product}',                   [ConceptosController::class, 'actualizarProductoCompleto'])->name('box.inventario.producto.update');
+            Route::delete('/producto/{product}',                [ConceptosController::class, 'eliminarProducto'])->name('box.inventario.producto.destroy');
         });
 
         Route::prefix('pagos')->group(function () {
@@ -220,6 +224,14 @@ Route::middleware('auth')->group(function () {
 
             // Procesar pago con factura directa (mejora UX)
             Route::post('/procesar-pago-con-factura', [BoxController::class, 'procesarPagoConFactura'])->name('box.facturas.procesar-pago-factura');
+        });
+
+        // ===== RUTAS DE CONCEPTOS Y PRECIOS =====
+        Route::prefix('conceptos')->name('box.conceptos.')->group(function () {
+            Route::get('/',                   [ConceptosController::class, 'index'])->name('index');
+            Route::put('/carrera/{carrera}',  [ConceptosController::class, 'actualizarCarrera'])->name('carrera.update');
+            Route::put('/producto/{product}', [ConceptosController::class, 'actualizarProducto'])->name('producto.update');
+            Route::put('/productos/lote',     [ConceptosController::class, 'actualizarProductosLote'])->name('productos.lote');
         });
     });
 

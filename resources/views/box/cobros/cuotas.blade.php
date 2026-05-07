@@ -21,7 +21,7 @@
     <div class="row">
         <!-- Lista de Estudiantes -->
         <div class="col-md-8">
-            <div class="card card-primary">
+            <div class="card card-primary" id="card-lista-estudiantes">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-users"></i> Estudiantes de Tecnicaturas</h3>
                 </div>
@@ -51,6 +51,11 @@
             <div class="card card-info" id="card-estudiante" style="display: none;">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-user"></i> Datos del Estudiante Seleccionado</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-sm btn-light" id="btn-volver-lista">
+                            <i class="fas fa-arrow-left"></i> Volver a la lista
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -510,9 +515,8 @@ $(document).ready(function() {
             $('#estudiante-año').text(estudiante.año);
             $('#estudiante-estado').text(estudiante.estado);
 
-            // Mostrar tarjetas
-            $('#card-estudiante').show();
-            $('#card-cuotas').show();
+            // Cambiar a la vista de detalle para focalizar el flujo
+            mostrarVistaDetalle();
 
             // Llenar cuotas
             llenarCuotasEstudiante(estudiante);
@@ -565,6 +569,39 @@ $(document).ready(function() {
 
     // Hacer la variable del estudiante verdaderamente global
     window.estudianteSeleccionado = null;
+
+    function mostrarVistaDetalle() {
+        $('#card-lista-estudiantes').hide();
+        $('#card-estudiante').show();
+        $('#card-cuotas').show();
+
+        const cardEstudiante = $('#card-estudiante');
+        if (cardEstudiante.length) {
+            $('html, body').animate({
+                scrollTop: Math.max(cardEstudiante.offset().top - 70, 0)
+            }, 250);
+        }
+    }
+
+    function volverAListaEstudiantes() {
+        $('#card-estudiante').hide();
+        $('#card-cuotas').hide();
+        $('#card-lista-estudiantes').show();
+
+        window.estudianteSeleccionado = null;
+        carrito = [];
+        totalGeneral = 0;
+
+        $('#cuotas-tbody').empty();
+        $('#select-all-cuotas').prop('checked', false);
+        $('.cuota-checkbox').prop('checked', false);
+
+        actualizarCarrito();
+    }
+
+    $('#btn-volver-lista').on('click', function() {
+        volverAListaEstudiantes();
+    });
 
     // Función global para actualizar totales del modal (reemplaza la del modal)
     window.actualizarTotales = function() {
@@ -829,17 +866,9 @@ $(document).ready(function() {
                     alert('Bloqueador de pop-ups detectado. Verifique su configuración.');
                 }
 
-                // Limpiar
+                // Limpiar y volver al estado inicial
                 $('#modalPago').modal('hide');
-                carrito = [];
-                actualizarCarrito();
-
-                // Limpiar selecciones
-                $('.cuota-checkbox').prop('checked', false);
-                $('#card-estudiante, #card-cuotas').hide();
-
-                // Limpiar estudiante seleccionado
-                window.estudianteSeleccionado = null;
+                volverAListaEstudiantes();
 
             } else {
                 console.error('Error HTTP:', xhr.status);

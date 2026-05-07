@@ -20,14 +20,22 @@ class CareerFeeConfig extends Model
         'duracion_meses',
         'activo',
         'cuotas_adicionales',
+        'dia_vencimiento',
+        'dias_gracia',
+        'porcentaje_recargo',
+        'cuota_bono',
     ];
 
     protected $casts = [
-        'cuota_mensual' => 'decimal:2',
-        'cuota_inscripcion' => 'decimal:2',
-        'cuota_certificado' => 'decimal:2',
-        'duracion_meses' => 'integer',
-        'activo' => 'boolean',
+        'cuota_mensual'      => 'decimal:2',
+        'cuota_inscripcion'  => 'decimal:2',
+        'cuota_certificado'  => 'decimal:2',
+        'cuota_bono'         => 'decimal:2',
+        'porcentaje_recargo' => 'decimal:2',
+        'duracion_meses'     => 'integer',
+        'dia_vencimiento'    => 'integer',
+        'dias_gracia'        => 'integer',
+        'activo'             => 'boolean',
         'cuotas_adicionales' => 'array',
     ];
 

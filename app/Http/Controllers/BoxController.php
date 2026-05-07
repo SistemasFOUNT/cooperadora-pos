@@ -762,40 +762,154 @@ class BoxController extends Controller
 
             // Procesar productos del carrito
             foreach ($carrito as $item) {
-                $producto = \App\Models\Product::find($item['id']);
+                $producto = \App\Models\Product::find($item['id'] ?? $item['producto_id'] ?? null);
                 $datos['productos'][] = [
+                    'id' => $producto->id ?? ($item['id'] ?? $item['producto_id'] ?? null),
+                    'code' => $producto->code ?? ($item['code'] ?? ''),
                     'nombre' => $producto->name ?? 'Producto',
-                    'cantidad' => (int) $item['quantity'],
-                    'precio' => (float) $item['price'],
-                    'total' => (float) $item['quantity'] * (float) $item['price']
+                    'cantidad' => (int) ($item['quantity'] ?? $item['cantidad'] ?? 1),
+                    'precio' => (float) ($item['price'] ?? $item['precio_unitario'] ?? 0),
+                    'total' => (float) ($item['quantity'] ?? $item['cantidad'] ?? 1) * (float) ($item['price'] ?? $item['precio_unitario'] ?? 0)
                 ];
             }
 
             Log::info('procesarPagoConFactura: Datos procesados', $datos);
 
-            // Opcional: Guardar venta en base de datos para auditoría
-            try {
-                $venta = new \App\Models\Sale();
-                $venta->punto_venta_id = $this->puntoVenta->id;
-                $venta->user_id = auth()->id();
-                $venta->subtotal = $datos['subtotal'];
-                $venta->descuento = $datos['descuento'];
-                $venta->total = $datos['total'];
-                $venta->metodo_pago = $datos['metodo_pago'];
-                $venta->estado = 'completada';
-                $venta->fecha_venta = now();
-                $venta->observaciones = $datos['observaciones'];
-                $venta->save();
+            // ── Guardar venta + factura en BD ──────────────────────────────
+            $ventaId  = null;
+            $facturaId = null;
 
-                Log::info('procesarPagoConFactura: Venta guardada en BD', ['venta_id' => $venta->id]);
+            try {
+                \DB::beginTransaction();
+
+                // 1. Resolver método de pago obligatorio para ventas
+                $codigoMetodoPago = match ($datos['metodo_pago']) {
+                    'efectivo' => 'EFE',
+                    'tarjeta' => 'TDC',
+                    'transferencia' => 'TRA',
+                    'mixto' => 'EFE',
+                    default => 'EFE',
+                };
+
+                $paymentMethodId = \App\Models\PaymentMethod::where('code', $codigoMetodoPago)->value('id');
+
+                if (!$paymentMethodId) {
+                    throw new \RuntimeException("No existe método de pago configurado para código {$codigoMetodoPago}");
+                }
+
+                // 2. Generar número de venta único (campo NOT NULL)
+                $saleNumber = 'PV' . str_pad((string) $this->puntoVenta->id, 3, '0', STR_PAD_LEFT)
+                    . '-' . now()->format('YmdHis')
+                    . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+
+                // 3. Crear la venta
+                $venta = \App\Models\Sale::create([
+                    'sale_number' => $saleNumber,
+                    'punto_venta_id' => $this->puntoVenta->id,
+                    'usuario_id'     => auth()->id(),
+                    'payment_method_id' => $paymentMethodId,
+                    'type'           => 'product_sale',
+                    'subtotal'       => $datos['subtotal'],
+                    'discount_amount'=> $datos['descuento'],
+                    'total'          => $datos['total'],
+                    'fecha_venta'    => now(),
+                    'status'         => 'completed',
+                    'notes'          => $datos['observaciones'],
+                    'additional_data'=> [
+                        'metodo_pago'    => $datos['metodo_pago'],
+                        'tipo_comprobante'=> $datos['tipo_comprobante'],
+                        'descuento'      => $datos['descuento'],
+                    ],
+                ]);
+
+                $ventaId = $venta->id;
+
+                // 4. Guardar items de la venta
+                foreach ($datos['productos'] as $item) {
+                    if (empty($item['id'])) {
+                        throw new \RuntimeException('Producto inválido en carrito: falta ID para guardar item de venta.');
+                    }
+
+                    $venta->items()->create([
+                        'product_id'   => $item['id'],
+                        'product_code' => $item['code'] ?: 'SIN-CODIGO',
+                        'product_name' => $item['nombre'],
+                        'quantity'     => $item['cantidad'],
+                        'unit_price'   => $item['precio'],
+                        'subtotal'     => $item['total'],
+                        'total'        => $item['total'],
+                    ]);
+                }
+
+                // 5. Calcular próximo número de factura para este punto de venta
+                // PostgreSQL no permite FOR UPDATE sobre agregaciones (MAX),
+                // por eso se toma el último registro bloqueando fila.
+                $ultimoNumero = \App\Models\Factura::where('punto_venta_id', $this->puntoVenta->id)
+                    ->where('tipo', 'local')
+                    ->orderByDesc('numero')
+                    ->lockForUpdate()
+                    ->value('numero') ?? 0;
+
+                $nuevoNumero = $ultimoNumero + 1;
+
+                // 6. Determinar tipo de comprobante para el campo tipo_comprobante
+                $tipoCompMap = [
+                    'ticket'        => null,
+                    'factura_local' => 'B',
+                    'factura_fiscal'=> 'B',
+                ];
+
+                // 7. Crear registro en facturas
+                $factura = \App\Models\Factura::create([
+                    'sale_id'          => $venta->id,
+                    'punto_venta_id'   => $this->puntoVenta->id,
+                    'tipo'             => 'local',
+                    'tipo_comprobante' => $tipoCompMap[$datos['tipo_comprobante']] ?? null,
+                    'numero'           => $nuevoNumero,
+                    'numero_completo'  => sprintf('%08d', $nuevoNumero),
+                    'fecha_emision'    => now(),
+                    'datos_cliente'    => [
+                        'nombre'       => $datos['cliente_nombre'],
+                        'documento'    => $datos['cliente_documento'],
+                        'direccion'    => $datos['cliente_direccion'],
+                        'condicion_iva'=> $datos['cliente_condicion_iva'],
+                    ],
+                    'subtotal'         => $datos['subtotal'],
+                    'total'            => $datos['total'],
+                    'estado'           => 'emitida',
+                    'observaciones'    => $datos['observaciones'],
+                    'created_by'       => auth()->id(),
+                ]);
+
+                $facturaId = $factura->id;
+                $datos['numero_factura'] = $factura->numero_completo;
+                $datos['factura_id']     = $factura->id;
+
+                \DB::commit();
+                Log::info('procesarPagoConFactura: Venta y factura guardadas', [
+                    'venta_id'   => $ventaId,
+                    'factura_id' => $facturaId,
+                ]);
+
             } catch (\Exception $e) {
-                Log::warning('procesarPagoConFactura: Error guardando venta en BD', ['error' => $e->getMessage()]);
-                // Continúa con PDF aunque falle guardar en BD
+                \DB::rollBack();
+                Log::error('procesarPagoConFactura: Error guardando en BD', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'error' => 'No se pudo guardar la venta/factura en base de datos. Operación cancelada.',
+                    'detalle' => $e->getMessage(),
+                ], 500);
             }
 
-            // PDF con formato oficial y todos los medios de pago
-            $pdfService = new PDFFactura();
-            return $pdfService->generarSimple($datos);
+            // ── Generar PDF desde el registro persistido ───────────────────
+            // Esto garantiza consistencia total entre factura inicial y reimpresión.
+            $facturaPersistida = \App\Models\Factura::with([
+                'sale',
+                'sale.items',
+                'sale.items.product',
+                'sale.paymentMethod',
+            ])->findOrFail($facturaId);
+
+            return $this->generarPDFFactura($facturaPersistida);
 
         } catch (\Exception $e) {
             Log::error('procesarPagoConFactura: Error', ['error' => $e->getMessage()]);

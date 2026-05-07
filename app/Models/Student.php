@@ -61,6 +61,24 @@ class Student extends Model implements Auditable
     }
 
     /**
+     * Relación con cuotas estudiantiles
+     */
+    public function cuotas(): HasMany
+    {
+        return $this->hasMany(CuotaEstudiantil::class, 'estudiante_id');
+    }
+
+    /**
+     * Cuotas pendientes (incluye vencidas)
+     */
+    public function cuotasPendientes(): HasMany
+    {
+        return $this->hasMany(CuotaEstudiantil::class, 'estudiante_id')
+            ->whereIn('estado', ['pendiente', 'vencida'])
+            ->orderBy('fecha_vencimiento');
+    }
+
+    /**
      * Scope para estudiantes activos (usando activo)
      */
     public function scopeActivos($query)

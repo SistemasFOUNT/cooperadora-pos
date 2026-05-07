@@ -68,11 +68,23 @@ return [
             ],
         ],
 
+        ['header' => 'CONCEPTOS Y PRECIOS'],
+        [
+            'text' => 'Conceptos',
+            'url' => 'box/conceptos',
+            'icon' => 'fas fa-fw fa-tags',
+        ],
+
         ['header' => 'GESTIÓN DE INVENTARIO'],
         [
             'text' => 'Ingreso de Productos',
             'url' => 'box/inventario/ingresos',
             'icon' => 'fas fa-fw fa-truck-loading',
+        ],
+        [
+            'text' => 'Editar Productos',
+            'url' => 'box/inventario/productos',
+            'icon' => 'fas fa-fw fa-edit',
         ],
 
         ['header' => 'PAGOS Y EGRESOS'],
