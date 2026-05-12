@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PuntoVenta extends Model
 {
@@ -23,6 +24,12 @@ class PuntoVenta extends Model
     protected $casts = [
         'activo' => 'boolean',
     ];
+
+    // Relaciones con ventas
+    public function sales(): HasMany
+    {
+        return $this->hasMany(Sale::class, 'punto_venta_id');
+    }
 
     // Relaciones con cuentas contables
     public function cuentaCaja(): BelongsTo

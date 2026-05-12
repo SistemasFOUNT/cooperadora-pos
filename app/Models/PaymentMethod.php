@@ -12,6 +12,8 @@ class PaymentMethod extends Model implements Auditable
 {
     use HasFactory, AuditableTrait;
 
+    protected $table = 'metodos_pago';
+
     protected $fillable = [
         'name',
         'code',

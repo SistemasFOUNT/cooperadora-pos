@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use App\Models\PuntoVenta;
+use App\Models\Product;
+use App\Models\Student;
+use App\Models\User;
+use App\Models\CuentaContable;
+use App\Models\MovimientoContable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -27,10 +32,22 @@ class AdminController extends Controller
             'odonto' => $this->getEstadisticasPunto('ODONTO'),
         ];
 
+        $estadisticas_generales = [
+            'total_productos' => Product::count(),
+            'total_estudiantes' => Student::count(),
+            'total_puntos_venta' => PuntoVenta::count(),
+            'usuarios_activos' => User::where('role', '!=', 'admin')->count(),
+        ];
+
         // Obtener autorizaciones pendientes (temporal - implementar modelo después)
         $pendientes_autorizacion = 0; // TODO: Implementar cuando tengamos modelo de autorizaciones
 
-        return view('admin.dashboard', compact('estadisticas', 'pendientes_autorizacion'));
+        return view('admin.dashboard', [
+            'estadisticas' => $estadisticas,
+            'estadisticas_generales' => $estadisticas_generales,
+            'pendientes_autorizacion' => $pendientes_autorizacion,
+            'user' => auth()->user(),
+        ]);
     }
 
     /**
@@ -154,9 +171,228 @@ class AdminController extends Controller
     /**
      * Estado de cuenta particular
      */
-    public function estadoParticular()
+    public function estadoParticular(Request $request)
     {
-        return view('admin.cuentas.particular');
+        [$cuentas, $cuentaSeleccionada, $movimientos, $resumen, $desde, $hasta, $buscar] = $this->obtenerEstadoParticular($request, true);
+
+        return view('admin.cuentas.particular', compact(
+            'cuentas',
+            'cuentaSeleccionada',
+            'movimientos',
+            'resumen',
+            'desde',
+            'hasta',
+            'buscar'
+        ));
+    }
+
+    /**
+     * Exportar estado de cuenta particular a PDF
+     */
+    public function exportarEstadoParticularPdf(Request $request)
+    {
+        [$cuentas, $cuentaSeleccionada, $movimientos, $resumen, $desde, $hasta, $buscar] = $this->obtenerEstadoParticular($request, false);
+
+        if (!$cuentaSeleccionada) {
+            return redirect()
+                ->route('admin.cuentas.particular')
+                ->with('error', 'Debes seleccionar una cuenta para exportar.');
+        }
+
+        $pdf = new \FPDF('P', 'mm', 'A4');
+        $pdf->AddPage();
+        $pdf->SetAutoPageBreak(true, 12);
+        $pdf->SetMargins(10, 10, 10);
+
+        $pdf->SetFont('Arial', 'B', 14);
+        $pdf->Cell(0, 8, utf8_decode('Estado de Cuenta - Particular'), 0, 1, 'C');
+        $pdf->Ln(2);
+
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(0, 6, utf8_decode('Cuenta: ' . $cuentaSeleccionada->codigo . ' - ' . $cuentaSeleccionada->nombre), 0, 1);
+        $pdf->Cell(0, 6, utf8_decode('Periodo: ' . $desde . ' al ' . $hasta), 0, 1);
+        if ($buscar) {
+            $pdf->Cell(0, 6, utf8_decode('Búsqueda: ' . $buscar), 0, 1);
+        }
+
+        $pdf->Ln(2);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(30, 7, utf8_decode('Fecha'), 1);
+        $pdf->Cell(28, 7, utf8_decode('Asiento'), 1);
+        $pdf->Cell(62, 7, utf8_decode('Concepto'), 1);
+        $pdf->Cell(25, 7, utf8_decode('Debe'), 1, 0, 'R');
+        $pdf->Cell(25, 7, utf8_decode('Haber'), 1, 0, 'R');
+        $pdf->Cell(20, 7, utf8_decode('Saldo'), 1, 1, 'R');
+
+        $pdf->SetFont('Arial', '', 8);
+        foreach ($movimientos as $movimiento) {
+            $pdf->Cell(30, 7, optional($movimiento->asiento->fecha_asiento)->format('d/m/Y') ?? '-', 1);
+            $pdf->Cell(28, 7, utf8_decode($movimiento->asiento->numero_asiento ?? '-'), 1);
+            $pdf->Cell(62, 7, utf8_decode(mb_strimwidth($movimiento->descripcion ?: '-', 0, 38, '...')), 1);
+            $pdf->Cell(25, 7, number_format($movimiento->debe, 2, ',', '.'), 1, 0, 'R');
+            $pdf->Cell(25, 7, number_format($movimiento->haber, 2, ',', '.'), 1, 0, 'R');
+            $pdf->Cell(20, 7, number_format($movimiento->saldo_acumulado, 2, ',', '.'), 1, 1, 'R');
+        }
+
+        $pdf->Ln(4);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(0, 6, utf8_decode('Saldo inicial: $' . number_format($resumen['saldo_inicial'], 2, ',', '.')), 0, 1);
+        $pdf->Cell(0, 6, utf8_decode('Total debe: $' . number_format($resumen['total_debe'], 2, ',', '.')), 0, 1);
+        $pdf->Cell(0, 6, utf8_decode('Total haber: $' . number_format($resumen['total_haber'], 2, ',', '.')), 0, 1);
+        $pdf->Cell(0, 6, utf8_decode('Saldo actual: $' . number_format($resumen['saldo_actual'], 2, ',', '.')), 0, 1);
+
+        return response($pdf->Output('S', 'estado-cuenta-particular.pdf'))
+            ->header('Content-Type', 'application/pdf');
+    }
+
+    /**
+     * Exportar estado de cuenta particular a Excel compatible
+     */
+    public function exportarEstadoParticularExcel(Request $request)
+    {
+        [$cuentas, $cuentaSeleccionada, $movimientos, $resumen, $desde, $hasta, $buscar] = $this->obtenerEstadoParticular($request, false);
+
+        if (!$cuentaSeleccionada) {
+            return redirect()
+                ->route('admin.cuentas.particular')
+                ->with('error', 'Debes seleccionar una cuenta para exportar.');
+        }
+
+        $filename = 'estado-cuenta-' . $cuentaSeleccionada->codigo . '.xls';
+
+        $contenido = implode("\t", [
+            'Fecha', 'Asiento', 'Concepto', 'Debe', 'Haber', 'Saldo'
+        ]) . "\n";
+
+        foreach ($movimientos as $movimiento) {
+            $contenido .= implode("\t", [
+                optional($movimiento->asiento->fecha_asiento)->format('d/m/Y') ?? '-',
+                $movimiento->asiento->numero_asiento ?? '-',
+                str_replace(["\t", "\n", "\r"], ' ', $movimiento->descripcion ?: '-'),
+                number_format($movimiento->debe, 2, '.', ''),
+                number_format($movimiento->haber, 2, '.', ''),
+                number_format($movimiento->saldo_acumulado, 2, '.', ''),
+            ]) . "\n";
+        }
+
+        $contenido .= "\n";
+        $contenido .= "Saldo inicial\t" . number_format($resumen['saldo_inicial'], 2, '.', '') . "\n";
+        $contenido .= "Total debe\t" . number_format($resumen['total_debe'], 2, '.', '') . "\n";
+        $contenido .= "Total haber\t" . number_format($resumen['total_haber'], 2, '.', '') . "\n";
+        $contenido .= "Saldo actual\t" . number_format($resumen['saldo_actual'], 2, '.', '') . "\n";
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Redirección de búsqueda para estado de cuenta particular
+     */
+    public function buscarEstadoParticular(Request $request)
+    {
+        $validated = $request->validate([
+            'cuenta_id' => 'required|integer|exists:cuentas_contables,id',
+            'buscar' => 'nullable|string|max:100',
+            'desde' => 'nullable|date',
+            'hasta' => 'nullable|date|after_or_equal:desde',
+        ]);
+
+        return redirect()->route('admin.cuentas.particular', [
+            'cuenta_id' => $validated['cuenta_id'],
+            'buscar' => $validated['buscar'] ?? null,
+            'desde' => $validated['desde'] ?? Carbon::today()->startOfMonth()->toDateString(),
+            'hasta' => $validated['hasta'] ?? Carbon::today()->toDateString(),
+        ]);
+    }
+
+    private function obtenerEstadoParticular(Request $request, bool $paginado): array
+    {
+        $cuentas = CuentaContable::activas()
+            ->imputables()
+            ->orderBy('codigo')
+            ->get();
+
+        $cuentaId = $request->input('cuenta_id');
+        $desde = $request->input('desde', Carbon::today()->startOfMonth()->toDateString());
+        $hasta = $request->input('hasta', Carbon::today()->toDateString());
+        $buscar = trim((string) $request->input('buscar', ''));
+
+        $cuentaSeleccionada = null;
+        $movimientos = $paginado ? collect() : collect();
+        $resumen = null;
+
+        if (!$cuentaId) {
+            return [$cuentas, null, $movimientos, null, $desde, $hasta, $buscar];
+        }
+
+        $cuentaSeleccionada = CuentaContable::activas()->imputables()->find($cuentaId);
+
+        if (!$cuentaSeleccionada) {
+            return [$cuentas, null, collect(), null, $desde, $hasta, $buscar];
+        }
+
+        $consulta = MovimientoContable::where('cuenta_id', $cuentaSeleccionada->id)
+            ->whereHas('asiento', function ($q) use ($desde, $hasta, $buscar) {
+                $q->whereDate('fecha', '>=', $desde)
+                  ->whereDate('fecha', '<=', $hasta);
+
+                if ($buscar !== '') {
+                    $q->where(function ($subQuery) use ($buscar) {
+                        $subQuery->where('numero', 'like', '%' . $buscar . '%')
+                            ->orWhere('concepto', 'like', '%' . $buscar . '%')
+                            ->orWhere('observaciones', 'like', '%' . $buscar . '%');
+                    });
+                }
+            })
+            ->with(['asiento.usuario'])
+            ->orderBy('id', 'asc');
+
+        $totalDebe = (float) (clone $consulta)->sum('debe');
+        $totalHaber = (float) (clone $consulta)->sum('haber');
+        $saldoInicial = (float) $cuentaSeleccionada->saldo_inicial;
+
+        $saldoActual = $cuentaSeleccionada->naturaleza === 'deudor'
+            ? $saldoInicial + $totalDebe - $totalHaber
+            : $saldoInicial + $totalHaber - $totalDebe;
+
+        $movimientosBase = $paginado
+            ? $consulta->paginate(20)->withQueryString()
+            : $consulta->get();
+
+        $saldoAcumulado = $saldoInicial;
+        $movimientosCalculados = method_exists($movimientosBase, 'getCollection')
+            ? $movimientosBase->getCollection()
+            : $movimientosBase;
+
+        $movimientosCalculados = $movimientosCalculados->map(function ($mov) use ($cuentaSeleccionada, &$saldoAcumulado) {
+            $delta = $cuentaSeleccionada->naturaleza === 'deudor'
+                ? ((float) $mov->debe - (float) $mov->haber)
+                : ((float) $mov->haber - (float) $mov->debe);
+
+            $saldoAcumulado += $delta;
+            $mov->saldo_acumulado = $saldoAcumulado;
+
+            return $mov;
+        });
+
+        if ($paginado && method_exists($movimientosBase, 'setCollection')) {
+            $movimientosBase->setCollection($movimientosCalculados);
+            $movimientos = $movimientosBase;
+        } else {
+            $movimientos = $movimientosCalculados;
+        }
+
+        $resumen = [
+            'saldo_inicial' => $saldoInicial,
+            'total_debe' => $totalDebe,
+            'total_haber' => $totalHaber,
+            'saldo_actual' => $saldoActual,
+            'movimientos' => $movimientosCalculados->count(),
+        ];
+
+        return [$cuentas, $cuentaSeleccionada, $movimientos, $resumen, $desde, $hasta, $buscar];
     }
 
     /**
@@ -266,10 +502,21 @@ class AdminController extends Controller
 
     private function getCuentasPorPunto()
     {
-        return PuntoVenta::with(['sales' => function($query) {
-            $query->select('punto_venta_id', DB::raw('SUM(total) as total_ingresos'))
-                  ->groupBy('punto_venta_id');
-        }])->get();
+        return PuntoVenta::activo()
+            ->select('id', 'codigo', 'nombre')
+            ->get()
+            ->map(function($punto) {
+                $total_ingresos = Sale::where('punto_venta_id', $punto->id)->sum('total');
+                $total_ventas = Sale::where('punto_venta_id', $punto->id)->count();
+
+                return (object) [
+                    'id' => $punto->id,
+                    'codigo' => $punto->codigo,
+                    'nombre' => $punto->nombre,
+                    'total_ingresos' => $total_ingresos,
+                    'total_ventas' => $total_ventas
+                ];
+            });
     }
 
     private function getVentasPorMes()

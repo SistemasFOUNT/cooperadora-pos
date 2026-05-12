@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\PaymentMethod;
 use App\Models\CashMovement;
 use App\Models\StockMovement;
+use App\Events\SaleCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -120,6 +121,9 @@ class SaleController extends Controller
             ]);
 
             DB::commit();
+
+            // Disparar evento para generar asiento contable
+            SaleCreated::dispatch($sale);
 
             return response()->json([
                 'success' => true,

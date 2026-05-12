@@ -477,9 +477,18 @@ class PostgradoController extends Controller
     // MÉTODOS PARA TODAS LAS RUTAS DEL MENÚ
     // ===========================================
 
+    // Gestión de carreras
+    public function carreras()
+    {
+        return view('postgrado.carreras.index');
+    }
     public function carrerasCrear()
     {
         return view('postgrado.carreras.crear');
+    }
+    public function carrerasCuotas()
+    {
+        return view('postgrado.carreras.cuotas');
     }
 
     // Programas específicos
@@ -618,25 +627,6 @@ class PostgradoController extends Controller
     public function reportesTitulos()
     {
         return view('postgrado.reportes.titulos');
-    }
-
-    private function getIngresosDelMes()
-    {
-        return Sale::whereMonth('created_at', Carbon::now()->month)
-            ->where('punto_venta_id', $this->puntoVenta->id)
-            ->sum('total');
-    }
-
-    private function getEstudiantesActivos()
-    {
-        return Student::where('activo', true)
-            ->count();
-    }
-
-    private function getHonorariosPendientes()
-    {
-        // Placeholder: sin modelo de honorarios implementado aún
-        return 0;
     }
 
     /**

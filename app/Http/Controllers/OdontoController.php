@@ -404,4 +404,29 @@ class OdontoController extends Controller
             'implante' => 80000
         ];
     }
+
+    private function getIngresosDelMes()
+    {
+        return Sale::whereMonth('created_at', Carbon::now()->month)
+            ->where('punto_venta_id', $this->puntoVenta->id)
+            ->sum('total');
+    }
+
+    private function getPacientesActivos()
+    {
+        return Student::where('activo', true)
+            ->count();
+    }
+
+    private function getServiciosPendientes()
+    {
+        // Placeholder: sin modelo de servicios pendientes implementado aún
+        return 0;
+    }
+
+    private function getRadiografiasPendientes()
+    {
+        // Placeholder: sin modelo de radiografías implementado aún
+        return 0;
+    }
 }

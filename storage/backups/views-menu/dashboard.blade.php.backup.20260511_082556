@@ -199,3 +199,182 @@
     </style>
 @stop
 
+@section('menu')
+    <!-- Sidebar específico para admin -->
+    <li class="nav-header">ADMINISTRACIÓN</li>
+
+    <li class="nav-item">
+        <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Dashboard Principal</p>
+        </a>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('admin.supervision.*') ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ request()->routeIs('admin.supervision.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-eye"></i>
+            <p>
+                Supervisión
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{{ route('admin.supervision.general') }}" class="nav-link {{ request()->routeIs('admin.supervision.general') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>General</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.supervision.box') }}" class="nav-link {{ request()->routeIs('admin.supervision.box') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>BOX Cooperadora</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.supervision.postgrado') }}" class="nav-link {{ request()->routeIs('admin.supervision.postgrado') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Postgrado</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.supervision.odonto') }}" class="nav-link {{ request()->routeIs('admin.supervision.odonto') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Centro Odontológico</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('admin.ingresos-egresos.*') ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ request()->routeIs('admin.ingresos-egresos.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-money-bill-wave"></i>
+            <p>
+                Ingresos y Egresos
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{{ route('admin.ingresos-egresos.consolidado') }}" class="nav-link {{ request()->routeIs('admin.ingresos-egresos.consolidado') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Consolidado</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.ingresos-egresos.box') }}" class="nav-link {{ request()->routeIs('admin.ingresos-egresos.box') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>BOX Cooperadora</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.ingresos-egresos.postgrado') }}" class="nav-link {{ request()->routeIs('admin.ingresos-egresos.postgrado') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Postgrado</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.ingresos-egresos.odonto') }}" class="nav-link {{ request()->routeIs('admin.ingresos-egresos.odonto') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Centro Odontológico</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('admin.libro-caja.*') ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ request()->routeIs('admin.libro-caja.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-book"></i>
+            <p>
+                Libro Caja
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{{ route('admin.libro-caja.consolidado') }}" class="nav-link {{ request()->routeIs('admin.libro-caja.consolidado') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Consolidado</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.libro-caja.box') }}" class="nav-link {{ request()->routeIs('admin.libro-caja.box') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>BOX Cooperadora</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.libro-caja.postgrado') }}" class="nav-link {{ request()->routeIs('admin.libro-caja.postgrado') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Postgrado</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.libro-caja.odonto') }}" class="nav-link {{ request()->routeIs('admin.libro-caja.odonto') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Centro Odontológico</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('admin.autorizaciones.*') ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ request()->routeIs('admin.autorizaciones.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-key"></i>
+            <p>
+                Autorizaciones
+                <i class="right fas fa-angle-left"></i>
+                @if($pendientes_autorizacion ?? 0 > 0)
+                    <span class="badge badge-danger right">{{ $pendientes_autorizacion }}</span>
+                @endif
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{{ route('admin.autorizaciones.index') }}" class="nav-link {{ request()->routeIs('admin.autorizaciones.index') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Pendientes</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.autorizaciones.historial') }}" class="nav-link {{ request()->routeIs('admin.autorizaciones.historial') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Historial</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('admin.cuentas.*') ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ request()->routeIs('admin.cuentas.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calculator"></i>
+            <p>
+                Estado de Cuentas
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{{ route('admin.cuentas.estado-general') }}" class="nav-link {{ request()->routeIs('admin.cuentas.estado-general') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>General</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.cuentas.particular') }}" class="nav-link {{ request()->routeIs('admin.cuentas.particular') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Particular</p>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <li class="nav-header">REPORTES</li>
+
+    <li class="nav-item">
+        <a href="{{ route('admin.reportes.consolidado') }}" class="nav-link {{ request()->routeIs('admin.reportes.consolidado') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-chart-bar"></i>
+            <p>Reportes Consolidados</p>
+        </a>
+    </li>
+@stop

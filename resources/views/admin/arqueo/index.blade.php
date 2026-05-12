@@ -1,0 +1,92 @@
+@extends('adminlte::page')
+
+@section('title', 'Arqueo de Caja - Selección')
+
+@section('content_header')
+    <div class="row">
+        <div class="col-md-8">
+            <h1><i class="fas fa-cash-register mr-2"></i>Arqueo de Caja</h1>
+            <p class="text-muted">Seleccioná la caja sobre la que querés realizar un arqueo</p>
+        </div>
+    </div>
+@stop
+
+@section('content')
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    @endif
+
+    <div class="row">
+        @foreach($cajas as $codigo => $caja)
+            <div class="col-md-4">
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            @if($codigo === 'BOX')
+                                <i class="fas fa-store mr-1 text-primary"></i>
+                            @elseif($codigo === 'POSTGRADO')
+                                <i class="fas fa-graduation-cap mr-1 text-success"></i>
+                            @else
+                                <i class="fas fa-tooth mr-1 text-info"></i>
+                            @endif
+                            {{ $caja['nombre'] }}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        {{-- Estadísticas de hoy --}}
+                        <div class="row text-center mb-3">
+                            <div class="col-6 border-right">
+                                <div class="text-muted small">Ventas hoy</div>
+                                <div class="font-weight-bold text-lg">{{ $caja['ventas_hoy'] }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted small">Recaudado hoy</div>
+                                <div class="font-weight-bold text-lg text-success">
+                                    ${{ number_format($caja['recaudacion_hoy'], 2, ',', '.') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Último arqueo --}}
+                        <div class="small mb-3">
+                            @if($caja['ultimo_arqueo'])
+                                <div class="text-muted">
+                                    <i class="fas fa-history mr-1"></i>
+                                    Último arqueo:
+                                    <strong>{{ $caja['ultimo_arqueo']->fecha_arqueo->format('d/m/Y H:i') }}</strong>
+                                </div>
+                                <div class="text-muted">
+                                    Estado:
+                                    @if($caja['ultimo_arqueo']->estado === 'cerrado')
+                                        <span class="badge badge-secondary">Cerrado</span>
+                                    @else
+                                        <span class="badge badge-warning">Abierto</span>
+                                    @endif
+                                </div>
+                                <div class="text-muted">
+                                    Total arqueos: <strong>{{ $caja['total_arqueos'] }}</strong>
+                                </div>
+                            @else
+                                <span class="text-muted"><i class="fas fa-info-circle mr-1"></i>Sin arqueos registrados</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <a href="{{ route('admin.arqueo.caja', strtolower($codigo)) }}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-list mr-1"></i>Historial
+                        </a>
+                        <a href="{{ route('admin.arqueo.crear', strtolower($codigo)) }}"
+                           class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus mr-1"></i>Nuevo Arqueo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@stop
+

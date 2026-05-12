@@ -24,31 +24,43 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-
 Route::get('/dashboard', function () {
     $user = request()->user();
+
     if (!$user) {
         return redirect()->route('login');
     }
-    // Si es admin, forzar middleware admin_menu y redirigir a ruta admin.dashboard
+
+    // Redirigir automáticamente al dashboard específico del punto de venta
     if ($user->isAdmin()) {
-        return redirect()->route('admin.dashboard');
-    }
-    // Usuarios específicos van a su dashboard correspondiente
-    switch ($user->role) {
-        case 'usuario_box':
-            return redirect()->route('box.dashboard');
-        case 'usuario_postgrado':
-            return redirect()->route('postgrado.dashboard');
-        case 'usuario_odonto':
-            return redirect()->route('odonto.dashboard');
-        default:
-            // Fallback para casos no contemplados
-            return view('dashboard', [
-                'user' => $user,
-                'puntoVenta' => $user->puntoVenta,
-                'isAdmin' => false
-            ]);
+        // Admin va a dashboard administrativo general con acceso a todo
+        return view('admin.dashboard', [
+            'user' => $user,
+            'isAdmin' => true,
+            'estadisticas_generales' => [
+                'total_productos' => \App\Models\Product::count(),
+                'total_estudiantes' => \App\Models\Student::count(),
+                'total_puntos_venta' => \App\Models\PuntoVenta::count(),
+                'usuarios_activos' => \App\Models\User::where('role', '!=', 'admin')->count(),
+            ]
+        ]);
+    } else {
+        // Usuarios específicos van a su dashboard correspondiente
+        switch ($user->role) {
+            case 'usuario_box':
+                return redirect()->route('box.dashboard');
+            case 'usuario_postgrado':
+                return redirect()->route('postgrado.dashboard');
+            case 'usuario_odonto':
+                return redirect()->route('odonto.dashboard');
+            default:
+                // Fallback para casos no contemplados
+                return view('dashboard', [
+                    'user' => $user,
+                    'puntoVenta' => $user->puntoVenta,
+                    'isAdmin' => false
+                ]);
+        }
     }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -56,27 +68,6 @@ Route::middleware('auth')->group(function () {
     // Rutas específicas para Admin (superusuario)
     Route::middleware(['admin', 'admin_menu'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
-
-        // Rutas canónicas del panel admin (alineadas con config/admin-menu.php)
-        Route::get('/supervision/general', [AdminController::class, 'supervisionGeneral'])->name('supervision.general');
-        Route::get('/ingresos-egresos/consolidado', [AdminController::class, 'ingresosEgresosConsolidado'])->name('ingresos-egresos.consolidado');
-        Route::get('/libro-caja/consolidado', [AdminController::class, 'libroCajaConsolidado'])->name('libro-caja.consolidado');
-        Route::get('/autorizaciones', [AdminController::class, 'autorizacionesIndex'])->name('autorizaciones.index');
-        Route::get('/autorizaciones/historial', [AdminController::class, 'autorizacionesHistorial'])->name('autorizaciones.historial');
-        Route::get('/cuentas/estado-general', [AdminController::class, 'estadoGeneral'])->name('cuentas.estado-general');
-        Route::get('/cuentas/particular', [AdminController::class, 'estadoParticular'])->name('cuentas.particular');
-        Route::get('/reportes/consolidado', [AdminController::class, 'reportesConsolidado'])->name('reportes.consolidado');
-
-        // Alias por punto de venta para mantener consistencia de nombres del menú
-        Route::get('/supervision/box', [BoxController::class, 'adminSupervision'])->name('supervision.box');
-        Route::get('/supervision/postgrado', [PostgradoController::class, 'adminSupervision'])->name('supervision.postgrado');
-        Route::get('/supervision/odonto', [OdontoController::class, 'adminSupervision'])->name('supervision.odonto');
-        Route::get('/ingresos-egresos/box', [BoxController::class, 'adminIngresosEgresos'])->name('ingresos-egresos.box');
-        Route::get('/ingresos-egresos/postgrado', [PostgradoController::class, 'adminIngresosEgresos'])->name('ingresos-egresos.postgrado');
-        Route::get('/ingresos-egresos/odonto', [OdontoController::class, 'adminIngresosEgresos'])->name('ingresos-egresos.odonto');
-        Route::get('/libro-caja/box', [BoxController::class, 'adminLibroCaja'])->name('libro-caja.box');
-        Route::get('/libro-caja/postgrado', [PostgradoController::class, 'adminLibroCaja'])->name('libro-caja.postgrado');
-        Route::get('/libro-caja/odonto', [OdontoController::class, 'adminLibroCaja'])->name('libro-caja.odonto');
 
         // Estadísticas y reportes generales
         Route::get('/estadisticas-generales', function () {
@@ -146,11 +137,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/{codigo}/guardar', [CashController::class, 'guardar'])->name('guardar');
             Route::get('/{codigo}/{id}', [CashController::class, 'show'])->name('show');
             Route::post('/{codigo}/{id}/cerrar', [CashController::class, 'cerrar'])->name('cerrar');
-        });
-
-        // Contabilidad - Libros contables (Diario, Caja, Banco)
-        Route::prefix('contable')->name('contable.')->group(function () {
-            require __DIR__.'/contable.php';
         });
     });
 
@@ -357,7 +343,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // ===== RUTAS ADMINISTRATIVAS =====
-    Route::middleware(['admin', 'admin_menu'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         // Dashboard administrativo
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
@@ -397,8 +383,6 @@ Route::middleware('auth')->group(function () {
         Route::prefix('cuentas')->name('cuentas.')->group(function () {
             Route::get('/estado-general', [AdminController::class, 'estadoGeneral'])->name('estado-general');
             Route::get('/particular', [AdminController::class, 'estadoParticular'])->name('particular');
-            Route::get('/particular/exportar-pdf', [AdminController::class, 'exportarEstadoParticularPdf'])->name('particular.pdf');
-            Route::get('/particular/exportar-excel', [AdminController::class, 'exportarEstadoParticularExcel'])->name('particular.excel');
             Route::post('/particular/buscar', [AdminController::class, 'buscarEstadoParticular'])->name('buscar-particular');
         });
 

@@ -21,14 +21,27 @@ class AdminLTEServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // PRIMER HOOK: Modificar configuración del menú antes de que se construya
+        // Mismo mecanismo para todos los roles — coherencia en el desarrollo
         $this->app->booted(function () {
             $user = request()->user();
 
-            if ($user && $user->role === 'usuario_postgrado') {
-                // Reemplazar completamente el menú con la configuración de postgrado
-                $postgradoMenu = config('postgrado-menu.menu');
-                if ($postgradoMenu) {
-                    config(['adminlte.menu' => $postgradoMenu]);
+            if (!$user) {
+                return;
+            }
+
+            $menuMap = [
+                'admin'             => 'admin-menu',
+                'usuario_box'       => 'box-menu',
+                'usuario_postgrado' => 'postgrado-menu',
+                'usuario_odonto'    => 'odonto-menu',
+            ];
+
+            $configKey = $menuMap[$user->role] ?? null;
+
+            if ($configKey) {
+                $menuItems = config($configKey . '.menu');
+                if ($menuItems) {
+                    config(['adminlte.menu' => $menuItems]);
                 }
             }
         });
