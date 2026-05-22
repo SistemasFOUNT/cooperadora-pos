@@ -1,974 +1,214 @@
-# PROTOCOLO DE ANÁLISIS - SISTEMA COOPERADORA
-## Múltiples Puntos de Venta Aislados
+# PROTOCOLO SKILL-DRIVEN + SPEC-DRIVEN
+## Sistema Cooperadora - BOX / Postgrado / Odonto
 
 ---
 
-## 🎯 OBJETIVO
-Establecer metodología rigurosa para análisis y mantenimiento del sistema de la Cooperadora con 3 puntos de venta completamente separados (BOX, Postgrado, Centro Odontológico).
+## 1. Objetivo
+Convertir el protocolo operativo de Cooperadora en un marco unico de trabajo basado en:
+- Skills reutilizables por tipo de tarea.
+- Especificaciones (specs) con estados y criterios de cierre.
+- Proteccion obligatoria de lo estable antes de agregar cambios.
+
+Este protocolo aplica para desarrollo, mantenimiento, debugging y mejoras evolutivas.
 
 ---
 
-## 📋 ARQUITECTURA ACTUAL DEL SISTEMA
+## 2. Principios no negociables
 
-### 🏗️ Estructura Implementada (21/04/2026)
-```
-Sistema Cooperadora
-├── BOX Cooperadora (/box/*)
-├── Postgrado (/postgrado/*)  
-└── Centro Odontológico (/odonto/*)
-```
+### 2.1 Aislamiento por punto de venta
+- BOX, Postgrado y Odonto son dominios separados.
+- Ningun cambio debe mezclar datos, rutas, permisos o comportamiento entre modulos.
+- Toda implementacion debe demostrar filtrado correcto por punto de venta.
 
-### 🛡️ Principio de Aislamiento
-**CRÍTICO**: Cada punto de venta debe operar independientemente sin interferir con otros.
+### 2.2 Cobro unificado obligatorio
+- Todo flujo de cobro debe respetar el estandar unificado del proyecto.
+- Si cambia el cobro en un modulo, debe cambiar igual en todos los modulos equivalentes.
 
-### 🖥️ Entornos del Sistema
+### 2.3 No romper lo que ya funciona
+- Primero se protege el flujo estable (encapsulamiento/aislamiento).
+- Luego se implementa lo nuevo.
+- Toda spec debe incluir anti-regresion explicita.
 
-#### Entorno de Desarrollo:
-- **Sistema Operativo**: Windows
-- **Base de Datos**: PostgreSQL
-- **Servidor Web**: Laravel Development Server (php artisan serve)
-- **Comandos**: PowerShell/CMD compatible
-
-#### Entorno de Producción:
-- **Sistema Operativo**: Linux Ubuntu
-- **Base de Datos**: PostgreSQL
-- **Servidor Web**: Nginx/Apache + PHP-FPM
-- **Comandos**: Bash/Shell compatible
-
-#### Configuración de Base de Datos:
-- **Motor**: PostgreSQL (desarrollo y producción)
-- **Conexiones**: Configuradas por punto de venta según sea necesario
-- **Migraciones**: Compatibles entre Windows y Linux
-- **Backup**: Procedimientos específicos por entorno
+### 2.4 Compatibilidad de entorno
+- Desarrollo: Windows + PostgreSQL.
+- Produccion: Linux Ubuntu + PostgreSQL.
+- Las decisiones tecnicas deben ser compatibles en ambos entornos.
 
 ---
 
-## FASE 1: RECONNAISSANCE DEL SISTEMA
+## 3. Mapa de skills del proyecto
 
-### 1.1 Verificación de Estructura de Archivos
+## SKILL-01: Reconocimiento de modulo
+### Objetivo
+Levantar contexto del modulo afectado antes de tocar codigo.
 
-#### Comandos para Desarrollo (Windows):
-```powershell
-# Verificar controladores específicos
-Get-ChildItem app\Http\Controllers\ -Filter "*Controller.php" | Where-Object { $_.Name -match "(Box|Postgrado|Odonto)" }
+### Entrada
+- Modulo objetivo: BOX | POSTGRADO | ODONTO | TRANSVERSAL.
+- Funcionalidad o bug.
 
-# Verificar servicios especializados  
-Get-ChildItem app\Services\ -Filter "*Service.php" | Where-Object { $_.Name -match "(Box|Postgrado|Odonto)" }
+### Verificaciones obligatorias
+- Rutas del modulo.
+- Controladores y servicios asociados.
+- Vistas impactadas.
+- Middleware activo.
+- Modelos y relaciones que usan punto de venta.
 
-# Verificar estructura de vistas
-tree resources\views\box resources\views\postgrado resources\views\odonto /F
+### Salida esperada
+- Inventario de archivos afectados.
+- Dependencias directas e indirectas.
+- Riesgos de aislamiento.
 
-# Verificar middleware personalizado
-Select-String -Path "app\Http\Middleware\*.php" -Pattern "punto_venta"
-```
+## SKILL-02: Validacion de aislamiento
+### Objetivo
+Asegurar que el cambio no cruce fronteras entre puntos de venta.
 
-#### Comandos para Producción (Linux Ubuntu):
-```bash
-# Verificar controladores específicos
-ls -la app/Http/Controllers/{Box,Postgrado,Odonto}Controller.php
+### Checklist
+- Filtros por punto de venta presentes en consultas.
+- Middleware correcto en rutas sensibles.
+- Sin fuga de datos entre modulos.
+- Sin reutilizacion incorrecta de vistas/controladores entre dominios.
 
-# Verificar servicios especializados  
-ls -la app/Services/{Box,Postgrado,Odonto}Service.php
+### Salida esperada
+- Riesgos detectados + mitigacion por riesgo.
 
-# Verificar estructura de vistas
-tree resources/views/{box,postgrado,odonto}/
+## SKILL-03: Cambios minimos y seguros
+### Objetivo
+Aplicar el menor cambio posible para cumplir la spec.
 
-# Verificar middleware personalizado
-grep -r "punto_venta" app/Http/Middleware/
-```
+### Reglas
+- No mezclar refactor grande con fix funcional.
+- No alterar APIs o contratos sin justificacion en spec.
+- Mantener consistencia de nombres, filtros y convenciones del repo.
 
-### 1.2 Análisis de Rutas y URLs
-```bash
-# Extraer rutas por punto de venta
-php artisan route:list | grep -E "box\.|postgrado\.|odonto\."
+### Salida esperada
+- Diff pequeno, focalizado y justificable.
 
-# Verificar prefijos en web.php
-grep -A 10 -B 5 "Route::prefix" routes/web.php
+## SKILL-04: Cobro unificado
+### Objetivo
+Validar que cualquier cambio de cobro respete protocolo comun.
 
-# Verificar redirección automática
-grep -A 5 "/dashboard" routes/web.php
-```
+### Verificaciones
+- Modal de pago comun.
+- Metodos de pago estandar.
+- Tipos de comprobante estandar.
+- Funciones JS obligatorias.
+- Consistencia de UX entre modulos equivalentes.
 
-### 1.3 Inventario de Funcionalidades por Punto de Venta
+### Salida esperada
+- Evidencia de paridad funcional entre modulos afectados.
 
-#### BOX Cooperadora
-**Operaciones de Ingresos:**
-- [ ] Venta de productos elaborados por el Laboratorio de Insumos
-- [ ] Cobro de cuotas a alumnos de tecnicaturas (Técnicatura Universitaria en Prótesis Dental y Técnicatura Universitaria en Asistencia Dental)
-- [ ] Cobro de bonos a alumnos de grado (carrera de Odontología)
-- [ ] Venta de kits especializados (cirugía, semiología, clínica de operatoria, clínica de prótesis)
-- [ ] Cobros por otros rubros varios
-- [ ] Cobros por prestaciones odontológicas de cátedras clínicas (Clínica de Operatoria, Cirugía I, Cirugía II, Clínica de Prótesis I, Clínica de Prótesis II)
-- [ ] Cobros de trabajos odontológicos no clínicos (prótesis, implantes realizados por terceros - mecánicos dentales o Laboratorio de Prótesis)
+## SKILL-05: Pruebas y no-regresion
+### Objetivo
+Validar comportamiento esperado y proteger flujos criticos.
 
-**Operaciones de Egresos:**
-- [ ] Pagos de sueldos a contratados
-- [ ] Pagos a proveedores
-- [ ] Otros pagos operativos
+### Cobertura minima
+- Feature test del flujo principal modificado.
+- Caso de anti-regresion del comportamiento estable.
+- Verificacion de aislamiento (caso positivo y negativo cuando aplique).
 
-**Funcionalidades del Sistema:**
-- [ ] Dashboard con estadísticas financieras y de ventas
-- [ ] Sistema POS (Point of Sale) para múltiples tipos de transacciones
-- [ ] Gestión de productos e inventario del Laboratorio
-- [ ] Control de cuotas y bonos estudiantiles
-- [ ] Reportes financieros y análisis por tipo de operación
-- [ ] **Ruta principal**: `/box`
+### Salida esperada
+- Resultado de pruebas + riesgos remanentes.
 
-**Nota**: *Amplio espectro de operaciones financieras que requieren categorización y control específico*
+## SKILL-06: Cierre y trazabilidad
+### Objetivo
+Cerrar la tarea con informacion util para continuidad.
 
-#### Postgrado
-**Operaciones de Ingresos:**
-- [ ] Cobro de cuotas de las carreras de postgrado
-- [ ] Cobro de cursos especializados
-
-**Operaciones de Egresos:**
-- [ ] Pagos de honorarios a dictantes y conferencistas
-- [ ] Pagos por gastos varios operativos
-- [ ] Pagos a proveedores (productos y/o servicios académicos)
-
-**Funcionalidades del Sistema:**
-- [ ] Dashboard académico con estadísticas de postgrados
-- [ ] Gestión de estudiantes de carreras de postgrado
-- [ ] Control de matrículas y certificaciones
-- [ ] Administración de cursos y honorarios docentes
-- [ ] Gestión financiera de ingresos/egresos académicos
-- [ ] Reportes académicos y financieros especializados
-- [ ] **Ruta principal**: `/postgrado`
-
-**Nota**: *Sistema especializado en la gestión académica y financiera de programas de postgrado*
-
-#### Centro Odontológico
-**Prestaciones Odontológicas:**
-- [ ] Cobros por prestaciones odontológicas (cirugías, endodoncias, operatoria dental, etc.)
-- [ ] Tarifario diferenciado por ubicación:
-  - [ ] Prestaciones en el centro odontológico
-  - [ ] Prestaciones en guardia (precios diferenciados)
-
-**Estudios Radiográficos:**
-- [ ] Cobros por estudios radiográficos (panorámicas, Rx, tomografías, etc.)
-- [ ] Tarifario diferenciado por tipo de paciente:
-  - [ ] Estudios para pacientes internos
-  - [ ] Estudios para profesionales externos
-
-**Funcionalidades del Sistema:**
-- [ ] Dashboard clínico con estadísticas de prestaciones
-- [ ] Gestión de pacientes y historiales clínicos
-- [ ] Agenda de citas médicas y estudios
-- [ ] Control de tratamientos y procedimientos realizados
-- [ ] Inventario de equipamiento e insumos médicos
-- [ ] Facturación clínica con tarifarios diferenciados
-- [ ] Sistema de historiales médicos digitales
-- [ ] Reportes de prestaciones y estudios por ubicación/tipo
-- [ ] **Ruta principal**: `/odonto`
-
-**Nota**: *Sistema clínico especializado con gestión de tarifarios diferenciados según ubicación y tipo de paciente*
+### Incluye
+- Resumen de archivos modificados.
+- Criterios cumplidos/no cumplidos.
+- Deuda tecnica detectada.
+- Proximo paso natural.
 
 ---
 
-## FASE 2: ANÁLISIS DE DEPENDENCIAS
+## 4. Ciclo spec-driven obligatorio
 
-### 2.1 Verificación de Middleware y Seguridad
+## Estado de spec
+- draft: problema definido, pendiente de validacion.
+- approved: alcance y criterios aceptados.
+- in-progress: implementacion en curso.
+- blocked: impedimento tecnico/funcional.
+- done: DoD completo y pruebas validas.
 
-#### Comandos para Desarrollo (Windows):
-```powershell
-# Verificar middleware punto_venta
-Get-Content app\Http\Middleware\PuntoVentaMiddleware.php
-
-# Verificar aplicación en rutas
-Select-String -Path "routes\*.php" -Pattern "punto_venta:"
-
-# Verificar roles de usuario en PostgreSQL
-php artisan tinker
->>> App\Models\User::select('name', 'punto_venta')->get()
-```
-
-#### Comandos para Producción (Linux Ubuntu):
-```bash
-# Verificar middleware punto_venta
-cat app/Http/Middleware/PuntoVentaMiddleware.php
-
-# Verificar aplicación en rutas
-grep -r "punto_venta:" routes/
-
-# Verificar roles de usuario en PostgreSQL
-php artisan tinker
->>> App\Models\User::select('name', 'punto_venta')->get()
-```
-
-### 2.2 Mapeo de Modelos Compartidos
-```bash
-# Verificar modelos base del sistema
-ls -la app/Models/{User,PuntoVenta,Sale,Product,Student}.php
-
-# Buscar filtros por punto de venta en modelos
-grep -r "punto_venta" app/Models/
-grep -r "where.*punto" app/Models/
-```
-
-### 2.3 Análisis de Servicios Especializados
-```bash
-# Verificar lógica de negocio específica
-grep -A 10 "class BoxService" app/Services/BoxService.php
-grep -A 10 "class PostgradoService" app/Services/PostgradoService.php  
-grep -A 10 "class OdontoService" app/Services/OdontoService.php
-```
+## Flujo de trabajo
+1. Crear spec (draft) usando plantilla del proyecto.
+2. Definir alcance: incluye/no incluye.
+3. Enumerar requisitos funcionales, no funcionales y reglas de negocio.
+4. Definir criterios Given/When/Then.
+5. Ejecutar SKILL-01 y SKILL-02 antes de editar.
+6. Implementar con SKILL-03 y, si aplica, SKILL-04.
+7. Validar con SKILL-05.
+8. Cerrar con SKILL-06 y actualizar documentacion.
 
 ---
 
-## FASE 3: DOCUMENTACIÓN DEL ESTADO ACTUAL
+## 5. Puertas de calidad (gates)
 
-### 3.1 Snapshot de Configuración
-```bash
-# Estado de rutas por punto de venta
-php artisan route:list --compact | grep -E "(box|postgrado|odonto)"
+## Gate A - Antes de codificar
+- [ ] Modulo y alcance definidos.
+- [ ] Riesgos de aislamiento identificados.
+- [ ] Criterios de aceptacion claros.
+- [ ] Anti-regresion definida.
 
-# Variables de entorno críticas  
-grep -E "(DB_|APP_)" .env
+## Gate B - Antes de merge/entrega
+- [ ] Criterios de aceptacion cumplidos.
+- [ ] Pruebas relevantes en verde.
+- [ ] Sin ruptura de flujos estables.
+- [ ] Sin violar cobro unificado (si aplica).
 
-# Verificar configuración de sesiones y auth
-cat config/auth.php | grep -A 5 -B 5 "guards\|providers"
-```
-
-### 3.2 Mapeo de URLs Generadas
-```bash
-# URLs en vistas por punto de venta
-grep -r "route\|url" resources/views/box/ --include="*.blade.php"
-grep -r "route\|url" resources/views/postgrado/ --include="*.blade.php"
-grep -r "route\|url" resources/views/odonto/ --include="*.blade.php"
-```
-
-### 3.3 Documentación de Flujo de Autenticación
-```php
-// Flujo actual de login y redirección:
-// 1. Login → /login
-// 2. Auth exitoso → /dashboard  
-// 3. Middleware analiza user->punto_venta
-// 4. Redirección automática → /{punto_venta}
-```
+## Gate C - Cierre funcional
+- [ ] DoD completo.
+- [ ] Riesgos remanentes documentados.
+- [ ] Deuda tecnica separada de funcionalidad nueva.
 
 ---
 
-## FASE 4: ANÁLISIS DE RIESGOS
+## 6. Matriz de decision rapida
 
-### 4.1 Puntos Críticos de Conflicto
-- [ ] **Rutas superpuestas**: Verificar que no hay solapamiento entre prefijos
-- [ ] **Middleware bypass**: Asegurar que no se puede acceder sin autorización
-- [ ] **Modelos compartidos**: Verificar filtros correctos por punto de venta
-- [ ] **Sesiones cruzadas**: Verificar aislamiento de datos de usuario
-
-### 4.2 Dependencias Frágiles Identificadas
-- [ ] **Redirección automática**: Depende del campo `punto_venta` en users
-- [ ] **Filtros de datos**: Deben aplicarse consistentemente en todos los queries
-- [ ] **Middleware personalizado**: Crítico para la seguridad del sistema
-
-### 4.3 Validación de Integridad
-```bash
-# Verificar que no hay rutas sin protección
-php artisan route:list | grep -v "middleware" | grep -E "(box|postgrado|odonto)"
-
-# Verificar consistencia de naming
-grep -r "punto.venta" . --include="*.php" | head -20
-```
+| Tipo de solicitud | Skill principal | Skill secundaria | Evidencia minima |
+|---|---|---|---|
+| Nuevo desarrollo en un modulo | SKILL-01 | SKILL-02, SKILL-05 | Feature test + checklist aislamiento |
+| Cambio en cobros | SKILL-04 | SKILL-02, SKILL-05 | Paridad entre modulos + test |
+| Bug puntual | SKILL-03 | SKILL-05 | Test de regresion del bug |
+| Cambio transversal (auth/middleware/rutas) | SKILL-02 | SKILL-01, SKILL-05 | Verificacion en BOX/Postgrado/Odonto |
+| Refactor tecnico | SKILL-03 | SKILL-05, SKILL-06 | Sin cambio de comportamiento documentado |
 
 ---
 
-## FASE 5: PROTOCOLO DE MODIFICACIONES
+## 7. Prompts operativos recomendados
 
-### 5.1 Antes de Cualquier Cambio
+## Activar modo spec-driven
+"Aplicar protocolo skill-driven + spec-driven de Cooperadora para [modulo/funcionalidad], iniciando por reconocimiento y validacion de aislamiento."
 
-#### Para Entorno de Desarrollo (Windows):
-```powershell
-# OBLIGATORIO: Backup del estado actual
-Copy-Item routes\web.php "routes\web.php.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-Copy-Item app\Http\Middleware\PuntoVentaMiddleware.php "app\Http\Middleware\PuntoVentaMiddleware.php.backup"
+## Activar flujo de cobro unificado
+"Aplicar SKILL-04 en [modulo], verificando paridad de cobro con los modulos equivalentes y anti-regresion."
 
-# Backup de base de datos PostgreSQL (Windows)
-pg_dump -h localhost -U postgres -d cooperadora_db > "backup_$(Get-Date -Format 'yyyyMMdd_HHmmss').sql"
-
-# Testing del estado actual
-php artisan test --group=integration
-Start-Process -NoNewWindow php -ArgumentList "artisan", "serve", "--host=127.0.0.1", "--port=8000"
-Start-Sleep 3
-Invoke-WebRequest -Uri "http://127.0.0.1:8000/box" -Method HEAD
-Invoke-WebRequest -Uri "http://127.0.0.1:8000/postgrado" -Method HEAD
-Invoke-WebRequest -Uri "http://127.0.0.1:8000/odonto" -Method HEAD
-```
-
-#### Para Entorno de Producción (Linux Ubuntu):
-```bash
-# OBLIGATORIO: Backup del estado actual
-cp routes/web.php routes/web.php.backup.$(date +%Y%m%d_%H%M%S)
-cp app/Http/Middleware/PuntoVentaMiddleware.php app/Http/Middleware/PuntoVentaMiddleware.php.backup
-
-# Backup de base de datos PostgreSQL (Linux)
-pg_dump -h localhost -U postgres cooperadora_db > backup_$(date +%Y%m%d_%H%M%S).sql
-
-# Testing del estado actual
-php artisan test --group=integration
-php artisan serve --host=127.0.0.1 --port=8000 &
-sleep 3
-curl -I "http://127.0.0.1:8000/box"
-curl -I "http://127.0.0.1:8000/postgrado"  
-curl -I "http://127.0.0.1:8000/odonto"
-```
-
-#### Verificaciones Específicas de PostgreSQL:
-```sql
--- Verificar conexiones activas
-SELECT application_name, client_addr, state, query 
-FROM pg_stat_activity 
-WHERE datname = 'cooperadora_db';
-
--- Verificar tablas del sistema
-\dt
-\d+ users
-\d+ punto_ventas
-
--- Verificar datos de prueba
-SELECT punto_venta, COUNT(*) FROM users GROUP BY punto_venta;
-```
-
-### 5.2 Modificaciones Incrementales por Punto de Venta
-
-#### Para cambios en BOX Cooperadora:
-1. **Verificar aislamiento**: Cambios no afectan postgrado/odonto
-2. **Testear BoxController**: Verificar métodos específicos
-3. **Validar BoxService**: Verificar lógica de negocio
-4. **Comprobar vistas**: Verificar resources/views/box/
-
-#### Para cambios en Postgrado:
-1. **Verificar aislamiento académico**: No afecta operaciones clínicas/ventas
-2. **Testear PostgradoController**: Verificar gestión académica
-3. **Validar PostgradoService**: Verificar lógica de matrículas
-4. **Comprobar vistas**: Verificar resources/views/postgrado/
-
-#### Para cambios en Centro Odontológico:
-1. **Verificar aislamiento clínico**: No afecta operaciones académicas/ventas  
-2. **Testear OdontoController**: Verificar gestión clínica
-3. **Validar OdontoService**: Verificar lógica médica
-4. **Comprobar vistas**: Verificar resources/views/odonto/
-
-### 5.3 Verificación Post-Cambio
-```bash
-# Después de CADA modificación
-php artisan route:clear
-php artisan config:clear
-php artisan view:clear
-
-# Verificar que redirección automática funciona
-# (simular login con usuarios de diferentes puntos de venta)
-
-# Verificar que no hay regresiones
-php artisan test
-```
+## Activar analisis seguro antes de cambios
+"Ejecutar SKILL-01 y SKILL-02 para [modulo/feature], documentar hallazgos y riesgos antes de editar codigo."
 
 ---
 
-## FASE 6: TESTING Y VALIDACIÓN
-
-### 6.1 Testing Funcional por Punto de Venta
-
-#### BOX Cooperadora
-```bash
-# Test de acceso y funcionalidad
-curl -X GET "http://127.0.0.1:8000/box" -H "Authorization: Bearer {token}"
-# Verificar: dashboard, productos, ventas, reportes
-```
-
-#### Postgrado  
-```bash
-# Test de acceso académico
-curl -X GET "http://127.0.0.1:8000/postgrado" -H "Authorization: Bearer {token}"
-# Verificar: estudiantes, matriculas, cursos, certificados
-```
-
-#### Centro Odontológico
-```bash
-# Test de acceso clínico  
-curl -X GET "http://127.0.0.1:8000/odonto" -H "Authorization: Bearer {token}"
-# Verificar: pacientes, agenda, tratamientos, facturación
-```
-
-### 6.2 Testing de Aislamiento
-```php
-// Verificar que usuarios de un punto de venta NO pueden acceder a otros
-// Usuario BOX → intentar acceder a /postgrado → debe fallar
-// Usuario Postgrado → intentar acceder a /odonto → debe fallar  
-// Usuario Odonto → intentar acceder a /box → debe fallar
-```
+## 8. Definicion de terminado (DoD)
+Una tarea se considera terminada solo si:
+- [ ] Cumple requisitos de la spec aprobada.
+- [ ] Cumple criterios de aceptacion.
+- [ ] Incluye proteccion de anti-regresion.
+- [ ] Mantiene aislamiento entre puntos de venta.
+- [ ] Mantiene protocolo de cobro unificado (si aplica).
+- [ ] Tiene trazabilidad de decisiones y riesgos.
 
 ---
 
-## VERIFICACIÓN DE CÓDIGO Y ESTRUCTURAS
-
-### 🔍 PROTOCOLO DE VERIFICACIÓN PREVIA AL CAMBIO
-
-**CRÍTICO**: Antes de implementar cualquier modificación en scripts, controladores o servicios, se debe realizar una verificación exhaustiva de estructuras existentes y nuevas.
-
-### 📝 Verificación de Sintaxis y Estructuras de Código
-
-#### 1. Análisis de Estructuras Existentes
-```bash
-# Verificar sintaxis PHP antes de editar
-php -l app/Http/Controllers/[Controlador].php
-php -l app/Services/[Servicio].php
-
-# Verificar apertura y cierre de llaves, paréntesis y corchetes
-grep -n "{" app/Http/Controllers/[Controlador].php | wc -l
-grep -n "}" app/Http/Controllers/[Controlador].php | wc -l
-# Los números deben coincidir
-
-# Verificar estructura de clases
-grep -n "class\|function\|if\|foreach\|while" app/Http/Controllers/[Controlador].php
-```
-
-#### 2. Verificación de Estructuras Embebidas
-```php
-// VERIFICAR ANTES DE MODIFICAR: Contar estructuras anidadas
-// Ejemplo de estructura compleja a verificar:
-if (condicion) {              // Llave 1
-    foreach ($items as $item) {   // Llave 2
-        if ($item->active) {          // Llave 3
-            // código
-        }                             // Cierre 3
-    }                             // Cierre 2
-}                             // Cierre 1
-```
-
-#### 3. Checklist de Verificación Estructural
-- [ ] **Llaves balanceadas**: `{` y `}` coinciden en número
-- [ ] **Paréntesis balanceados**: `(` y `)` coinciden en número  
-- [ ] **Corchetes balanceados**: `[` y `]` coinciden en número
-- [ ] **Comillas balanceadas**: `"` y `'` están correctamente cerradas
-- [ ] **Punto y coma**: Cada sentencia termina correctamente
-- [ ] **Indentación**: Estructura visual clara y consistente
-
-### 🗃️ Verificación de Base de Datos y Modelos
-
-#### 1. Verificación de Estructura de Tablas
-```bash
-# Conectar a PostgreSQL y verificar estructura
-php artisan tinker
-
-# Verificar columnas de tabla específica
->>> DB::select("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'nombre_tabla' ORDER BY ordinal_position");
-
-# Verificar restricciones y llaves foráneas
->>> DB::select("SELECT constraint_name, constraint_type FROM information_schema.table_constraints WHERE table_name = 'nombre_tabla'");
-
-# Verificar índices
->>> DB::select("SELECT indexname FROM pg_indexes WHERE tablename = 'nombre_tabla'");
-```
-
-#### 2. Verificación de Compatibilidad con Modelos
-```php
-// ANTES de usar campos en código, verificar que existen en el modelo
-// Ejemplo de verificación:
-
-// 1. Revisar modelo
->>> App\Models\Sale::getFillable()
->>> App\Models\Sale::getHidden()  
->>> App\Models\Sale::getCasts()
-
-// 2. Verificar tabla real vs modelo
->>> Schema::getColumnListing('ventas')
-
-// 3. Confirmar nombres de campos en español/inglés
->>> DB::getSchemaBuilder()->getColumnListing('nombre_tabla')
-```
-
-#### 3. Matriz de Verificación Modelo-Base de Datos
-
-| Aspecto | Comando de Verificación | Resultado Esperado |
-|---------|------------------------|-------------------|
-| **Nombres de campos** | `Schema::getColumnListing('tabla')` | Coincidencia con `$fillable` |
-| **Tipos de datos** | `DB::select("DESCRIBE tabla")` | Coherencia con `$casts` |
-| **Campos obligatorios** | `Information_schema.columns` | Validación con reglas |
-| **Relaciones** | `DB::select("FK constraints")` | Métodos de relación en modelo |
-
-### ⚙️ Verificación de Funcionalidad Específica
-
-#### 1. Para Controladores
-```bash
-# Verificar que métodos públicos están definidos
-grep -n "public function" app/Http/Controllers/[Controlador].php
-
-# Verificar imports y use statements
-grep -n "use " app/Http/Controllers/[Controlador].php
-
-# Verificar que clase termina correctamente
-tail -5 app/Http/Controllers/[Controlador].php
-```
-
-#### 2. Para Servicios  
-```bash
-# Verificar inyección de dependencias
-grep -n "__construct" app/Services/[Servicio].php
-
-# Verificar métodos públicos del servicio
-grep -n "public function" app/Services/[Servicio].php
-```
-
-#### 3. Para Migraciones
-```bash
-# Verificar que migración es válida
-php artisan migrate:status
-
-# Verificar sintaxis de migración específica
-php -l database/migrations/[archivo_migracion].php
-```
-
-### 📋 CHECKLIST PREVIO A CUALQUIER MODIFICACIÓN
-
-#### ✅ Verificaciones Obligatorias:
-
-**ANTES DE TOCAR CUALQUIER ARCHIVO:**
-
-1. **Backup de seguridad**:
-   ```bash
-   cp archivo_original.php archivo_original.php.backup.$(date +%Y%m%d_%H%M%S)
-   ```
-
-2. **Verificación de sintaxis**:
-   ```bash
-   php -l archivo_original.php
-   ```
-
-3. **Análisis de estructura**:
-   - [ ] Contar llaves de apertura `{`
-   - [ ] Contar llaves de cierre `}`
-   - [ ] Verificar que coincidan los números
-   - [ ] Revisar estructuras embebidas (if, foreach, while dentro de otros)
-
-4. **Verificación de base de datos** (si corresponde):
-   - [ ] Confirmar nombres reales de tablas
-   - [ ] Verificar nombres reales de campos
-   - [ ] Comprobar tipos de datos
-   - [ ] Verificar restricciones (NOT NULL, FK, etc.)
-
-5. **Verificación de modelos** (si corresponde):
-   - [ ] Verificar campos en `$fillable`
-   - [ ] Verificar campos en `$casts`
-   - [ ] Confirmar relaciones definidas
-   - [ ] Verificar nombres de tablas en `$table`
-
-### 🚨 Protocolo de Emergencia por Error de Sintaxis
-
-#### Si se detecta error de sintaxis:
-1. **NO CONTINUAR** con más cambios
-2. **Restaurar inmediatamente** desde backup:
-   ```bash
-   cp archivo_original.php.backup.[timestamp] archivo_original.php
-   ```
-3. **Verificar restauración**:
-   ```bash
-   php -l archivo_original.php
-   ```
-4. **Revisar cambio problemático** línea por línea
-5. **Re-implementar** con verificación constante
-
-### 📖 Guía de Referencia Rápida
-
-**Para cualquier script nuevo o modificación:**
-```bash
-# 1. Verificación previa
-php -l archivo.php && echo "✅ Sintaxis OK" || echo "❌ Error de sintaxis"
-
-# 2. Verificación de estructuras  
-grep -c "{" archivo.php; grep -c "}" archivo.php
-
-# 3. Verificación de base de datos (si aplica)
-php artisan tinker --execute="Schema::getColumnListing('tabla_objetivo')"
-
-# 4. Testing después del cambio
-php -l archivo.php && php artisan serve --port=8001 &
-curl -I http://localhost:8001/ruta/afectada
-```
-
-**REGLA DE ORO**: *"Verificar dos veces, escribir una vez. Backup siempre, recuperar cuando sea necesario."*
+## 9. Notas de implementacion para este repositorio
+- Mantener coherencia con ESTANDARES-PROYECTO.md.
+- Priorizar cambios pequenos y verificables.
+- Si aparece deuda legacy, documentarla como deuda y no mezclarla con la entrega funcional.
+- Nunca asumir que un endpoint legacy representa el contrato vigente sin validar su esquema real.
 
 ---
 
-## ERRORES CRÍTICOS A EVITAR
-
-### ❌ NUNCA hacer:
-1. **Modificar middleware** sin verificar impacto en los 3 puntos de venta
-2. **Cambiar estructura de rutas** sin actualizar redirección automática
-3. **Mezclar funcionalidades** entre puntos de venta
-4. **Ignorar filtros** por punto de venta en queries
-5. **Compartir vistas** entre puntos de venta diferentes
-
-### ✅ SIEMPRE hacer:
-1. **Verificar aislamiento** después de cada cambio
-2. **Testear los 3 puntos** de venta independientemente  
-3. **Mantener servicios** especializados separados
-4. **Documentar cambios** específicos por punto de venta
-5. **Respetar la arquitectura** de separación implementada
-
----
-
-## TEMPLATE DE ANÁLISIS PARA NUEVAS FUNCIONALIDADES
-
-```markdown
-# NUEVA FUNCIONALIDAD: [NOMBRE]
-
-## Punto de Venta Afectado
-- [ ] BOX Cooperadora únicamente
-- [ ] Postgrado únicamente  
-- [ ] Centro Odontológico únicamente
-- [ ] Funcionalidad compartida (REVISAR NECESIDAD)
-
-## Análisis de Impacto
-- Controlador afectado: [BoxController/PostgradoController/OdontoController]
-- Servicio afectado: [BoxService/PostgradoService/OdontoService]  
-- Vistas afectadas: [resources/views/{punto_venta}/]
-- Rutas nuevas: [listar con prefijo correcto]
-
-## Verificaciones de Aislamiento
-- [ ] No interfiere con otros puntos de venta
-- [ ] Respeta middleware punto_venta
-- [ ] Usa servicio especializado correcto
-- [ ] Mantiene consistencia de nomenclatura
-
-## Plan de Testing
-1. [Test específico del punto de venta]
-2. [Test de no regresión en otros puntos]
-3. [Test de middleware y seguridad]
-```
-
----
-
-## � FLEXIBILIDAD Y ESCALABILIDAD DEL SISTEMA
-
-### 🎯 Principios de Diseño Adaptativo
-
-**IMPORTANTE**: Las funcionalidades de cada punto de venta pueden modificarse y ampliarse en el futuro. El sistema debe mantener criterio amplio y arquitectura flexible.
-
-### 💡 Consideraciones para Futuras Expansiones
-
-#### Para BOX Cooperadora:
-- **Nuevos tipos de productos**: El sistema debe permitir fácil adición de categorías de productos del Laboratorio de Insumos
-- **Nuevos rubros de cobro**: Estructura flexible para incorporar otros tipos de ingresos operativos
-- **Ampliación de kits**: Capacidad de agregar nuevos tipos de kits especializados
-- **Nuevas cátedras clínicas**: Escalabilidad para incorporar prestaciones de nuevas cátedras
-
-#### Para Postgrado:
-- **Nuevos programas académicos**: Flexibilidad para incorporar nuevas carreras de postgrado
-- **Modalidades de curso**: Capacidad de manejar diferentes tipos de cursos (presencial, virtual, híbrido)
-- **Nuevos tipos de honorarios**: Estructura extensible para diferentes tipos de pagos académicos
-
-#### Para Centro Odontológico:
-- **Nuevas prestaciones médicas**: Escalabilidad para incorporar nuevos tipos de tratamientos
-- **Nuevos estudios**: Flexibilidad para agregar nuevos tipos de estudios radiográficos
-- **Tarifarios dinámicos**: Sistema que permita fácil modificación de precios y categorías
-
-### 🏗️ Arquitectura Preparada para Cambios
-
-#### Estructura Modular:
-- **Servicios especializados** permiten modificar lógica de negocio sin afectar otros componentes
-- **Controladores separados** facilitan la adición de nuevas funcionalidades por punto de venta
-- **Vistas independientes** permiten personalización específica sin conflictos
-
-#### Base de Datos Flexible:
-- **Modelos extensibles** que permiten agregar nuevas propiedades sin romper funcionalidad existente
-- **Relaciones bien definidas** entre entidades para mantener consistencia
-- **Campos configurables** para diferentes tipos de operaciones por punto de venta
-
-#### Sistema de Configuración:
-- **Variables de entorno** para parámetros que pueden cambiar
-- **Archivos de configuración** específicos por punto de venta
-- **Middleware adaptable** para nuevos tipos de validaciones
-
-### 📋 Protocolo de Ampliación
-
-```markdown
-# AMPLIACIÓN DE FUNCIONALIDAD: [DESCRIPCIÓN]
-
-## Análisis de Requisitos
-- Punto de venta afectado: [BOX/Postgrado/Centro Odontológico]
-- Tipo de ampliación: [Nueva funcionalidad/Modificación existente]
-- Impacto esperado: [Bajo/Medio/Alto]
-
-## Verificación de Compatibilidad
-- [ ] La nueva funcionalidad respeta el aislamiento
-- [ ] No requiere cambios en otros puntos de venta
-- [ ] Es compatible con la estructura existente
-- [ ] Mantiene los principios de seguridad
-
-## Plan de Implementación Escalable
-1. [Identificar componentes a modificar/crear]
-2. [Verificar impacto en modelos existentes]
-3. [Actualizar servicios especializados]
-4. [Implementar vistas específicas]
-5. [Agregar rutas con middleware apropiado]
-
-## Testing de Escalabilidad
-- [ ] La funcionalidad funciona independientemente
-- [ ] No afecta el rendimiento de otros puntos de venta
-- [ ] Es fácilmente configurable y modificable
-- [ ] Mantiene la consistencia del sistema
-```
-
-### 🚀 Futuras Mejoras Planificadas
-
-#### Corto Plazo (v1.x):
-- **Reportes avanzados** por tipo de operación en cada punto de venta
-- **Dashboard personalizable** con métricas específicas
-- **Sistema de notificaciones** internas entre puntos de venta
-- **Integración con sistemas contables** externos
-
-#### Mediano Plazo (v2.x):
-- **API REST** para integración con aplicaciones móviles
-- **Sistema de auditoría** completo de transacciones
-- **Herramientas de análisis** predictivo por punto de venta
-- **Módulo de configuración** dinámica de tarifarios
-
-#### Largo Plazo (v3.x):
-- **Inteligencia artificial** para optimización de operaciones
-- **Sistema de recomendaciones** personalizadas
-- **Integración blockchain** para trazabilidad de transacciones
-- **Módulos adicionales** según necesidades emergentes
-
----
-
-**🌟 FILOSOFÍA DEL SISTEMA**: Mantener siempre equilibrio entre estabilidad actual y flexibilidad futura, permitiendo crecimiento orgánico sin comprometer el aislamiento y la integridad del sistema.
-
----
-
-## �📞 CONTACTOS TÉCNICOS Y RESPONSABILIDADES
-
-### Responsable por Punto de Venta
-- **BOX Cooperadora**: [Responsable] - Ventas y suministros
-- **Postgrado**: [Responsable] - Operaciones académicas  
-- **Centro Odontológico**: [Responsable] - Operaciones clínicas
-
-### Responsable de Arquitectura
-- **Sistema completo**: [Responsable] - Aislamiento y middleware
-
----
-
-## 🌍 CONSIDERACIONES DE DEPLOYMENT Y COMPATIBILIDAD
-
-### 🔄 Compatibilidad entre Entornos
-
-#### Diferencias Críticas a Considerar:
-- **Rutas de archivos**: Windows usa `\`, Linux usa `/` (Laravel maneja automáticamente)
-- **Comandos de sistema**: PowerShell vs Bash
-- **Permisos de archivos**: Windows vs Linux (storage/, bootstrap/cache/)
-- **Variables de entorno**: Configuración específica por entorno
-
-#### Archivos de Configuración por Entorno:
-```
-.env (desarrollo en Windows)
-.env.production (producción en Linux Ubuntu)
-.env.example (template para nuevos entornos)
-```
-
-### 🚀 Procedimiento de Deployment
-
-#### Configuración de Variables de Entorno:
-
-**Desarrollo (Windows) - archivo `.env`:**
-```env
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-# Base de datos PostgreSQL local
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=cooperadora_pos
-DB_USERNAME=cooperadora_user
-DB_PASSWORD=your_password_here
-```
-
-**Producción (Linux Ubuntu) - archivo `.env.production`:**
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-domain.com
-
-# Base de datos PostgreSQL producción
-DB_CONNECTION=pgsql
-DB_HOST=10.100.2.4
-DB_PORT=5432
-DB_DATABASE=cooperadora_pos
-DB_USERNAME=postgres
-DB_PASSWORD=Sistemas4137
-```
-
-#### Pre-deployment (Desarrollo → Producción):
-```bash
-# En entorno de desarrollo (Windows)
-# Verificar archivo de configuración de desarrollo
-if (Test-Path .env) { Get-Content .env | Select-String "DB_" }
-
-# Verificar que existe configuración de producción
-if (Test-Path .env.production) { 
-    Write-Host "Archivo .env.production encontrado"
-    Get-Content .env.production | Select-String "DB_"
-}
-
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-# Verificar compatibilidad de migraciones con PostgreSQL
-php artisan migrate:status
-php artisan migrate --pretend
-
-# Generar backup antes del deploy
-pg_dump -h localhost -U postgres cooperadora_pos > pre_deploy_backup.sql
-```
-
-#### Deployment en Producción (Linux Ubuntu):
-```bash
-# En servidor de producción
-git pull origin main
-composer install --optimize-autoloader --no-dev
-
-# Configurar variables de entorno para producción
-if [ ! -f .env ]; then
-    echo "Copiando configuración de producción..."
-    cp .env.production .env
-else
-    echo "Verificando configuración existente..."
-    diff .env .env.production
-fi
-
-# Verificar configuración de base de datos
-grep "DB_" .env
-
-php artisan migrate --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan storage:link
-
-# Verificar permisos críticos
-chmod -R 775 storage/
-chmod -R 775 bootstrap/cache/
-chown -R www-data:www-data storage/
-chown -R www-data:www-data bootstrap/cache/
-
-# Verificar funcionamiento de los 3 puntos de venta
-curl -I "https://cooperadora.universidad.edu.ar/box"
-curl -I "https://cooperadora.universidad.edu.ar/postgrado"
-curl -I "https://cooperadora.universidad.edu.ar/odonto"
-```
-
-### 🔧 Configuración Específica de PostgreSQL
-
-### 🔧 Configuración Específica de PostgreSQL
-
-#### Verificaciones de Base de Datos:
-
-#### Logs a Supervisar:
-- **Laravel logs**: `storage/logs/laravel.log`
-- **PostgreSQL logs**: 
-  - Windows: `%PGDATA%\log\`
-  - Linux: `/var/log/postgresql/`
-- **Servidor web logs**: Nginx/Apache error logs (producción)
-
-#### Métricas Críticas:
-- **Conexiones PostgreSQL**: Monitorear conexiones concurrentes
-- **Tiempo de respuesta**: Por punto de venta
-- **Errores 403/404**: Problemas de middleware o rutas
-- **Memoria y CPU**: Especialmente en producción
-
----
-
-## 🔄 VERSIONADO Y CHANGELOG
-
-### Versión Actual: v1.0.0 (21/04/2026)
-#### Especificaciones Técnicas:
-- ✅ **Desarrollo**: Windows + PostgreSQL + Laravel Development Server
-- ✅ **Producción**: Linux Ubuntu + PostgreSQL + Nginx/Apache
-- ✅ **Framework**: Laravel 11 con arquitectura modular
-- ✅ **Base de Datos**: PostgreSQL (compatible en ambos entornos)
-
-#### Funcionalidades Implementadas:
-- ✅ Separación completa de 3 puntos de venta con funcionalidades específicas
-- ✅ **BOX Cooperadora**: Sistema completo de ventas, cobros académicos y prestaciones clínicas
-- ✅ **Postgrado**: Gestión académica y financiera de programas de postgrado  
-- ✅ **Centro Odontológico**: Sistema clínico con tarifarios diferenciados
-- ✅ Middleware de protección implementado (`punto_venta`)
-- ✅ Controladores especializados (BoxController, PostgradoController, OdontoController)
-- ✅ Servicios de negocio específicos (BoxService, PostgradoService, OdontoService)
-- ✅ Redirección automática por rol de usuario
-- ✅ Estructura de vistas completamente independientes
-- ✅ Arquitectura preparada para escalabilidad y modificaciones futuras
-- ✅ **Compatibilidad multi-entorno** (Windows desarrollo / Linux producción)
-
-### Funcionalidades Detalladas por Versión:
-
-#### v1.0.0 - Funcionalidades BOX Cooperadora:
-- ✅ Venta de productos del Laboratorio de Insumos
-- ✅ Cobro de cuotas de tecnicaturas (Prótesis Dental, Asistencia Dental)
-- ✅ Cobro de bonos a estudiantes de grado (Odontología)
-- ✅ Venta de kits especializados (cirugía, semiología, clínicas)
-- ✅ Gestión de prestaciones de cátedras clínicas
-- ✅ Control de trabajos odontológicos de terceros
-- ✅ Sistema de pagos (sueldos, proveedores, otros)
-
-#### v1.0.0 - Funcionalidades Postgrado:
-- ✅ Cobro de cuotas de carreras de postgrado
-- ✅ Gestión de cursos especializados
-- ✅ Control de honorarios docentes y conferencistas
-- ✅ Gestión de gastos operativos y proveedores académicos
-
-#### v1.0.0 - Funcionalidades Centro Odontológico:
-- ✅ Prestaciones odontológicas con tarifario diferenciado (centro/guardia)
-- ✅ Estudios radiográficos con precios diferenciados (internos/externos)
-- ✅ Sistema de gestión clínica integral
-
-### Próximas Versiones Planificadas:
-
-#### v1.1.0 - Optimizaciones y Reportes:
-- [ ] Reportes financieros avanzados por tipo de operación (BOX)
-- [ ] Reportes académicos especializados (Postgrado)
-- [ ] Reportes clínicos y de prestaciones (Centro Odontológico)
-- [ ] Dashboard personalizable por punto de venta
-- [ ] Optimizaciones de performance del sistema
-
-#### v1.2.0 - Funcionalidades Específicas Adicionales:
-- [ ] Sistema de descuentos configurables (BOX)
-- [ ] Gestión de becas y financiamientos (Postgrado)
-- [ ] Historia clínica digital avanzada (Centro Odontológico)
-- [ ] Integración con sistemas contables externos
-- [ ] Sistema de notificaciones entre puntos de venta
-
-#### v1.3.0 - Expansión de Capacidades:
-- [ ] Nuevas categorías de productos del Laboratorio de Insumos
-- [ ] Modalidades de cursos virtuales e híbridos (Postgrado)
-- [ ] Nuevos tipos de estudios radiográficos (Centro Odontológico)
-- [ ] API REST para aplicaciones móviles
-- [ ] Sistema de auditoría completo
-
-### Flexibilidad de Modificaciones:
-- **🔄 Modificaciones permitidas**: Las funcionalidades específicas pueden ampliarse según necesidades operativas
-- **📈 Escalabilidad**: Sistema preparado para incorporar nuevos tipos de operaciones en cada punto de venta
-- **🛡️ Principio de aislamiento**: Cualquier modificación debe respetar la separación entre puntos de venta
-
----
-
-**🚨 RECORDATORIO CRÍTICO**: Este sistema funciona por aislamiento completo entre puntos de venta. Cualquier modificación que rompa este principio puede afectar la estabilidad de todo el sistema.
-
-**💡 FLEXIBILIDAD OPERATIVA**: Las funcionalidades específicas de cada punto de venta pueden modificarse y ampliarse según necesidades operativas futuras, manteniendo siempre el principio de aislamiento y la arquitectura modular implementada.
-
-**🌍 ENTORNOS DEL SISTEMA**:
-- **Desarrollo**: Windows + PostgreSQL (archivo `.env`)
-- **Producción**: Linux Ubuntu + PostgreSQL (archivo `.env.production`)
-- **Deployment**: Copia `.env.production` a `.env` en servidor de producción
-- **Compatibilidad**: Laravel maneja automáticamente las diferencias entre entornos
-
-**📋 OPERACIONES ACTUALES**:
-- **BOX**: Ventas, cobros académicos, prestaciones clínicas, pagos operativos
-- **Postgrado**: Gestión académica y financiera de programas de postgrado
-- **Centro Odontológico**: Prestaciones clínicas con tarifarios diferenciados
-
----
-
-*Protocolo creado: 21 de abril de 2026*  
-*Última actualización: 21 de abril de 2026 - Funcionalidades específicas y entornos multi-plataforma detallados*
+## 10. Versionado del protocolo
+- Version: 2.0
+- Fecha: 22/05/2026
+- Estado: Activo
+- Reemplaza: protocolo de analisis por fases manuales

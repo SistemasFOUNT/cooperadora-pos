@@ -1,180 +1,77 @@
-# GUÍA DE ACTIVACIÓN - SISTEMA COOPERADORA
-## Comandos para la IA antes de trabajar en el sistema
+# GUIA DE ACTIVACION - PROTOCOLO SKILL-DRIVEN + SPEC-DRIVEN
+## Sistema Cooperadora
 
 ---
 
-## 🎯 COMANDOS DE ACTIVACIÓN DEL PROTOCOLO
+## 1. Comando corto recomendado
 
-### Opción 1: Comando Directo
-```
-Antes de analizar [PUNTO_DE_VENTA/FUNCIONALIDAD], lee y aplica PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
-```
-
-### Opción 2: Comando con Verificación por Punto de Venta
-```
-PROTOCOLO COOPERADORA: Analiza [BOX/POSTGRADO/ODONTO] siguiendo exhaustivamente PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md y verifica el aislamiento antes de proceder
-```
-
-### Opción 3: Comando de Seguridad Crítico
-```
-ATENCIÓN: Aplica protocolo completo de PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md antes de tocar [FUNCIONALIDAD]. No hagas cambios hasta completar reconnaissance y verificar que no rompe el aislamiento entre puntos de venta.
+```text
+Aplicar protocolo skill-driven + spec-driven de Cooperadora para [modulo/feature], iniciando por SKILL-01 y SKILL-02 antes de editar codigo.
 ```
 
 ---
 
-## 📋 FORMATO RECOMENDADO PARA SOLICITUDES
+## 2. Comando completo recomendado
 
-```markdown
+```text
 PROTOCOLO COOPERADORA OBLIGATORIO:
-1. Lee PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
-2. Aplica FASE 1-6 para [BOX/POSTGRADO/ODONTO]
-3. Verifica aislamiento entre puntos de venta
-4. Documenta hallazgos antes de cualquier cambio
-5. Confirma compatibilidad Windows (desarrollo) / Linux (producción)
-6. Procede solo después de mi aprobación del análisis
+1) Leer PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
+2) Crear o actualizar spec en PLANTILLA-SPEC-DRIVEN.md (estado draft/approved)
+3) Ejecutar SKILL-01 Reconocimiento
+4) Ejecutar SKILL-02 Aislamiento
+5) Implementar con SKILL-03 (y SKILL-04 si hay cobros)
+6) Validar con SKILL-05 (tests + anti-regresion)
+7) Cerrar con SKILL-06 y riesgos remanentes
 ```
 
 ---
 
-## 🔑 FRASES CLAVE QUE ACTIVARÁN EL PROTOCOLO
+## 3. Activadores por tipo de trabajo
 
-### Frases de Activación Obligatoria:
-- **"PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA"**
-- **"aplica protocolo cooperadora exhaustivo"**
-- **"reconnaissance completo sistema cooperadora"**
-- **"verifica aislamiento puntos de venta"**
-- **"sigue todas las fases protocolo cooperadora"**
-
-### Frases de Seguridad Crítica:
-- **"mantén separación BOX/POSTGRADO/ODONTO"**
-- **"no romper aislamiento funcionalidades"**
-- **"verificar middleware punto_venta"**
-- **"compatibilidad Windows/Linux"**
-
----
-
-## 📝 EJEMPLOS PRÁCTICOS POR PUNTO DE VENTA
-
-### Para BOX Cooperadora:
-```
-PROTOCOLO: Antes de modificar el sistema de ventas en BOX, lee PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md y ejecuta reconnaissance completo. Verifica que los cambios no afecten POSTGRADO ni ODONTO. Documenta impacto en productos del Laboratorio de Insumos.
+## Nuevo desarrollo
+```text
+Aplicar protocolo Cooperadora para nueva funcionalidad en [BOX/POSTGRADO/ODONTO], con spec aprobada y validacion de aislamiento obligatoria.
 ```
 
-### Para Postgrado:
-```
-PROTOCOLO: Antes de trabajar en gestión académica de POSTGRADO, lee PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md y mapea dependencias. Asegura que modificaciones no interfieran con BOX ni ODONTO. Confirma compatibilidad con sistema de cuotas.
-```
-
-### Para Centro Odontológico:
-```
-PROTOCOLO: Antes de modificar prestaciones clínicas en ODONTO, lee PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md y verifica tarifarios diferenciados. Mantén aislamiento de BOX y POSTGRADO. Documenta impacto en sistema de citas.
+## Bugfix
+```text
+Aplicar protocolo Cooperadora para bug en [modulo], con cambio minimo, test de regresion y cierre con trazabilidad.
 ```
 
-### Para Funcionalidades Transversales:
+## Cobros
+```text
+Aplicar SKILL-04 de cobro unificado en [modulo], validando paridad con los modulos equivalentes y no-regresion.
 ```
-PROTOCOLO: Antes de tocar middleware, autenticación o base de datos, lee PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md y ejecuta análisis exhaustivo. CRÍTICO: verificar impacto en los 3 puntos de venta. Confirmar compatibilidad PostgreSQL Windows/Linux.
+
+## Cambio transversal
+```text
+Cambio transversal en [auth/middleware/rutas/modelos]: ejecutar SKILL-01 y SKILL-02 sobre BOX/Postgrado/Odonto antes de implementar.
 ```
 
 ---
 
-## ⚡ ACTIVACIÓN AUTOMÁTICA DEL PROTOCOLO
+## 4. Checklist rapido de activacion
 
-### Al usar cualquiera de estas frases, la IA se obligará a:
-
-✅ **Leer el protocolo completo** PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
-✅ **Mapear exhaustivamente** el punto de venta afectado
-✅ **Verificar aislamiento** entre BOX, POSTGRADO y ODONTO
-✅ **Documentar estado actual** antes de proponer cambios
-✅ **Identificar riesgos** específicos del sistema cooperadora
-✅ **Confirmar compatibilidad** entre entornos Windows/Linux
-✅ **Validar middleware** punto_venta y redirección automática
-✅ **Pedir confirmación** antes de realizar cualquier cambio
+- [ ] Protocolo leido
+- [ ] Spec creada/actualizada
+- [ ] Modulo principal definido
+- [ ] Riesgo de aislamiento evaluado
+- [ ] Riesgo de cobro unificado evaluado
+- [ ] Criterios de aceptacion definidos
 
 ---
 
-## 🛡️ VERIFICACIONES OBLIGATORIAS POR TIPO DE TRABAJO
+## 5. Criterio de seguridad minima
 
-### Para Nuevas Funcionalidades:
-```
-PROTOCOLO: Nueva funcionalidad [DESCRIPCIÓN] en [PUNTO_DE_VENTA]. 
-Ejecuta análisis completo, verifica que mantiene aislamiento, 
-confirma que no requiere cambios en otros puntos de venta.
-```
-
-### Para Modificaciones Existentes:
-```
-PROTOCOLO: Modificar [FUNCIONALIDAD] existente en [PUNTO_DE_VENTA]. 
-Mapea dependencias actuales, verifica que cambios no rompen 
-aislamiento, documenta impacto en servicios especializados.
-```
-
-### Para Problemas/Debugging:
-```
-PROTOCOLO: Resolver problema [DESCRIPCIÓN] en [PUNTO_DE_VENTA]. 
-Analiza componentes afectados, verifica que solución mantiene 
-principio de aislamiento, confirma no hay efectos colaterales.
-```
-
-### Para Deployment/Configuración:
-```
-PROTOCOLO: Deployment/configuración del sistema cooperadora. 
-Verifica configuración .env vs .env.production, confirma 
-compatibilidad PostgreSQL, valida funcionamiento 3 puntos de venta.
-```
+No avanzar a implementacion si falta alguno de estos puntos:
+- Aislamiento no validado.
+- Criterios de aceptacion ambiguos.
+- Anti-regresion no definida.
 
 ---
 
-## 🎯 PUNTOS CRÍTICOS A VERIFICAR SIEMPRE
+## 6. Archivos oficiales de referencia
 
-### Antes de CUALQUIER trabajo:
-1. **¿Está afectando un solo punto de venta o múltiples?**
-2. **¿Se mantiene el middleware de protección punto_venta?**
-3. **¿La redirección automática sigue funcionando?**
-4. **¿Los servicios especializados permanecen separados?**
-5. **¿Es compatible entre Windows (dev) y Linux (prod)?**
-
-### Funcionalidades por Punto de Venta:
-- **BOX**: Ventas, cuotas, bonos, kits, prestaciones, pagos
-- **POSTGRADO**: Cuotas postgrado, cursos, honorarios, gastos
-- **ODONTO**: Prestaciones clínicas, estudios radiográficos, tarifarios
-
----
-
-## 🚨 FRASES DE EMERGENCIA
-
-### Si algo se rompe:
-```
-EMERGENCIA PROTOCOLO: [PROBLEMA] afectó sistema cooperadora. 
-Ejecuta análisis de impacto completo, identifica punto(s) de venta 
-afectados, propón rollback seguro manteniendo aislamiento.
-```
-
-### Si hay conflictos entre puntos de venta:
-```
-CONFLICTO PROTOCOLO: Detectado solapamiento entre [PUNTO1] y [PUNTO2]. 
-Analiza causa raíz, propón separación correcta, verifica que 
-solución respeta arquitectura de aislamiento.
-```
-
----
-
-## 📋 CHECKLIST RÁPIDO ANTES DE TRABAJAR
-
-```markdown
-☐ Leí PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
-☐ Identifiqué punto(s) de venta afectados
-☐ Verifiqué que mantengo aislamiento
-☐ Confirmé compatibilidad Windows/Linux
-☐ Documenté estado actual
-☐ Tengo plan de rollback
-☐ Usuario aprobó el análisis previo
-```
-
----
-
-**🎯 OBJETIVO**: Garantizar que cada intervención en el sistema respete la arquitectura de aislamiento entre BOX, POSTGRADO y ODONTO, mantenga la compatibilidad multi-entorno y preserve la estabilidad del sistema.
-
----
-
-*Guía creada: 21 de abril de 2026*  
-*Para usar con: PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md*
+- PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
+- PLANTILLA-SPEC-DRIVEN.md
+- ESTANDARES-PROYECTO.md
