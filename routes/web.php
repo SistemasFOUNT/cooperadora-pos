@@ -63,6 +63,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/libro-caja/consolidado', [AdminController::class, 'libroCajaConsolidado'])->name('libro-caja.consolidado');
         Route::get('/autorizaciones', [AdminController::class, 'autorizacionesIndex'])->name('autorizaciones.index');
         Route::get('/autorizaciones/historial', [AdminController::class, 'autorizacionesHistorial'])->name('autorizaciones.historial');
+        Route::get('/auditoria', [AdminController::class, 'auditoriaIndex'])->name('auditoria.index');
+        Route::get('/auditoria/{id}', [AdminController::class, 'auditoriaShow'])->name('auditoria.show');
         Route::get('/cuentas/estado-general', [AdminController::class, 'estadoGeneral'])->name('cuentas.estado-general');
         Route::get('/cuentas/particular', [AdminController::class, 'estadoParticular'])->name('cuentas.particular');
         Route::get('/reportes/consolidado', [AdminController::class, 'reportesConsolidado'])->name('reportes.consolidado');
@@ -207,6 +209,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/productos/ticket-pdf', [BoxController::class, 'generarTicketPDF'])->name('box.cobros.ticket-pdf');
             Route::get('/odontologia', [BoxController::class, 'cobrosOdontologia'])->name('box.cobros.odontologia');
             Route::get('/cuotas', [BoxController::class, 'cobrosCuotas'])->name('box.cobros.cuotas');
+            Route::get('/cuotas/buscar', [BoxController::class, 'buscarCuotasPorEstudiante'])->name('box.cobros.cuotas.buscar');
+            Route::post('/cuotas/registrar', [BoxController::class, 'registrarPagoCuota'])->name('box.cobros.cuotas.registrar');
             Route::get('/bonos', [BoxController::class, 'cobrosBonos'])->name('box.cobros.bonos');
             Route::get('/otros', [BoxController::class, 'cobrosOtros'])->name('box.cobros.otros');
         });
@@ -224,6 +228,9 @@ Route::middleware('auth')->group(function () {
 
         Route::prefix('pagos')->group(function () {
             Route::get('/proveedores', [BoxController::class, 'pagosProveedores'])->name('box.pagos.proveedores');
+            Route::post('/proveedores/registrar', [BoxController::class, 'registrarPagoProveedor'])->name('box.pagos.proveedores.store');
+            Route::post('/proveedores/alta', [BoxController::class, 'registrarProveedor'])->name('box.pagos.proveedores.proveedor.store');
+            Route::get('/proveedores/{pago}/comprobante', [BoxController::class, 'descargarComprobantePagoProveedor'])->name('box.pagos.proveedores.comprobante');
             Route::get('/asignaciones', [BoxController::class, 'pagosAsignaciones'])->name('box.pagos.asignaciones');
         });
 
@@ -300,6 +307,8 @@ Route::middleware('auth')->group(function () {
 
         // Punto de venta
         Route::get('/pos', [PostgradoController::class, 'pos'])->name('postgrado.pos');
+        Route::post('/procesar-venta', [PostgradoController::class, 'procesarVenta'])->name('postgrado.procesar-venta');
+        Route::get('/ventas/{sale}/ticket', [PostgradoController::class, 'descargarTicket'])->name('postgrado.ticket');
 
         // Cobros por programa
         Route::get('/cobros/maestrias', [PostgradoController::class, 'cobrosMaestrias'])->name('postgrado.cobros.maestrias');

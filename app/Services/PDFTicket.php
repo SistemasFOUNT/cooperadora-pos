@@ -4,7 +4,7 @@ namespace App\Services;
 
 require_once(base_path('vendor/setasign/fpdf/fpdf.php'));
 
-class PDFTicket extends FPDF
+class PDFTicket extends \FPDF
 {
     private $datosTicket;
     private $fecha;
@@ -12,6 +12,8 @@ class PDFTicket extends FPDF
     private $carrito;
     private $total;
     private $metodoPago;
+    private $tipoComprobante;
+    private $cliente;
 
     public function generar($datosTicket)
     {
@@ -27,6 +29,8 @@ class PDFTicket extends FPDF
         $this->carrito = $datosTicket['carrito'];
         $this->total = $datosTicket['total'] ?? 0;
         $this->metodoPago = $datosTicket['metodo_pago'] ?? 'efectivo';
+        $this->tipoComprobante = $datosTicket['tipo_comprobante'] ?? 'ticket';
+        $this->cliente = $datosTicket['cliente'] ?? null;
 
         // Configurar PDF
         $this->AddPage();
@@ -58,6 +62,7 @@ class PDFTicket extends FPDF
         $this->SetFont('Arial', '', 8);
         $this->Cell(0, 4, 'Fecha: ' . $this->fecha->format('d/m/Y H:i:s'), 0, 1, 'C');
         $this->Cell(0, 4, 'Ticket: ' . $this->numeroTicket, 0, 1, 'C');
+        $this->Cell(0, 4, 'Comprobante: ' . strtoupper(str_replace('_', ' ', $this->tipoComprobante)), 0, 1, 'C');
 
         // Método de pago
         $metodoPagoTexto = ucfirst($this->metodoPago);
@@ -68,6 +73,17 @@ class PDFTicket extends FPDF
 
         if ($this->metodoPago == 'tarjeta' && isset($this->datosTicket['detalles_pago']['autorizacion'])) {
             $this->Cell(0, 4, 'Autorización: ' . $this->datosTicket['detalles_pago']['autorizacion'], 0, 1, 'C');
+        }
+
+        if (is_array($this->cliente) && !empty($this->cliente['nombre'])) {
+            $this->Ln(1);
+            $this->Cell(0, 4, 'Cliente: ' . $this->cliente['nombre'], 0, 1, 'C');
+            if (!empty($this->cliente['documento'])) {
+                $this->Cell(0, 4, 'Documento: ' . $this->cliente['documento'], 0, 1, 'C');
+            }
+            if (!empty($this->cliente['direccion'])) {
+                $this->Cell(0, 4, 'Dirección: ' . $this->cliente['direccion'], 0, 1, 'C');
+            }
         }
 
         // Línea separadora

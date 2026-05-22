@@ -17,11 +17,19 @@ class BoxMenuMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Si el usuario está autenticado y es usuario BOX
-        if (Auth::check() && Auth::user()->role === 'usuario_box') {
-            // Cargar el menú específico de BOX
-            $boxMenu = config('box-menu.menu');
-            Config::set('adminlte.menu', $boxMenu);
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Aislamiento estricto: solo admin o usuario_box pueden entrar a rutas BOX.
+            if (!$user->isAdmin() && $user->role !== 'usuario_box') {
+                abort(403, 'No tienes permisos para acceder al módulo BOX.');
+            }
+
+            // Si es usuario BOX, cargar menú específico.
+            if ($user->role === 'usuario_box') {
+                $boxMenu = config('box-menu.menu');
+                Config::set('adminlte.menu', $boxMenu);
+            }
         }
 
         return $next($request);

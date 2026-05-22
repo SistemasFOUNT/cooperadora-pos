@@ -139,6 +139,11 @@ return [
             'icon' => 'fas fa-fw fa-cash-register',
         ],
         [
+            'text' => 'Auditoría Interna',
+            'route' => 'admin.auditoria.index',
+            'icon' => 'fas fa-fw fa-clipboard-check',
+        ],
+        [
             'text' => 'Autorizaciones',
             'icon' => 'fas fa-fw fa-check-circle',
             'submenu' => [

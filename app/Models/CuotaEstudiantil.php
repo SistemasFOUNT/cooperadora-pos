@@ -71,7 +71,8 @@ class CuotaEstudiantil extends Model
         if ($this->fecha_vencimiento >= now()->startOfDay()) {
             return 0;
         }
-        return (int) now()->startOfDay()->diffInDays($this->fecha_vencimiento);
+        // Retorna valor absoluto (siempre positivo cuando está vencida)
+        return (int) abs(now()->startOfDay()->diffInDays($this->fecha_vencimiento));
     }
 
     /** Total a pagar incluyendo recargo calculado al momento */
@@ -184,7 +185,42 @@ class CuotaEstudiantil extends Model
 
         $config = CareerFeeConfig::where('tipo_carrera', $this->tipo_carrera)->first();
 
-        if (!$config || $config->porcentaje_recargo <= 0) {
+        if (!$config) {
+            return 0.0;
+        }
+
+        $usaTramos = !is_null($config->dia_vencimiento_1)
+            && !is_null($config->dia_vencimiento_2)
+            && !is_null($config->porcentaje_recargo_1)
+            && !is_null($config->porcentaje_recargo_2)
+            && !is_null($config->porcentaje_recargo_3);
+
+        if ($usaTramos) {
+            $diaCorte1 = max(1, min(28, (int) $config->dia_vencimiento_1));
+            $diaCorte2 = max($diaCorte1, min(31, (int) $config->dia_vencimiento_2));
+
+            // Si la cuota es de un mes anterior, usa directamente el último tramo.
+            if ($this->fecha_vencimiento->month !== now()->month || $this->fecha_vencimiento->year !== now()->year) {
+                $porcentaje = (float) $config->porcentaje_recargo_3;
+            } else {
+                $diaActual = now()->day;
+                if ($diaActual <= $diaCorte1) {
+                    $porcentaje = (float) $config->porcentaje_recargo_1;
+                } elseif ($diaActual <= $diaCorte2) {
+                    $porcentaje = (float) $config->porcentaje_recargo_2;
+                } else {
+                    $porcentaje = (float) $config->porcentaje_recargo_3;
+                }
+            }
+
+            if ($porcentaje <= 0) {
+                return 0.0;
+            }
+
+            return round((float) $this->monto_cuota * ($porcentaje / 100), 2);
+        }
+
+        if ($config->porcentaje_recargo <= 0) {
             return 0.0;
         }
 
@@ -203,11 +239,13 @@ class CuotaEstudiantil extends Model
     public function registrarPago(array $datos): self
     {
         $recargo = $datos['recargo'] ?? $this->calcularRecargo();
+        $descuento = (float) ($datos['descuento'] ?? 0);
+        $montoPagado = max(0, ((float) $this->monto_cuota + (float) $recargo) - $descuento);
 
         $this->update([
-            'monto_pagado'       => $this->monto_cuota + $recargo,
+            'monto_pagado'       => $montoPagado,
             'recargo_mora'       => $recargo,
-            'descuento_aplicado' => $datos['descuento'] ?? 0,
+            'descuento_aplicado' => $descuento,
             'fecha_pago'         => now(),
             'estado'             => 'pagada',
             'metodo_pago'        => $datos['metodo_pago'] ?? null,

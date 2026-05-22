@@ -10,8 +10,8 @@ use App\Models\User;
 use App\Models\CuentaContable;
 use App\Models\MovimientoContable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use OwenIt\Auditing\Models\Audit;
 
 class AdminController extends Controller
 {
@@ -151,6 +151,106 @@ class AdminController extends Controller
         $historial_autorizaciones = collect(); // Temporal
 
         return view('admin.autorizaciones.historial', compact('historial_autorizaciones'));
+    }
+
+    /**
+     * Auditoría interna con filtros por evento, modelo, usuario y fecha.
+     */
+    public function auditoriaIndex(Request $request)
+    {
+        $query = Audit::query()->orderByDesc('created_at');
+
+        $evento = $request->input('evento');
+        $modelo = $request->input('modelo');
+        $usuarioId = $request->input('usuario_id');
+        $fechaDesde = $request->input('fecha_desde');
+        $fechaHasta = $request->input('fecha_hasta');
+        $buscar = trim((string) $request->input('buscar', ''));
+
+        if (!empty($evento)) {
+            $query->where('event', $evento);
+        }
+
+        if (!empty($modelo)) {
+            $query->where('auditable_type', $modelo);
+        }
+
+        if (!empty($usuarioId)) {
+            $query->where('user_id', $usuarioId);
+        }
+
+        if (!empty($fechaDesde)) {
+            $query->whereDate('created_at', '>=', $fechaDesde);
+        }
+
+        if (!empty($fechaHasta)) {
+            $query->whereDate('created_at', '<=', $fechaHasta);
+        }
+
+        if ($buscar !== '') {
+            $query->where(function ($subQuery) use ($buscar) {
+                $subQuery->where('auditable_id', 'like', '%' . $buscar . '%')
+                    ->orWhere('url', 'like', '%' . $buscar . '%')
+                    ->orWhere('ip_address', 'like', '%' . $buscar . '%')
+                    ->orWhere('tags', 'like', '%' . $buscar . '%');
+            });
+        }
+
+        $audits = $query->paginate(50)->withQueryString();
+
+        $eventos = Audit::query()
+            ->select('event')
+            ->distinct()
+            ->orderBy('event')
+            ->pluck('event');
+
+        $modelos = Audit::query()
+            ->select('auditable_type')
+            ->distinct()
+            ->orderBy('auditable_type')
+            ->pluck('auditable_type');
+
+        $usuariosConAuditoria = Audit::query()
+            ->whereNotNull('user_id')
+            ->distinct()
+            ->pluck('user_id')
+            ->filter();
+
+        $usuarios = User::query()
+            ->whereIn('id', $usuariosConAuditoria)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $nombresUsuarios = $usuarios->pluck('name', 'id');
+
+        return view('admin.auditoria.index', compact(
+            'audits',
+            'eventos',
+            'modelos',
+            'usuarios',
+            'nombresUsuarios',
+            'evento',
+            'modelo',
+            'usuarioId',
+            'fechaDesde',
+            'fechaHasta',
+            'buscar'
+        ));
+    }
+
+    /**
+     * Detalle puntual de un registro de auditoría.
+     */
+    public function auditoriaShow($id)
+    {
+        $audit = Audit::findOrFail($id);
+        $usuario = null;
+
+        if (!empty($audit->user_id)) {
+            $usuario = User::find($audit->user_id);
+        }
+
+        return view('admin.auditoria.show', compact('audit', 'usuario'));
     }
 
     /**

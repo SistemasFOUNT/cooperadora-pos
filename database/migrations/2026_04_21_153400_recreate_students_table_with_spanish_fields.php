@@ -44,8 +44,9 @@ return new class extends Migration
             $table->index(['dni']);
             $table->index(['activo']);
 
-            // Clave foránea hacia configuracion_cuotas_carreras
-            $table->foreign('carrera')->references('tipo_carrera')->on('configuracion_cuotas_carreras');
+            // En este punto del orden de migraciones, la tabla aún se llama career_fee_config.
+            // Luego se renombra a configuracion_cuotas_carreras en una migración posterior.
+            $table->foreign('carrera')->references('career_type')->on('career_fee_config');
         });
     }
 

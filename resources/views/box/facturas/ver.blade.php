@@ -1,12 +1,12 @@
 @extends('adminlte::page')
 
-@section('title', "Factura {$factura->numero_completo} - BOX Cooperadora")
+@section('title', "Comprobante {$factura->numero_completo} - BOX Cooperadora")
 
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center">
     <h1>
         <i class="fas fa-file-invoice"></i>
-        Factura {{ $factura->numero_completo }}
+        Comprobante {{ $factura->numero_completo }}
         @if($factura->tipo == 'arca')
             <small class="text-muted">(ARCA {{ $factura->tipo_comprobante }})</small>
         @else
@@ -19,11 +19,8 @@
         </a>
         <a href="{{ route('box.facturas.ver', [$factura, 'formato' => 'pdf']) }}"
            class="btn btn-primary" target="_blank">
-            <i class="fas fa-download"></i> Descargar PDF
+            <i class="fas fa-file-pdf"></i> Ver PDF
         </a>
-        <button type="button" class="btn btn-info" onclick="window.print()">
-            <i class="fas fa-print"></i> Imprimir
-        </button>
     </div>
 </div>
 @stop
@@ -85,8 +82,8 @@
                                 @if($factura->cuit_cliente)
                                     CUIT: {{ $factura->cuit_cliente }}<br>
                                 @endif
-                                @if(isset($factura->datos_cliente['domicilio']) && $factura->datos_cliente['domicilio'])
-                                    {{ $factura->datos_cliente['domicilio'] }}<br>
+                                @if(isset($factura->datos_cliente['direccion']) && $factura->datos_cliente['direccion'])
+                                    {{ $factura->datos_cliente['direccion'] }}<br>
                                 @endif
                                 @if(isset($factura->datos_cliente['condicion_iva']) && $factura->datos_cliente['condicion_iva'])
                                     {{ $factura->datos_cliente['condicion_iva'] }}
@@ -133,13 +130,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($factura->sale->items as $item)
+                                    @forelse($detalleComprobante as $item)
                                     <tr>
-                                        <td>{{ $item->product_code ?? $item->product->code ?? 'N/A' }}</td>
-                                        <td>{{ $item->product_name ?? $item->product->name ?? 'Producto' }}</td>
-                                        <td class="text-center">{{ $item->quantity ?? 1 }}</td>
-                                        <td class="text-right">${{ number_format($item->unit_price ?? 0, 2, ',', '.') }}</td>
-                                        <td class="text-right">${{ number_format($item->total ?? 0, 2, ',', '.') }}</td>
+                                        <td>{{ $item['codigo'] ?? 'N/A' }}</td>
+                                        <td>{{ $item['descripcion'] ?? 'Producto' }}</td>
+                                        <td class="text-center">{{ $item['cantidad'] ?? 1 }}</td>
+                                        <td class="text-right">${{ number_format((float) ($item['precio_unitario'] ?? 0), 2, ',', '.') }}</td>
+                                        <td class="text-right">${{ number_format((float) ($item['total'] ?? 0), 2, ',', '.') }}</td>
                                     </tr>
                                     @empty
                                     <tr>

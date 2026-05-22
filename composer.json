@@ -57,6 +57,12 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+        ],
+        "check:php84": [
+            "@php -r \"if (PHP_VERSION_ID < 80400 || PHP_VERSION_ID >= 80500) {fwrite(STDERR, 'ERROR: Este proyecto debe ejecutarse con PHP 8.4.x para mantener paridad con produccion.' . PHP_EOL); exit(1);} echo 'OK: PHP ' . PHP_VERSION . ' compatible con produccion.' . PHP_EOL;\""
+        ],
+        "check:php-prod": [
+            "@php -r \"if (PHP_VERSION !== '8.4.18') {fwrite(STDERR, 'ERROR: Produccion usa PHP 8.4.18 (Ubuntu 22.04.5 LTS). Version actual: ' . PHP_VERSION . PHP_EOL); exit(1);} echo 'OK: PHP exacto de produccion (' . PHP_VERSION . ').' . PHP_EOL;\""
         ]
     },
     "extra": {
@@ -68,6 +74,9 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
+        "platform": {
+            "php": "8.4.18"
+        },
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true

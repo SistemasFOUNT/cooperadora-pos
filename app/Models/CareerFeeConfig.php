@@ -24,6 +24,13 @@ class CareerFeeConfig extends Model
         'dias_gracia',
         'porcentaje_recargo',
         'cuota_bono',
+        'bono_inicio_cobro',
+        'bono_fin_cobro',
+        'dia_vencimiento_1',
+        'dia_vencimiento_2',
+        'porcentaje_recargo_1',
+        'porcentaje_recargo_2',
+        'porcentaje_recargo_3',
     ];
 
     protected $casts = [
@@ -32,9 +39,16 @@ class CareerFeeConfig extends Model
         'cuota_certificado'  => 'decimal:2',
         'cuota_bono'         => 'decimal:2',
         'porcentaje_recargo' => 'decimal:2',
+        'porcentaje_recargo_1' => 'decimal:2',
+        'porcentaje_recargo_2' => 'decimal:2',
+        'porcentaje_recargo_3' => 'decimal:2',
         'duracion_meses'     => 'integer',
         'dia_vencimiento'    => 'integer',
+        'dia_vencimiento_1'  => 'integer',
+        'dia_vencimiento_2'  => 'integer',
         'dias_gracia'        => 'integer',
+        'bono_inicio_cobro'  => 'date',
+        'bono_fin_cobro'     => 'date',
         'activo'             => 'boolean',
         'cuotas_adicionales' => 'array',
     ];

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\PuntoVenta;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\Student;
+use App\Models\PagoProveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -64,6 +66,19 @@ class OdontoController extends Controller
     public function adminIngresosEgresos()
     {
         $fechaHoy = Carbon::today();
+        $egresosQuery = PagoProveedor::whereDate('fecha_pago', $fechaHoy)
+            ->where('punto_venta_id', $this->puntoVenta->id)
+            ->where('estado', 'registrado');
+
+        $egresosInsumos = (clone $egresosQuery)
+            ->whereRaw('LOWER(concepto) LIKE ?', ['%insumo%'])
+            ->sum('monto');
+
+        $egresosEquipamiento = (clone $egresosQuery)
+            ->whereRaw('LOWER(concepto) LIKE ?', ['%equip%'])
+            ->sum('monto');
+
+        $egresosTotales = (clone $egresosQuery)->sum('monto');
 
         $ingresos_egresos = [
             'ingresos_hoy' => [
@@ -81,9 +96,9 @@ class OdontoController extends Controller
                     ->sum('total'),
             ],
             'egresos_hoy' => [
-                'insumos_clinicos' => 0, // TODO: Implementar modelo de pagos
-                'equipamiento' => 0,
-                'proveedores_medicos' => 0,
+                'insumos_clinicos' => $egresosInsumos,
+                'equipamiento' => $egresosEquipamiento,
+                'proveedores_medicos' => max(0, $egresosTotales - $egresosInsumos - $egresosEquipamiento),
             ],
             'detalle_transacciones' => Sale::with(['user', 'items'])
                 ->whereDate('created_at', $fechaHoy)
@@ -104,15 +119,20 @@ class OdontoController extends Controller
         $fechaDesde = request('fecha_desde', Carbon::today()->subDays(30)->format('Y-m-d'));
         $fechaHasta = request('fecha_hasta', Carbon::today()->format('Y-m-d'));
 
+        $totalIngresos = Sale::whereBetween('created_at', [$fechaDesde, $fechaHasta])
+            ->where('punto_venta_id', $this->puntoVenta->id)
+            ->sum('total');
+
+        $totalEgresos = PagoProveedor::whereBetween('fecha_pago', [$fechaDesde, $fechaHasta])
+            ->where('punto_venta_id', $this->puntoVenta->id)
+            ->where('estado', 'registrado')
+            ->sum('monto');
+
         $movimientos_caja = [
             'resumen_periodo' => [
-                'total_ingresos' => Sale::whereBetween('created_at', [$fechaDesde, $fechaHasta])
-                    ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->sum('total'),
-                'total_egresos' => 0, // TODO: Implementar modelo de egresos
-                'saldo_periodo' => Sale::whereBetween('created_at', [$fechaDesde, $fechaHasta])
-                    ->where('punto_venta_id', $this->puntoVenta->id)
-                    ->sum('total'),
+                'total_ingresos' => $totalIngresos,
+                'total_egresos' => $totalEgresos,
+                'saldo_periodo' => $totalIngresos - $totalEgresos,
             ],
             'movimientos_detalle' => Sale::with(['user'])
                 ->whereBetween('created_at', [$fechaDesde, $fechaHasta])
@@ -222,10 +242,36 @@ class OdontoController extends Controller
      */
     public function reportes()
     {
+        $fechaDesde = request('fecha_desde', Carbon::today()->startOfMonth()->format('Y-m-d'));
+        $fechaHasta = request('fecha_hasta', Carbon::today()->format('Y-m-d'));
+
+        $ventasPeriodo = Sale::whereBetween('created_at', [$fechaDesde, $fechaHasta])
+            ->where('punto_venta_id', $this->puntoVenta->id);
+
+        $topProductos = SaleItem::query()
+            ->join('ventas', 'items_venta.sale_id', '=', 'ventas.id')
+            ->where('ventas.punto_venta_id', $this->puntoVenta->id)
+            ->whereBetween('ventas.created_at', [$fechaDesde, $fechaHasta])
+            ->selectRaw('items_venta.product_id, items_venta.product_name as nombre, SUM(items_venta.quantity) as cantidad, SUM(items_venta.total) as monto_total')
+            ->groupBy('items_venta.product_id', 'items_venta.product_name')
+            ->orderByDesc('cantidad')
+            ->limit(15)
+            ->get();
+
         $reportes = [
             'tratamientos_mes' => $this->getTratamientosMes(),
             'pacientes_frecuentes' => $this->getPacientesFrecuentes(),
-            'materiales_utilizados' => $this->getMaterialesUtilizados()
+            'materiales_utilizados' => $this->getMaterialesUtilizados(),
+            'periodo' => [
+                'desde' => $fechaDesde,
+                'hasta' => $fechaHasta,
+            ],
+            'totales' => [
+                'ventas' => (clone $ventasPeriodo)->count(),
+                'ingresos' => (clone $ventasPeriodo)->sum('total'),
+                'ticket_promedio' => (clone $ventasPeriodo)->avg('total') ?? 0,
+            ],
+            'top_productos' => $topProductos,
         ];
 
         return view('odonto.reportes.index', compact('reportes'));

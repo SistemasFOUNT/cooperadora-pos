@@ -1,12 +1,12 @@
 @extends('adminlte::page')
 
-@section('title', 'Lista de Facturas - BOX Cooperadora')
+@section('title', 'Lista de Comprobantes - BOX Cooperadora')
 
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center">
     <h1>
         <i class="fas fa-file-invoice"></i>
-        Lista de Facturas - BOX Cooperadora
+        Lista de Comprobantes - BOX Cooperadora
     </h1>
     <div>
         <a href="{{ route('box.dashboard') }}" class="btn btn-secondary">
@@ -103,7 +103,7 @@
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-list"></i>
-                    Facturas ({{ $facturas->total() }} registros)
+                    Comprobantes (Facturas y Tickets) ({{ $facturas->total() }} registros)
                 </h3>
             </div>
             <div class="card-body p-0">
@@ -112,7 +112,7 @@
                         <thead>
                             <tr>
                                 <th>Número</th>
-                                <th>Tipo</th>
+                                <th>Tipo de Comprobante</th>
                                 <th>Fecha</th>
                                 <th>Cliente</th>
                                 <th>Venta</th>
@@ -132,9 +132,15 @@
                                 </td>
                                 <td>
                                     @if($factura->tipo == 'local')
-                                        <span class="badge badge-info">
-                                            <i class="fas fa-receipt"></i> Local
-                                        </span>
+                                        @if(is_null($factura->tipo_comprobante))
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-receipt"></i> Ticket
+                                            </span>
+                                        @else
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-file-invoice"></i> Factura Local {{ $factura->tipo_comprobante }}
+                                            </span>
+                                        @endif
                                     @else
                                         <span class="badge badge-primary">
                                             <i class="fas fa-stamp"></i> ARCA {{ $factura->tipo_comprobante ?? '' }}
@@ -196,10 +202,10 @@
                                             <i class="fas fa-eye"></i>
                                         </a>
 
-                                        <!-- Descargar PDF -->
+                                        <!-- Ver PDF -->
                                         <a href="{{ route('box.facturas.ver', [$factura, 'formato' => 'pdf']) }}"
-                                           class="btn btn-sm btn-primary" title="Descargar PDF" target="_blank">
-                                            <i class="fas fa-download"></i>
+                                           class="btn btn-sm btn-primary" title="Ver PDF" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
 
                                         <!-- Anular (solo si no está anulada) -->
@@ -216,7 +222,7 @@
                             <tr>
                                 <td colspan="8" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
-                                    No se encontraron facturas con los filtros aplicados.
+                                    No se encontraron comprobantes (facturas/tickets) con los filtros aplicados.
                                 </td>
                             </tr>
                             @endforelse

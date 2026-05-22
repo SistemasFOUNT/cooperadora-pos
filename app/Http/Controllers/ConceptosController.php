@@ -91,17 +91,32 @@ class ConceptosController extends Controller
         if ($esSoloBono) {
             $validated = $request->validate([
                 'cuota_bono' => 'required|numeric|min:0',
+                'bono_inicio_cobro' => 'nullable|date',
+                'bono_fin_cobro' => 'nullable|date|after_or_equal:bono_inicio_cobro',
             ]);
-            $carrera->update(['cuota_bono' => $validated['cuota_bono']]);
+            $carrera->update([
+                'cuota_bono' => $validated['cuota_bono'],
+                'bono_inicio_cobro' => $validated['bono_inicio_cobro'] ?? null,
+                'bono_fin_cobro' => $validated['bono_fin_cobro'] ?? null,
+            ]);
         } else {
             $validated = $request->validate([
                 'cuota_mensual'      => 'required|numeric|min:0',
                 'cuota_bono'         => 'required|numeric|min:0',
                 'cuota_inscripcion'  => 'required|numeric|min:0',
-                'dia_vencimiento'    => 'required|integer|min:1|max:28',
-                'dias_gracia'        => 'required|integer|min:0|max:30',
-                'porcentaje_recargo' => 'required|numeric|min:0|max:100',
+                'bono_inicio_cobro'  => 'nullable|date',
+                'bono_fin_cobro'     => 'nullable|date|after_or_equal:bono_inicio_cobro',
+                'dia_vencimiento_1'  => 'required|integer|min:1|max:28',
+                'dia_vencimiento_2'  => 'required|integer|min:1|max:31|gte:dia_vencimiento_1',
+                'porcentaje_recargo_1' => 'required|numeric|min:0|max:100',
+                'porcentaje_recargo_2' => 'required|numeric|min:0|max:100',
+                'porcentaje_recargo_3' => 'required|numeric|min:0|max:100',
             ]);
+
+            // Compatibilidad con la lógica legacy que usa un único día y porcentaje.
+            $validated['dia_vencimiento'] = $validated['dia_vencimiento_1'];
+            $validated['porcentaje_recargo'] = $validated['porcentaje_recargo_3'];
+            $validated['dias_gracia'] = 0;
             $carrera->update($validated);
         }
 

@@ -2,21 +2,6 @@
 
 @section('title', 'BOX - Cobros de Cuotas Estudiantiles - Cooperadora Odontología UNT')
 
-@section('content_header')
-    <div class="row">
-        <div class="col-sm-6">
-            <h1><i class="fas fa-user-graduate text-primary"></i> Cobros de Cuotas Estudiantiles</h1>
-        </div>
-        <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="{{ route('box.dashboard') }}">BOX Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="#">Cobros</a></li>
-                <li class="breadcrumb-item active">Cuotas</li>
-            </ol>
-        </div>
-    </div>
-@stop
-
 @section('content')
     <div class="row">
         <!-- Lista de Estudiantes -->
@@ -26,7 +11,20 @@
                     <h3 class="card-title"><i class="fas fa-users"></i> Estudiantes de Tecnicaturas</h3>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
+                    <!-- Búsqueda rápida -->
+                    <div class="form-group mb-3">
+                        <input type="text" id="searchEstudiante" class="form-control form-control-lg"
+                               placeholder="Buscar por nombre o DNI... (mínimo 2 caracteres)">
+                        <small class="text-muted">Resultados en tiempo real</small>
+                    </div>
+
+                    <!-- Lista de resultados de búsqueda -->
+                    <div id="estudiantesList" class="list-group" style="max-height: 400px; overflow-y: auto; display: none;">
+                        <!-- Resultados dinámicos -->
+                    </div>
+
+                    <!-- Tabla de estudiantes (fallback) -->
+                    <div id="tablaEstudiantes" class="table-responsive">
                         <table id="tabla-estudiantes" class="table table-striped table-hover">
                             <thead class="thead-dark">
                                 <tr>
@@ -34,9 +32,7 @@
                                     <th>Nombre</th>
                                     <th>DNI</th>
                                     <th>Carrera</th>
-                                    <th>Año</th>
                                     <th>Estado</th>
-                                    <th>Cuotas Pendientes</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -48,12 +44,13 @@
                 </div>
             </div>
 
+            <!-- Información del Estudiante Seleccionado -->
             <div class="card card-info" id="card-estudiante" style="display: none;">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-user"></i> Datos del Estudiante Seleccionado</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-sm btn-light" id="btn-volver-lista">
-                            <i class="fas fa-arrow-left"></i> Volver a la lista
+                            <i class="fas fa-arrow-left"></i> Volver
                         </button>
                     </div>
                 </div>
@@ -61,39 +58,46 @@
                     <div class="row">
                         <div class="col-md-6">
                             <strong>Nombre:</strong> <span id="estudiante-nombre"></span><br>
-                            <strong>DNI:</strong> <span id="estudiante-dni"></span><br>
-                            <strong>Legajo:</strong> <span id="estudiante-legajo"></span>
+                            <strong>DNI:</strong> <span id="estudiante-dni"></span>
                         </div>
                         <div class="col-md-6">
-                            <strong>Carrera:</strong> <span id="estudiante-carrera"></span><br>
-                            <strong>Año:</strong> <span id="estudiante-año"></span><br>
-                            <strong>Estado:</strong> <span id="estudiante-estado" class="badge badge-success">Regular</span>
+                            <strong>Carrera:</strong> <span id="estudiante-carrera"></span>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Cuotas Adeudadas -->
             <div class="card card-warning" id="card-cuotas" style="display: none;">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-file-invoice-dollar"></i> Cuotas Adeudadas</h3>
                 </div>
                 <div class="card-body">
+                    <div id="loadingIndicator" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
-                        <table id="tabla-cuotas" class="table table-striped table-hover">
+                        <table class="table table-striped table-hover">
                             <thead class="thead-dark">
                                 <tr>
                                     <th><input type="checkbox" id="select-all-cuotas"></th>
                                     <th>Período</th>
                                     <th>Vencimiento</th>
-                                    <th>Importe</th>
-                                    <th>Recargo</th>
-                                    <th>Total</th>
+                                    <th class="text-right">Importe</th>
+                                    <th class="text-right">Interés/Recargo</th>
+                                    <th class="text-right">Total</th>
+                                    <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody id="cuotas-tbody">
-                                <!-- Se llenarán dinámicamente -->
                             </tbody>
                         </table>
+                    </div>
+                    <div id="noCuotasMsg" class="text-muted text-center py-3">
+                        No hay cuotas adeudadas
                     </div>
                 </div>
             </div>
@@ -114,13 +118,20 @@
                     </div>
                 </div>
                 <div class="card-footer">
+                    <div class="row mb-2">
+                        <div class="col">
+                            <h5 class="text-success">Subtotal: $<span id="subtotal-carrito">0.00</span></h5>
+                            <h5 class="text-danger">Interés: $<span id="interes-carrito">0.00</span></h5>
+                        </div>
+                    </div>
+                    <hr class="my-2">
                     <div class="row">
                         <div class="col">
-                            <h4 class="text-success">Total: $<span id="total-carrito">0,00</span></h4>
+                            <h4 class="text-success">Total: $<span id="total-carrito">0.00</span></h4>
                         </div>
                         <div class="col-auto">
                             <button class="btn btn-success" id="btn-proceder-pago" disabled>
-                                <i class="fas fa-credit-card"></i> Proceder al Pago
+                                <i class="fas fa-credit-card"></i> Proceder
                             </button>
                         </div>
                     </div>
@@ -135,772 +146,435 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <style>
+        .list-group-item.active {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .cuota-vencida {
+            background-color: #fff3cd !important;
+        }
+        .cuota-mesactual {
+            background-color: #d1ecf1 !important;
+        }
+        #tabla-estudiantes tbody tr {
+            cursor: pointer;
+        }
+        #tabla-estudiantes tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+    </style>
 @stop
 
 @section('js')
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
 
-<script>
-$(document).ready(function() {
+    <script>
+        const estudiantesData = {!! $estudiantesJson !!};
+        let cuotasActuales = [];
+        let cuotasSeleccionadas = {};
+        let totalSubtotal = 0;
+        let totalInteres = 0;
+        let mesActual = {{ now()->month }};
 
-// Datos demo de estudiantes - 25 estudiantes para demostrar DataTables
-    const estudiantesDemo = [
-        {
-            id: 1,
-            nombre: "Ana María Rodríguez",
-            dni: "35678901",
-            legajo: "TPD-2023-001",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 1, periodo: "Marzo 2024", vencimiento: "2024-03-15", importe: 25000, recargo: 2500, vencida: true },
-                { id: 2, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 25000, recargo: 1250, vencida: true }
-            ]
-        },
-        {
-            id: 2,
-            nombre: "Carlos Eduardo Fernández",
-            dni: "33456789",
-            legajo: "TPD-2023-002",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 3, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 25000, recargo: 0, vencida: false },
-                { id: 4, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 25000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 3,
-            nombre: "María Elena González",
-            dni: "28987654",
-            legajo: "TPD-2022-015",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "3°",
-            estado: "Regular",
-            cuotas: [
-                { id: 5, periodo: "Febrero 2024", vencimiento: "2024-02-15", importe: 25000, recargo: 3750, vencida: true }
-            ]
-        },
-        {
-            id: 4,
-            nombre: "Miguel Ángel López",
-            dni: "32567890",
-            legajo: "TAD-2023-008",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 6, periodo: "Marzo 2024", vencimiento: "2024-03-15", importe: 20000, recargo: 2000, vencida: true },
-                { id: 7, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 20000, recargo: 1000, vencida: true }
-            ]
-        },
-        {
-            id: 5,
-            nombre: "Laura Beatriz Silva",
-            dni: "29876543",
-            legajo: "TAD-2023-012",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 8, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 6,
-            nombre: "Roberto Carlos Méndez",
-            dni: "31234567",
-            legajo: "TPD-2023-003",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 9, periodo: "Enero 2024", vencimiento: "2024-01-15", importe: 25000, recargo: 5000, vencida: true },
-                { id: 10, periodo: "Febrero 2024", vencimiento: "2024-02-15", importe: 25000, recargo: 3750, vencida: true }
-            ]
-        },
-        {
-            id: 7,
-            nombre: "Patricia Alejandra Ruiz",
-            dni: "27654321",
-            legajo: "TAD-2022-005",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 11, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 8,
-            nombre: "Fernando José Castro",
-            dni: "34567890",
-            legajo: "TPD-2023-004",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 12, periodo: "Marzo 2024", vencimiento: "2024-03-15", importe: 25000, recargo: 2500, vencida: true }
-            ]
-        },
-        {
-            id: 9,
-            nombre: "Claudia Beatriz Morales",
-            dni: "26789012",
-            legajo: "TAD-2023-009",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 13, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 20000, recargo: 0, vencida: false },
-                { id: 14, periodo: "Junio 2024", vencimiento: "2024-06-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 10,
-            nombre: "Diego Alejandro Vargas",
-            dni: "30123456",
-            legajo: "TPD-2022-018",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "3°",
-            estado: "Regular",
-            cuotas: [
-                { id: 15, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 25000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 11,
-            nombre: "Valentina Rosa Herrera",
-            dni: "32987654",
-            legajo: "TAD-2023-010",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 16, periodo: "Febrero 2024", vencimiento: "2024-02-15", importe: 20000, recargo: 3000, vencida: true }
-            ]
-        },
-        {
-            id: 12,
-            nombre: "Sebastián Matías Torres",
-            dni: "29456789",
-            legajo: "TPD-2023-005",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 17, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 25000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 13,
-            nombre: "Natalia Andrea Jiménez",
-            dni: "31876543",
-            legajo: "TAD-2023-011",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 18, periodo: "Marzo 2024", vencimiento: "2024-03-15", importe: 20000, recargo: 2000, vencida: true }
-            ]
-        },
-        {
-            id: 14,
-            nombre: "Andrés Felipe Ramírez",
-            dni: "28345678",
-            legajo: "TPD-2022-020",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 19, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 25000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 15,
-            nombre: "Carolina Isabel Mendoza",
-            dni: "30234567",
-            legajo: "TAD-2022-007",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 20, periodo: "Enero 2024", vencimiento: "2024-01-15", importe: 20000, recargo: 4000, vencida: true }
-            ]
-        },
-        {
-            id: 16,
-            nombre: "Maximiliano Cruz Peña",
-            dni: "33654321",
-            legajo: "TPD-2023-006",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 21, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 25000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 17,
-            nombre: "Camila Sofia Ortega",
-            dni: "27123456",
-            legajo: "TAD-2023-013",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 22, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 18,
-            nombre: "Joaquín Gabriel Sosa",
-            dni: "32456789",
-            legajo: "TPD-2022-025",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 23, periodo: "Marzo 2024", vencimiento: "2024-03-15", importe: 25000, recargo: 2500, vencida: true }
-            ]
-        },
-        {
-            id: 19,
-            nombre: "Isabella Victoria Luna",
-            dni: "29789012",
-            legajo: "TAD-2022-008",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 24, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 20,
-            nombre: "Nicolás Emanuel Paz",
-            dni: "31567890",
-            legajo: "TPD-2023-007",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 25, periodo: "Febrero 2024", vencimiento: "2024-02-15", importe: 25000, recargo: 3750, vencida: true }
-            ]
-        },
-        {
-            id: 21,
-            nombre: "Agustina Celeste Rojas",
-            dni: "28678901",
-            legajo: "TAD-2023-014",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 26, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 22,
-            nombre: "Mateo Benjamín Vera",
-            dni: "30987654",
-            legajo: "TPD-2022-030",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 27, periodo: "Marzo 2024", vencimiento: "2024-03-15", importe: 25000, recargo: 2500, vencida: true }
-            ]
-        },
-        {
-            id: 23,
-            nombre: "Martina Esperanza Aguirre",
-            dni: "33234567",
-            legajo: "TAD-2023-015",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 28, periodo: "Mayo 2024", vencimiento: "2024-05-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        },
-        {
-            id: 24,
-            nombre: "Facundo Ignacio Molina",
-            dni: "27890123",
-            legajo: "TPD-2023-008",
-            carrera: "Tecnicatura Universitaria en Prótesis Dental",
-            año: "1°",
-            estado: "Regular",
-            cuotas: [
-                { id: 29, periodo: "Enero 2024", vencimiento: "2024-01-15", importe: 25000, recargo: 5000, vencida: true }
-            ]
-        },
-        {
-            id: 25,
-            nombre: "Antonella Milagros Cabrera",
-            dni: "32123456",
-            legajo: "TAD-2022-009",
-            carrera: "Tecnicatura Universitaria en Asistencia Dental",
-            año: "2°",
-            estado: "Regular",
-            cuotas: [
-                { id: 30, periodo: "Abril 2024", vencimiento: "2024-04-15", importe: 20000, recargo: 0, vencida: false }
-            ]
-        }
-    ];
+        $(document).ready(function() {
+            // Búsqueda de estudiante
+            $('#searchEstudiante').on('keyup', function() {
+                const search = $(this).val().toLowerCase().trim();
 
-// Llenar tabla de estudiantes con DataTables
-    function llenarTablaEstudiantes() {
-        const tbody = $('#estudiantes-tbody');
-        if (!tbody.length) return;
-
-        let html = '';
-        estudiantesDemo.forEach(estudiante => {
-            const esProtesis = estudiante.carrera.includes('Prótesis');
-            const badge = esProtesis ? 'badge-primary' : 'badge-info';
-            const texto = esProtesis ? 'Prótesis Dental' : 'Asistencia Dental';
-
-            html += `
-                <tr>
-                    <td>${estudiante.legajo}</td>
-                    <td>${estudiante.nombre}</td>
-                    <td>${estudiante.dni}</td>
-                    <td><span class="badge ${badge}">${texto}</span></td>
-                    <td>${estudiante.año}</td>
-                    <td><span class="badge badge-success">${estudiante.estado}</span></td>
-                    <td><span class="badge badge-warning">${estudiante.cuotas.length}</span></td>
-                    <td>
-                        <button class="btn btn-primary btn-sm btn-seleccionar" onclick="seleccionarEstudiante(${estudiante.id})">
-                            <i class="fas fa-hand-pointer"></i> Seleccionar
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        tbody.html(html);
-
-        // Inicializar DataTables
-        $('#tabla-estudiantes').DataTable({
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-            },
-            "pageLength": 20,
-            "order": [[1, "asc"]], // Ordenar por nombre
-            "columnDefs": [
-                {
-                    "targets": [7], // Columna de acciones
-                    "orderable": false,
-                    "searchable": false
+                if (search.length < 2) {
+                    $('#estudiantesList').hide();
+                    return;
                 }
-            ]
-        });
-    }
 
-    // Función global para seleccionar estudiante
-    window.seleccionarEstudiante = function(estudianteId) {
-        const estudiante = estudiantesDemo.find(e => e.id === estudianteId);
-        if (estudiante) {
-            // Guardar referencia del estudiante seleccionado
-            window.estudianteSeleccionado = estudiante;
+                const resultados = estudiantesData.filter(est =>
+                    est.nombre.toLowerCase().includes(search) ||
+                    est.dni.includes(search)
+                );
 
-            // Llenar datos del estudiante
-            $('#estudiante-nombre').text(estudiante.nombre);
-            $('#estudiante-dni').text(estudiante.dni);
-            $('#estudiante-legajo').text(estudiante.legajo);
-            $('#estudiante-carrera').text(estudiante.carrera);
-            $('#estudiante-año').text(estudiante.año);
-            $('#estudiante-estado').text(estudiante.estado);
+                if (resultados.length === 0) {
+                    $('#estudiantesList').html('<div class="list-group-item text-muted">No hay resultados</div>').show();
+                    return;
+                }
 
-            // Cambiar a la vista de detalle para focalizar el flujo
-            mostrarVistaDetalle();
-
-            // Llenar cuotas
-            llenarCuotasEstudiante(estudiante);
-        }
-    };
-
-    function llenarCuotasEstudiante(estudiante) {
-        const tbody = $('#cuotas-tbody');
-        if (!tbody.length) return;
-
-        function formatearPrecio(precio) {
-            return new Intl.NumberFormat('es-AR', {
-                style: 'currency',
-                currency: 'ARS',
-                minimumFractionDigits: 2
-            }).format(precio);
-        }
-
-        let html = '';
-        estudiante.cuotas.forEach(cuota => {
-            const total = cuota.importe + cuota.recargo;
-            const claseVencida = cuota.vencida ? 'text-danger' : '';
-
-            html += `
-                <tr class="${cuota.vencida ? 'table-warning' : ''}">
-                    <td>
-                        <input type="checkbox" class="cuota-checkbox"
-                               data-id="${cuota.id}"
-                               data-periodo="${cuota.periodo}"
-                               data-importe="${cuota.importe}"
-                               data-recargo="${cuota.recargo}"
-                               data-total="${total}"
-                               onchange="manejarSeleccionCuota(this)">
-                    </td>
-                    <td>${cuota.periodo} ${cuota.vencida ? '<i class="fas fa-exclamation-triangle text-danger" title="Vencida"></i>' : ''}</td>
-                    <td class="${claseVencida}">${cuota.vencimiento}</td>
-                    <td class="text-right">${formatearPrecio(cuota.importe)}</td>
-                    <td class="text-right ${cuota.recargo > 0 ? 'text-danger' : ''}">${formatearPrecio(cuota.recargo)}</td>
-                    <td class="text-right"><strong>${formatearPrecio(total)}</strong></td>
-                </tr>
-            `;
-        });
-
-        tbody.html(html);
-    }
-
-    // Variables globales
-    let carrito = [];
-    let totalGeneral = 0;
-
-    // Hacer la variable del estudiante verdaderamente global
-    window.estudianteSeleccionado = null;
-
-    function mostrarVistaDetalle() {
-        $('#card-lista-estudiantes').hide();
-        $('#card-estudiante').show();
-        $('#card-cuotas').show();
-
-        const cardEstudiante = $('#card-estudiante');
-        if (cardEstudiante.length) {
-            $('html, body').animate({
-                scrollTop: Math.max(cardEstudiante.offset().top - 70, 0)
-            }, 250);
-        }
-    }
-
-    function volverAListaEstudiantes() {
-        $('#card-estudiante').hide();
-        $('#card-cuotas').hide();
-        $('#card-lista-estudiantes').show();
-
-        window.estudianteSeleccionado = null;
-        carrito = [];
-        totalGeneral = 0;
-
-        $('#cuotas-tbody').empty();
-        $('#select-all-cuotas').prop('checked', false);
-        $('.cuota-checkbox').prop('checked', false);
-
-        actualizarCarrito();
-    }
-
-    $('#btn-volver-lista').on('click', function() {
-        volverAListaEstudiantes();
-    });
-
-    // Función global para actualizar totales del modal (reemplaza la del modal)
-    window.actualizarTotales = function() {
-        const totalElement = $('#total-carrito');
-        const valorDescuentoElement = $('#valor-descuento');
-        const tipoDescuentoElement = $('input[name="tipoDescuento"]:checked');
-
-        let totalConDescuento = totalGeneral;
-
-        if (tipoDescuentoElement.length && valorDescuentoElement.length) {
-            const tipoDescuento = tipoDescuentoElement.val();
-            const valorDescuento = parseFloat(valorDescuentoElement.val()) || 0;
-
-            if (tipoDescuento === 'porcentaje') {
-                totalConDescuento = totalGeneral - (totalGeneral * valorDescuento / 100);
-            } else if (tipoDescuento === 'valor') {
-                totalConDescuento = totalGeneral - valorDescuento;
-            }
-        }
-
-        if (totalElement.length) {
-            totalElement.text(new Intl.NumberFormat('es-AR', {
-                style: 'currency',
-                currency: 'ARS',
-                minimumFractionDigits: 2
-            }).format(totalConDescuento));
-        }
-
-        // Actualizar totales en el modal
-        $('#modal-subtotal').text(new Intl.NumberFormat('es-AR', {
-            style: 'currency',
-            currency: 'ARS'
-        }).format(totalGeneral));
-
-        $('#modal-descuento').text(new Intl.NumberFormat('es-AR', {
-            style: 'currency',
-            currency: 'ARS'
-        }).format(totalGeneral - totalConDescuento));
-
-        $('#modal-total').text(new Intl.NumberFormat('es-AR', {
-            style: 'currency',
-            currency: 'ARS'
-        }).format(totalConDescuento));
-    };
-
-    // Función global para manejar selección de cuotas
-    window.manejarSeleccionCuota = function(checkbox) {
-        const cuotaData = {
-            id: parseInt(checkbox.dataset.id),
-            periodo: checkbox.dataset.periodo,
-            importe: parseFloat(checkbox.dataset.importe),
-            recargo: parseFloat(checkbox.dataset.recargo),
-            total: parseFloat(checkbox.dataset.total)
-        };
-
-        if (checkbox.checked) {
-            carrito.push(cuotaData);
-        } else {
-            carrito = carrito.filter(item => item.id !== cuotaData.id);
-        }
-
-        actualizarCarrito();
-    };
-
-    function actualizarCarrito() {
-        const carritoItems = $('#carrito-items');
-        const btnPago = $('#btn-proceder-pago');
-        const totalElement = $('#total-carrito');
-
-        if (carritoItems.length === 0 || btnPago.length === 0 || totalElement.length === 0) return;
-
-        function formatearPrecio(precio) {
-            return new Intl.NumberFormat('es-AR', {
-                style: 'currency',
-                currency: 'ARS',
-                minimumFractionDigits: 2
-            }).format(precio);
-        }
-
-        let html = '';
-        totalGeneral = 0;
-
-        if (carrito.length === 0) {
-            html = `
-                <div class="text-center text-muted py-4">
-                    <i class="fas fa-file-invoice-dollar fa-3x"></i>
-                    <p class="mt-2">No hay cuotas seleccionadas</p>
-                </div>
-            `;
-            btnPago.prop('disabled', true);
-        } else {
-            carrito.forEach(cuota => {
-                totalGeneral += cuota.total;
-                html += `
-                    <div class="cuota-item mb-2 p-2 border rounded bg-light">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong class="text-dark">${cuota.periodo}</strong><br>
-                                <small class="text-muted">
-                                    Cuota: ${formatearPrecio(cuota.importe)}
-                                    ${cuota.recargo > 0 ? `+ Recargo: ${formatearPrecio(cuota.recargo)}` : ''}
-                                </small>
+                let html = '';
+                resultados.forEach(est => {
+                    const carreraText = est.carrera === 'tecnicatura_protesis' ? 'Prótesis Dental' : 'Asistencia Dental';
+                    html += `
+                        <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarEstudiante(${est.id}, event)">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${est.nombre}</h6>
+                                <small>${est.dni}</small>
                             </div>
-                            <div class="text-right">
-                                <strong class="text-success">${formatearPrecio(cuota.total)}</strong>
-                            </div>
-                        </div>
+                            <p class="mb-1 text-muted">${carreraText}</p>
+                        </a>
+                    `;
+                });
+
+                $('#estudiantesList').html(html).show();
+            });
+
+            // Checkbox "seleccionar todo"
+            $(document).on('change', '#select-all-cuotas', function() {
+                const isChecked = $(this).is(':checked');
+                $('input[name="cuota_id"]').prop('checked', isChecked).trigger('change');
+            });
+
+            // Checkbox individual de cuota
+            $(document).on('change', 'input[name="cuota_id"]', function() {
+                actualizarCarrito();
+            });
+
+            // Volver a lista de estudiantes
+            $('#btn-volver-lista').on('click', function() {
+                volverALista();
+            });
+
+            // Proceder al pago
+            $('#btn-proceder-pago').on('click', function() {
+                if (Object.keys(cuotasSeleccionadas).length === 0) {
+                    alert('Seleccione al menos una cuota');
+                    return;
+                }
+
+                // Llenar resumen en el modal
+                llenarResumenModal();
+
+                window.estudianteCobroActual = window.estudianteCobroActual || {
+                    nombre: $('#estudiante-nombre').text().trim(),
+                    dni: $('#estudiante-dni').text().trim()
+                };
+
+                // Mostrar modal de pago
+                $('#modalPago').modal('show');
+            });
+
+            // Al cerrar modal, limpiar
+            $('#modalPago').on('hidden.bs.modal', function() {
+                // Reset de selecciones para próxima compra
+            });
+        });
+
+        function seleccionarEstudiante(estudianteId, event) {
+            if (event) event.preventDefault();
+            const est = estudiantesData.find(e => e.id === estudianteId);
+            if (!est) return;
+
+            window.estudianteCobroActual = {
+                nombre: est.nombre || '',
+                dni: est.dni || ''
+            };
+
+            $('#estudiante-nombre').text(est.nombre);
+            $('#estudiante-dni').text(est.dni);
+            $('#estudiante-carrera').text(est.carrera === 'tecnicatura_protesis' ? 'Prótesis Dental' : 'Asistencia Dental');
+
+            $('#card-lista-estudiantes').hide();
+            $('#card-estudiante').show();
+            $('#searchEstudiante').val('');
+            $('#estudiantesList').hide();
+
+            // Cargar cuotas
+            cargarCuotasEstudiante(estudianteId);
+
+            $('html, body').animate({ scrollTop: $('#card-estudiante').offset().top - 70 }, 300);
+        }
+
+        function cargarCuotasEstudiante(estudianteId) {
+            $('#loadingIndicator').show();
+            $('#cuotas-tbody').html('');
+            $('#noCuotasMsg').show();
+            cuotasActuales = [];
+            cuotasSeleccionadas = {};
+
+            $.ajax({
+                url: '{{ route("box.cobros.cuotas.buscar") }}',
+                type: 'GET',
+                data: { estudiante_id: estudianteId },
+                success: function(response) {
+                    $('#loadingIndicator').hide();
+                    cuotasActuales = response.cuotas;
+
+                    if (cuotasActuales.length === 0) {
+                        $('#card-cuotas').show();
+                        $('#noCuotasMsg').show();
+                        return;
+                    }
+
+                    $('#noCuotasMsg').hide();
+                    let html = '';
+
+                    cuotasActuales.forEach(cuota => {
+                        const rowClass = cuota.numero_cuota === mesActual ? 'cuota-mesactual' : (cuota.vencida ? 'cuota-vencida' : '');
+                        const estadoBadge = cuota.vencida
+                            ? '<span class="badge badge-warning">Vencida</span>'
+                            : '<span class="badge badge-info">Mes Actual</span>';
+
+                        html += `
+                            <tr class="${rowClass}">
+                                <td><input type="checkbox" name="cuota_id" value="${cuota.id}"></td>
+                                <td>${cuota.periodo}</td>
+                                <td>${cuota.vencimiento}</td>
+                                <td class="text-right">$${cuota.importe.toFixed(2)}</td>
+                                <td class="text-right">
+                                    ${cuota.recargo > 0
+                                        ? `<span class="badge badge-danger">$${cuota.recargo.toFixed(2)}</span>`
+                                        : '-'
+                                    }
+                                </td>
+                                <td class="text-right"><strong>$${cuota.total.toFixed(2)}</strong></td>
+                                <td>${estadoBadge}</td>
+                            </tr>
+                        `;
+                    });
+
+                    $('#cuotas-tbody').html(html);
+                    $('#card-cuotas').show();
+                    $('#select-all-cuotas').prop('checked', false);
+                },
+                error: function(xhr) {
+                    $('#loadingIndicator').hide();
+                    alert('Error al cargar cuotas: ' + (xhr.responseJSON?.message || 'Error desconocido'));
+                }
+            });
+        }
+
+        function actualizarCarrito() {
+            sincronizarCuotasSeleccionadas();
+
+            if (Object.keys(cuotasSeleccionadas).length === 0) {
+                $('#carrito-items').html(`
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-file-invoice-dollar fa-3x"></i>
+                        <p class="mt-2">No hay cuotas seleccionadas</p>
                     </div>
+                `);
+                $('#btn-proceder-pago').prop('disabled', true);
+                $('#subtotal-carrito').text('0.00');
+                $('#interes-carrito').text('0.00');
+                $('#total-carrito').text('0.00');
+                return;
+            }
+
+            let html = '<table class="table table-sm"><tbody>';
+            totalSubtotal = 0;
+            totalInteres = 0;
+
+            Object.values(cuotasSeleccionadas).forEach(cuota => {
+                totalSubtotal += cuota.importe;
+                totalInteres += cuota.recargo;
+                html += `
+                    <tr>
+                        <td>${cuota.periodo}</td>
+                        <td class="text-right">$${cuota.importe.toFixed(2)}</td>
+                        ${cuota.recargo > 0
+                            ? `<td class="text-right text-danger">+$${cuota.recargo.toFixed(2)}</td>`
+                            : '<td></td>'
+                        }
+                    </tr>
                 `;
             });
-            btnPago.prop('disabled', false);
+
+            html += '</tbody></table>';
+            $('#carrito-items').html(html);
+
+            $('#subtotal-carrito').text(totalSubtotal.toFixed(2));
+            $('#interes-carrito').text(totalInteres.toFixed(2));
+            $('#total-carrito').text((totalSubtotal + totalInteres).toFixed(2));
+
+            $('#btn-proceder-pago').prop('disabled', false);
+
+            // Actualizar función de totales para el modal
+            actualizarTotales();
         }
 
-        carritoItems.html(html);
-        totalElement.text(formatearPrecio(totalGeneral));
-    }
+        function sincronizarCuotasSeleccionadas() {
+            cuotasSeleccionadas = {};
+            $('input[name="cuota_id"]:checked').each(function() {
+                const cuotaId = parseInt($(this).val());
+                const cuota = cuotasActuales.find(c => c.id === cuotaId);
+                if (cuota) {
+                    cuotasSeleccionadas[cuotaId] = cuota;
+                }
+            });
 
-    // Evento para el botón de proceder al pago
-    $('#btn-proceder-pago').on('click', function() {
-        if (carrito.length === 0) {
-            alert('Debe seleccionar al menos una cuota para proceder al pago.');
-            return;
+            totalSubtotal = 0;
+            totalInteres = 0;
+
+            Object.values(cuotasSeleccionadas).forEach(cuota => {
+                totalSubtotal += cuota.importe;
+                totalInteres += cuota.recargo;
+            });
+
+            return cuotasSeleccionadas;
         }
 
-        // Llenar el resumen de items en el modal
-        const resumenItems = $('#resumen-items');
-        if (resumenItems.length) {
-            let htmlResumen = '';
-            carrito.forEach(cuota => {
-                htmlResumen += `
+        function llenarResumenModal() {
+            sincronizarCuotasSeleccionadas();
+
+            let html = '';
+            const cuotasSeleccionadasLista = Object.values(cuotasSeleccionadas);
+
+            if (cuotasSeleccionadasLista.length === 0) {
+                $('#resumen-items').html('<div class="text-center text-muted py-3">No hay cuotas seleccionadas</div>');
+                actualizarTotales();
+                return;
+            }
+
+            cuotasSeleccionadasLista.forEach(cuota => {
+                html += `
                     <div class="d-flex justify-content-between mb-1">
                         <span>${cuota.periodo}</span>
-                        <span class="font-weight-bold">${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(cuota.total)}</span>
+                        <span class="font-weight-bold">$${cuota.total.toFixed(2)}</span>
                     </div>
                 `;
             });
-            resumenItems.html(htmlResumen);
+            $('#resumen-items').html(html);
+
+            actualizarTotales();
         }
 
-        // Actualizar totales en el modal
-        actualizarTotales();
-
-        // Mostrar el modal
-        $('#modalPago').modal('show');
-
-        // Configurar auto-llenado después de que el modal esté visible
-        setTimeout(() => {
-            configurarDatosEstudiante();
-        }, 300);
-    });
-
-    // Función para configurar auto-llenado de datos del estudiante
-    function configurarDatosEstudiante() {
-        if (!window.estudianteSeleccionado) {
-            console.log('No hay estudiante seleccionado para auto-llenado');
-            return;
-        }
-
-        console.log('Configurando auto-llenado para:', window.estudianteSeleccionado.nombre);
-
-        // Función para llenar los campos
-        function llenarDatosEstudiante() {
-            if (window.estudianteSeleccionado) {
-                const nombreField = document.getElementById('cliente-nombre');
-                const documentoField = document.getElementById('cliente-documento');
-                const direccionField = document.getElementById('cliente-direccion');
-                const condicionField = document.getElementById('condicion-iva');
-
-                if (nombreField) nombreField.value = window.estudianteSeleccionado.nombre;
-                if (documentoField) documentoField.value = window.estudianteSeleccionado.dni;
-                if (direccionField) direccionField.value = '';
-                if (condicionField) condicionField.value = 'consumidor_final';
-
-                console.log('Datos llenados:', {
-                    nombre: nombreField ? nombreField.value : 'no encontrado',
-                    documento: documentoField ? documentoField.value : 'no encontrado'
-                });
-            }
-        }
-
-        // Escuchar clics en las opciones de comprobante (usando el sistema del modal unificado)
-        const opcionesComprobante = document.querySelectorAll('.comprobante-option');
-        opcionesComprobante.forEach(opcion => {
-            opcion.addEventListener('click', function() {
-                const comprobante = this.dataset.comprobante;
-                console.log('Tipo de comprobante seleccionado:', comprobante);
-
-                if (comprobante === 'factura_local' || comprobante === 'factura_fiscal') {
-                    // Esperar un poco para que se muestren los campos
-                    setTimeout(llenarDatosEstudiante, 200);
-                }
-            });
-        });
-
-        // También escuchar cambios en los radio buttons directamente
-        const radiosComprobante = document.querySelectorAll('input[name="tipoComprobante"]');
-        radiosComprobante.forEach(radio => {
-            radio.addEventListener('change', function() {
-                const tipoComprobante = this.value;
-                console.log('Radio comprobante cambiado:', tipoComprobante);
-
-                if (tipoComprobante === 'factura_local' || tipoComprobante === 'factura_fiscal') {
-                    setTimeout(llenarDatosEstudiante, 200);
-                }
-            });
-        });
-    }
-
-    // Configurar el botón de procesar pago en el modal
-    $('#btn-procesar-pago').on('click', function() {
-        procesarPagoConFactura();
-    });
-
-    // Función para procesar pago con factura (similar a productos)
-    function procesarPagoConFactura() {
-        console.log('Procesando pago de cuotas con factura');
-
-        const tipoComprobante = $('input[name="tipoComprobante"]:checked').val() || 'ticket';
-        const metodoPago = $('input[name="metodoPago"]:checked').val() || 'efectivo';
-
-        // Datos COMPLETOS incluyendo método de pago
-        const datos = {
-            datosCliente: {
-                nombre: $('#cliente-nombre').val() || 'Cliente Genérico',
-                documento: $('#cliente-documento').val() || '00000000',
-                direccion: $('#cliente-direccion').val() || '',
-                condicionIva: $('#condicion-iva').val() || 'consumidor_final'
-            },
-            tipoComprobante: tipoComprobante,
-            metodoPago: metodoPago,
-            totalFinal: totalGeneral,
-            subtotal: totalGeneral,
-            descuento: 0,
-            observaciones: $('#observaciones').val() || '',
-            carritoCuotas: carrito // Usar carritoCuotas para distinguir de productos
+        // Función que el modal espera
+        window.actualizarTotales = function() {
+            const totalConDescuento = calcularTotalConDescuento();
+            const descuento = (totalSubtotal + totalInteres - totalConDescuento);
+            $('#modal-subtotal').text(totalSubtotal.toFixed(2));
+            $('#modal-interes').text(totalInteres.toFixed(2));
+            $('#modal-descuento').text(descuento.toFixed(2));
+            $('#modal-total').text(totalConDescuento.toFixed(2));
         };
 
-        console.log('Enviando datos de cuotas:', datos);
+        function calcularTotalConDescuento() {
+            const tipoDescuento = $('input[name="tipoDescuento"]:checked').val();
+            const valorDescuento = parseFloat($('#valor-descuento').val()) || 0;
+            let total = totalSubtotal + totalInteres;
 
-        // Deshabilitar botón
-        $('#btn-procesar-pago').prop('disabled', true).html('Procesando...');
-
-        // XMLHttpRequest nativo para manejar blob correctamente
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '{{ route("box.facturas.procesar-pago-factura") }}');
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
-        xhr.responseType = 'blob';
-
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                console.log('PDF de cuotas recibido exitosamente');
-
-                // Crear blob y abrir
-                const blob = new Blob([xhr.response], { type: 'application/pdf' });
-                const url = window.URL.createObjectURL(blob);
-                const ventana = window.open(url, '_blank');
-
-                if (ventana) {
-                    console.log('PDF abierto en nueva ventana');
-                } else {
-                    alert('Bloqueador de pop-ups detectado. Verifique su configuración.');
-                }
-
-                // Limpiar y volver al estado inicial
-                $('#modalPago').modal('hide');
-                volverAListaEstudiantes();
-
-            } else {
-                console.error('Error HTTP:', xhr.status);
-                alert('Error generando factura: Código ' + xhr.status);
+            if (tipoDescuento === 'porcentaje' && valorDescuento > 0) {
+                total = total - (total * valorDescuento / 100);
+            } else if (tipoDescuento === 'valor' && valorDescuento > 0) {
+                total = total - valorDescuento;
             }
 
-            // Restaurar botón
-            $('#btn-procesar-pago').prop('disabled', false).html('Procesar Pago');
-        };
+            return Math.max(0, total);
+        }
 
-        xhr.onerror = function() {
-            console.error('Error de red');
-            alert('Error de conexión al generar factura');
-            $('#btn-procesar-pago').prop('disabled', false).html('Procesar Pago');
-        };
+        function volverALista() {
+            $('#card-lista-estudiantes').show();
+            $('#card-estudiante').hide();
+            $('#card-cuotas').hide();
+            $('#searchEstudiante').val('');
+            $('#estudiantesList').hide();
 
-        // Enviar datos
-        const formData = new URLSearchParams();
-        formData.append('datosCliente', JSON.stringify(datos.datosCliente));
-        formData.append('tipoComprobante', datos.tipoComprobante);
-        formData.append('metodoPago', datos.metodoPago);
-        formData.append('totalFinal', datos.totalFinal);
-        formData.append('subtotal', datos.subtotal);
-        formData.append('descuento', datos.descuento);
-        formData.append('observaciones', datos.observaciones);
-        formData.append('carritoCuotas', JSON.stringify(datos.carritoCuotas));
+            cuotasActuales = [];
+            cuotasSeleccionadas = {};
+            actualizarCarrito();
+        }
 
-        xhr.send(formData);
-    }
+        // Configurar el procesamiento del pago en el modal
+        $(document).on('click', '#btn-procesar-pago', function() {
+            sincronizarCuotasSeleccionadas();
+            procesarPagoConFactura();
+        });
 
-    // Llenar tabla inicialmente
-    llenarTablaEstudiantes();
-});
-</script>
+        function procesarPagoConFactura() {
+            console.log('Procesando pago de cuotas');
+
+            const tipoComprobante = $('input[name="tipoComprobante"]:checked').val() || 'factura_local';
+            const metodoPago = $('input[name="metodoPago"]:checked').val() || 'efectivo';
+            const totalFinal = calcularTotalConDescuento();
+            const observaciones = $('#observaciones').val() || '';
+            const montoRecibido = parseFloat($('#monto-recibido').val() || '0') || 0;
+            const montoVuelto = Math.max(montoRecibido - totalFinal, 0);
+            const mixtoMetodo1 = ($('#mixto-metodo-1').val() || '').trim();
+            const mixtoMetodo2 = ($('#mixto-metodo-2').val() || '').trim();
+            const mixtoMonto1 = parseFloat($('#mixto-monto-1').val() || '0') || 0;
+            const mixtoMonto2 = parseFloat($('#mixto-monto-2').val() || '0') || 0;
+
+            // Datos de cliente para factura
+            const clienteNombre = $('#cliente-nombre').val() || '';
+            const clienteDocumento = $('#cliente-documento').val() || '';
+            const clienteDireccion = $('#cliente-direccion').val() || '';
+            const clienteCondicionIva = $('#condicion-iva').val() || 'consumidor_final';
+
+            const cuotaIds = Object.keys(cuotasSeleccionadas);
+
+            if (metodoPago === 'efectivo' && montoRecibido < totalFinal) {
+                alert('El monto recibido es menor al total a pagar.');
+                const campoMontoRecibido = document.getElementById('monto-recibido');
+                if (campoMontoRecibido) {
+                    campoMontoRecibido.focus();
+                }
+                return;
+            }
+
+            if (metodoPago === 'mixto') {
+                const mediosValidos = ['efectivo', 'tarjeta', 'transferencia'];
+                if (!mediosValidos.includes(mixtoMetodo1) || !mediosValidos.includes(mixtoMetodo2)) {
+                    alert('Seleccione dos medios de pago válidos para el pago mixto.');
+                    return;
+                }
+
+                if (mixtoMetodo1 === mixtoMetodo2) {
+                    alert('En pago mixto debe elegir dos medios diferentes.');
+                    return;
+                }
+
+                if (mixtoMonto1 <= 0 || mixtoMonto2 <= 0) {
+                    alert('En pago mixto ambos montos deben ser mayores a 0.');
+                    return;
+                }
+
+                const totalMixto = mixtoMonto1 + mixtoMonto2;
+                if (Math.abs(totalMixto - totalFinal) > 0.01) {
+                    alert('La suma del pago mixto debe ser exactamente igual al total.');
+                    return;
+                }
+            }
+
+            $('#btn-procesar-pago').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+
+            $.ajax({
+                url: '{{ route("box.cobros.cuotas.registrar") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    cuota_ids: cuotaIds,
+                    metodo_pago: metodoPago,
+                    tipo_comprobante: tipoComprobante,
+                    numero_comprobante: $('#numeroComprobante').val() || '',
+                    cliente_nombre: clienteNombre,
+                    cliente_documento: clienteDocumento,
+                    cliente_direccion: clienteDireccion,
+                    cliente_condicion_iva: clienteCondicionIva,
+                    monto_recibido: montoRecibido,
+                    monto_vuelto: montoVuelto,
+                    mixto_metodo_1: mixtoMetodo1,
+                    mixto_monto_1: mixtoMonto1,
+                    mixto_metodo_2: mixtoMetodo2,
+                    mixto_monto_2: mixtoMonto2,
+                    observaciones: observaciones,
+                    total: totalFinal
+                },
+                success: function(response) {
+                    const pdfUrl = response?.datos?.pdf_url;
+
+                    alert('Pago registrado correctamente.\nCuotas: ' + response.datos.cuotas_pagadas + '\nTotal: $' + response.datos.total_pagado.toFixed(2));
+
+                    if (pdfUrl) {
+                        window.open(pdfUrl, '_blank');
+                    }
+
+                    $('#modalPago').modal('hide');
+                    volverALista();
+                },
+                error: function(xhr) {
+                    alert('Error al registrar el pago: ' + (xhr.responseJSON?.message || 'Error desconocido'));
+                },
+                complete: function() {
+                    $('#btn-procesar-pago').prop('disabled', false).html('<i class="fas fa-check"></i> Procesar Pago');
+                }
+            });
+        }
+    </script>
 @stop
