@@ -28,17 +28,17 @@ Objetivo principal:
 
 ### Plantillas base
 
-- PLANTILLA-SKILLS.md
-- PLANTILLA-SPEC-DRIVEN.md
+- docs/ia/templates/PLANTILLA-SKILLS.md
+- docs/ia/templates/PLANTILLA-SPEC-DRIVEN.md
 
 ### Documento base del sistema
 
-- SPEC-COOPERADORA-000-SDD-INICIAL-SISTEMA.md ← SDD baseline: stack, entornos, estándares visuales, restricciones
+- docs/ia/specs/SPEC-COOPERADORA-000-SDD-INICIAL-SISTEMA.md ← SDD baseline: stack, entornos, estándares visuales, restricciones
 
 ### Archivos aplicados al caso real
 
-- SKILL-COOPERADORA-CIERRE-COBROS-UNIFICADOS.md
-- SPEC-COOPERADORA-001-CIERRE-BRECHA-COBROS-POSTGRADO.md
+- docs/ia/skills/SKILL-COOPERADORA-CIERRE-COBROS-UNIFICADOS.md
+- docs/ia/specs/SPEC-COOPERADORA-001-CIERRE-BRECHA-COBROS-POSTGRADO.md
 
 ### Implementacion de ejemplo creada
 
@@ -65,7 +65,7 @@ Objetivo principal:
 
 ### Paso 1: Definir la spec
 
-Usar PLANTILLA-SPEC-DRIVEN.md y completar:
+Usar docs/ia/templates/PLANTILLA-SPEC-DRIVEN.md y completar:
 
 - contexto,
 - alcance,
@@ -79,7 +79,7 @@ Resultado esperado:
 
 ### Paso 2: Instanciar la Skill de ejecucion
 
-Usar PLANTILLA-SKILLS.md y convertirla en una Skill operativa concreta para esa spec.
+Usar docs/ia/templates/PLANTILLA-SKILLS.md y convertirla en una Skill operativa concreta para esa spec.
 
 Resultado esperado:
 
@@ -182,11 +182,11 @@ Regla practica:
 
 Nombre sugerido para specs:
 
-- SPEC-COOPERADORA-XXX-NOMBRE.md
+- docs/ia/specs/SPEC-COOPERADORA-XXX-NOMBRE.md
 
 Nombre sugerido para skills:
 
-- SKILL-COOPERADORA-NOMBRE.md
+- docs/ia/skills/SKILL-COOPERADORA-NOMBRE.md
 
 Estructura de estado:
 

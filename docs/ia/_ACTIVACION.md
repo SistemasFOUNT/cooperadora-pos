@@ -15,8 +15,8 @@ Aplicar protocolo skill-driven + spec-driven de Cooperadora para [modulo/feature
 
 ```text
 PROTOCOLO COOPERADORA OBLIGATORIO:
-1) Leer PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
-2) Crear o actualizar spec en PLANTILLA-SPEC-DRIVEN.md (estado draft/approved)
+1) Leer docs/ia/PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
+2) Crear o actualizar spec en docs/ia/templates/PLANTILLA-SPEC-DRIVEN.md (estado draft/approved)
 3) Ejecutar SKILL-01 Reconocimiento
 4) Ejecutar SKILL-02 Aislamiento
 5) Implementar con SKILL-03 (y SKILL-04 si hay cobros)
@@ -72,6 +72,9 @@ No avanzar a implementacion si falta alguno de estos puntos:
 
 ## 6. Archivos oficiales de referencia
 
-- PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
-- PLANTILLA-SPEC-DRIVEN.md
+- docs/ia/PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
+- docs/ia/templates/PLANTILLA-SPEC-DRIVEN.md
+- docs/ia/templates/PLANTILLA-SKILLS.md
+- docs/ia/specs/ ← todas las specs del proyecto
+- docs/ia/skills/ ← todas las skills del proyecto
 - ESTANDARES-PROYECTO.md
