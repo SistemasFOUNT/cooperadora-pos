@@ -34,6 +34,7 @@ Objetivo principal:
 ### Documento base del sistema
 
 - docs/ia/specs/SPEC-COOPERADORA-000-SDD-INICIAL-SISTEMA.md ← SDD baseline: stack, entornos, estándares visuales, restricciones
+- docs/ia/PLAYBOOK-OPERATIVO-MCP-COOPERADORA.md ← adopcion operativa MCP por fases, checklist, go/no-go y fallback
 
 ### Archivos aplicados al caso real
 

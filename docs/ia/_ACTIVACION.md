@@ -73,6 +73,7 @@ No avanzar a implementacion si falta alguno de estos puntos:
 ## 6. Archivos oficiales de referencia
 
 - docs/ia/PROTOCOLO_ANALISIS_SISTEMA_COOPERADORA.md
+- docs/ia/PLAYBOOK-OPERATIVO-MCP-COOPERADORA.md
 - docs/ia/templates/PLANTILLA-SPEC-DRIVEN.md
 - docs/ia/templates/PLANTILLA-SKILLS.md
 - docs/ia/specs/ ← todas las specs del proyecto
