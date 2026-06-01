@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'box_menu' => \App\Http\Middleware\BoxMenuMiddleware::class,
             'postgrado_menu' => \App\Http\Middleware\PostgradoMenuMiddleware::class,
             'odonto_menu' => \App\Http\Middleware\OdontoMenuMiddleware::class,
+            'generic_crud_access' => \App\Http\Middleware\GenericCrudAccessMiddleware::class,
         ]);
     })
     ->withProviders([

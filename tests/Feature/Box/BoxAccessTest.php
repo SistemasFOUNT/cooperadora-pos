@@ -4,12 +4,12 @@ namespace Tests\Feature\Box;
 
 use App\Models\PuntoVenta;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class BoxAccessTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_usuario_no_box_no_puede_acceder_a_dashboard_box(): void
     {

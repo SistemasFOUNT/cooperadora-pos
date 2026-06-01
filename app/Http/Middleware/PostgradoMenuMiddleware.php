@@ -15,14 +15,19 @@ class PostgradoMenuMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // DEBUG - verificar que el usuario correcto está accediendo
         if (Auth::check()) {
-            \Log::info('PostgradoMenuMiddleware - Usuario: ' . Auth::user()->username);
-            \Log::info('PostgradoMenuMiddleware - Role: ' . Auth::user()->role);
-        }
+            $user = Auth::user();
 
-        // La carga del menú ahora es manejada por AdminLTEServiceProvider
-        // durante el evento BuildingMenu para resolver problemas de timing
+            // Aislamiento estricto: solo admin o usuario_postgrado pueden entrar a rutas Postgrado.
+            if (!$user->isAdmin() && $user->role !== 'usuario_postgrado') {
+                abort(403, 'No tienes permisos para acceder al módulo Postgrado.');
+            }
+
+            if ($user->role === 'usuario_postgrado') {
+                $postgradoMenu = config('postgrado-menu.menu');
+                Config::set('adminlte.menu', $postgradoMenu);
+            }
+        }
 
         return $next($request);
     }

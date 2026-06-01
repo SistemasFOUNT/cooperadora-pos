@@ -418,7 +418,7 @@ Route::middleware('auth')->group(function () {
     // ===== RUTAS CRUD EN ESPAÑOL =====
 
     // Rutas para Estudiantes
-    Route::prefix('estudiantes')->name('estudiantes.')->group(function () {
+    Route::prefix('estudiantes')->middleware('generic_crud_access:estudiantes')->name('estudiantes.')->group(function () {
         Route::get('/', [App\Http\Controllers\EstudianteController::class, 'index'])->name('index');
         Route::get('/crear', [App\Http\Controllers\EstudianteController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\EstudianteController::class, 'store'])->name('store');
@@ -437,7 +437,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rutas para Carreras
-    Route::prefix('carreras')->name('carreras.')->group(function () {
+    Route::prefix('carreras')->middleware('generic_crud_access:carreras')->name('carreras.')->group(function () {
         Route::get('/', [App\Http\Controllers\CarreraController::class, 'index'])->name('index');
         Route::get('/crear', [App\Http\Controllers\CarreraController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\CarreraController::class, 'store'])->name('store');
@@ -453,7 +453,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rutas para Productos
-    Route::prefix('productos')->name('productos.')->group(function () {
+    Route::prefix('productos')->middleware('generic_crud_access:productos')->name('productos.')->group(function () {
         Route::get('/', [App\Http\Controllers\ProductoController::class, 'index'])->name('index');
         Route::get('/crear', [App\Http\Controllers\ProductoController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\ProductoController::class, 'store'])->name('store');

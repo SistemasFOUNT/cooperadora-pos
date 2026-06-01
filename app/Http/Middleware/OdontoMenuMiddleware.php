@@ -17,11 +17,18 @@ class OdontoMenuMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Si el usuario está autenticado y es usuario ODONTO
-        if (Auth::check() && Auth::user()->role === 'usuario_odonto') {
-            // Cargar el menú específico de ODONTO
-            $odontoMenu = config('odonto-menu.menu');
-            Config::set('adminlte.menu', $odontoMenu);
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Aislamiento estricto: solo admin o usuario_odonto pueden entrar a rutas Odonto.
+            if (!$user->isAdmin() && $user->role !== 'usuario_odonto') {
+                abort(403, 'No tienes permisos para acceder al módulo Odonto.');
+            }
+
+            if ($user->role === 'usuario_odonto') {
+                $odontoMenu = config('odonto-menu.menu');
+                Config::set('adminlte.menu', $odontoMenu);
+            }
         }
 
         return $next($request);
